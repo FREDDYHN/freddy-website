@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>常见问题 — 福瑞笛 FREDDY</title>
+  <meta name="description" content="德国WEEE、电池法、包装法注册常见问题解答FAQ，涵盖注册流程、费用、授权代表、处罚等。" />
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .faq-nav { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 40px; }
+    .faq-nav button { padding: 8px 20px; border: 1px solid var(--color-border); border-radius: 20px; background: #fff; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+    .faq-nav button:hover, .faq-nav button.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .faq-section { margin-bottom: 48px; }
+    .faq-section h3 { font-size: 1.3rem; color: var(--color-primary); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--color-primary); }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="container">
+    <a href="/" class="header-logo">
+      <img src="/image/福瑞笛LOGO.png" alt="FREDDY 福瑞笛">
+    </a>
+    <button class="header-toggle" id="navToggle"><span></span><span></span><span></span></button>
+    <nav class="header-nav" id="headerNav">
+      <a href="/">首页</a>
+      <div class="nav-dropdown">
+        <a href="#">服务项目</a>
+        <div class="nav-dropdown-menu">
+          <a href="/pages/services-packaging.html">德国包装法</a>
+          <a href="/pages/services-battery.html">德国电池法</a>
+          <a href="/pages/services-weee.html">德国 WEEE</a>
+        </div>
+      </div>
+      <a href="/pages/calculator.html">费用计算器</a>
+      <a href="/pages/forms.html">在线申报</a>
+      <a href="/pages/faq.html" class="active">常见问题</a>
+      <a href="/pages/download.html">下载中心</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="background: linear-gradient(135deg, #1e3a5f 0%, #0d2137 100%);">
+  <div class="container">
+    <h1>常见问题</h1>
+    <p>关于德国包装法、电池法、WEEE 注册的常见疑问解答</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+
+    <div class="faq-nav">
+      <button class="active" onclick="filterFAQ('all')">全部</button>
+      <button onclick="filterFAQ('packaging')">📦 包装法</button>
+      <button onclick="filterFAQ('battery')">🔋 电池法</button>
+      <button onclick="filterFAQ('weee')">♻️ WEEE</button>
+      <button onclick="filterFAQ('general')">📋 综合</button>
+    </div>
+
+    <!-- 包装法 FAQ -->
+    <div class="faq-section" data-cat="packaging">
+      <h3>德国包装法 VerpackG</h3>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">什么是德国包装法（VerpackG）？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            德国《包装法》(Verpackungsgesetz) 于 2019 年 1 月 1 日生效，是对 1991 年包装条例的全面修订。该法要求所有在德国市场首次投放包装的经营者，必须在中央包装登记处 (ZSVR) 注册，并通过双轨制系统获得包装许可。该法比前身更加注重回收利用，设立了逐步提高的法定回收配额。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">谁需要注册包装法？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            所有在德国市场首次投放包装的经营者，包括：制造商、进口商、在线零售商。自 2022 年 7 月起，无论是否负有系统参与义务，所有将包装产品投放到德国市场的制造商都必须注册。关键是：<strong>您的产品包装最终是否到达德国终端消费者手中？</strong>如果是，就需要注册。<br><br>
+            需要注意：在线商店和仓储物流服务商 (Fulfillment-Dienstleister) 有义务持续监控所售商品的系统参与情况。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">包装法注册流程是怎样的？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            <strong>两步走：</strong><br>
+            1. 在 ZSVR 官网 (lucid.verpackungsregister.org) 注册账号，获取 LUCID 注册号。<br>
+            2. 通过双轨制系统（如 EKO-PUNKT 的 EASY-LIZE 中文平台）购买包装许可。<br>
+            3. 将许可信息回传至 LUCID 系统，完成年度数据申报。<br><br>
+            包装许可按年购买，费用根据包装材料种类和重量计算，起价 28.90€。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">哪些包装需要许可？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            所有最终到达终端消费者手中的包装都必须获得许可。法律区分了以下几类：<br>
+            - <strong>销售包装</strong>（Verkaufsverpackungen）：直接面向消费者的产品包装<br>
+            - <strong>外包装</strong>（Umverpackungen）：额外的保护层<br>
+            - <strong>服务包装</strong>（Serviceverpackungen）：如外卖食品容器<br>
+            - <strong>运输包装</strong>（Versandverpackungen）：电商发货时的外箱<br>
+            - <strong>填充材料</strong>（Füllmaterial）也包含在内<br><br>
+            <strong>包装从第一克起就需要许可。</strong>运输包装目前部分情况例外，但未来也可能纳入。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">不注册包装法会有什么后果？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            <strong>非常严重的处罚：</strong><br>
+            - 未注册或注册错误：最高罚款 <strong>100,000 欧元</strong><br>
+            - 未在双轨制系统参与包装回收：最高罚款 <strong>200,000 欧元</strong> + 自动<strong>销售禁令</strong><br>
+            - 竞争对手可以查询 ZSVR 公开数据，不合规卖家可能收到<strong>警告函 (Abmahnung)</strong><br><br>
+            包装法合规是企业进入德国市场的法律底线，不可忽视。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">2025年包装法有什么新变化？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            2025 年起的主要变化：<br>
+            1. <strong>设计即回收</strong>：许多产品组必须证明回收能力<br>
+            2. <strong>再生材料配额</strong>：特定包装类型强制使用一定比例回收材料<br>
+            3. <strong>扩大信息义务</strong>：更详细的包装和环境影响声明<br>
+            4. <strong>扩大强制可重复使用包装</strong>：扩展到电商和餐饮等领域<br>
+            5. <strong>国际协调</strong>：德国法规与欧盟包装法规 PPWR 趋同
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 电池法 FAQ -->
+    <div class="faq-section" data-cat="battery">
+      <h3>德国电池法 BattG</h3>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">什么是德国电池法（BattG）？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            德国《电池法》(Batteriegesetz) 规定了电池和电瓶投放市场、回收及处理的要求。所有在德国市场销售含电池产品的制造商和进口商，必须在 stiftung EAR 基金会完成注册，并加入由 EAR 认可的电池回收体系。该法基于欧盟电池指令 2006/66/EC 制定。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">谁需要注册电池法？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            - 电池制造商和进口商<br>
+            - 含电池产品（如电子产品、电动工具、玩具等）的卖家<br>
+            - 通过 Amazon、Temu 等平台向德国销售含电池商品的跨境电商<br><br>
+            关键是：<strong>您的产品是否包含电池或被电池驱动？</strong>如果是，就需要注册。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">电池法注册费用是多少？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            以 WEEE Return GmbH 标准报价（2025-2026）：<br>
+            - 年服务费：129€<br>
+            - 电池回收体系（首品牌）：129€<br>
+            - 每增加一个品牌：+49€<br>
+            - EAR 官方费用（品牌注册费 16.40€、体系审核费 48€、季度费 3.80€、一次性授权代表确认费 50.76€）<br>
+            - <strong>第一年预估总费用：约 388.36€</strong>（单一品牌）<br><br>
+            使用我们的<a href="/pages/calculator.html">费用计算器</a>可获取精确估算。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">电池法和 WEEE 需要同时注册吗？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            <strong>如果您的电子产品含电池，两者都需要注册。</strong><br>
+            - WEEE (ElektroG) 针对电子电气设备本身<br>
+            - 电池法 (BattG) 针对设备中包含的电池或单独售卖的电池<br><br>
+            两个注册分别向 stiftung EAR 申请，但可以通过同一授权代表办理。福瑞笛提供一站式的 WEEE + 电池法双注册服务。
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEE FAQ -->
+    <div class="faq-section" data-cat="weee">
+      <h3>德国 WEEE / ElektroG</h3>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">什么是 WEEE / ElektroG？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            WEEE（Waste Electrical and Electronic Equipment）即电子电气设备废弃物。德国《电子电气设备法》(ElektroG) 规定了电子电气设备投放市场、回收和处理的要求。所有制造商和进口商必须向 stiftung EAR 注册，加入回收体系，并提供破产担保。该法基于欧盟 WEEE 指令 2012/19/EU。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">哪些产品属于 WEEE 范围？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            几乎所有电子电气产品都需要注册，分为 6 大类：<br>
+            1. 热交换器（冰箱、空调）<br>
+            2. 屏幕设备（显示器、电视、平板）<br>
+            3. 灯具（LED 灯、荧光灯）<br>
+            4. 大型设备 >50cm（洗衣机、打印机）<br>
+            5. 小型设备 <50cm（手机、相机、小家电）<br>
+            6. 小型 IT 通信设备（路由器、键盘、鼠标）<br><br>
+            不确定？使用我们的<a href="/pages/forms.html">在线申报</a>，我们会帮您判定。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">WEEE 注册费用是多少？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            以 WEEE Return GmbH 标准报价（2025-2026）：<br>
+            - 年服务费（含回收网络）：278€<br>
+            - 破产担保（首类别）：149€<br>
+            - 每增加一个品牌：+79.95€<br>
+            - 每增加一个设备类别：+99€<br>
+            - EAR 官方费用（品牌注册费 9.50€/品牌、担保审查费 3.80€、季度费 32.80€、一次性授权代表确认费 50.76€）<br>
+            - <strong>第一年预估总费用：约 473.26€</strong>（单一品牌+单一类别）<br><br>
+            使用我们的<a href="/pages/calculator.html">费用计算器</a>可获取精确估算。
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 综合 FAQ -->
+    <div class="faq-section" data-cat="general">
+      <h3>综合问题</h3>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">为什么中国卖家需要德国本土授权代表？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            根据德国 ElektroG §37 和 BattG 法律规定，<strong>未在德国境内设立机构的制造商必须指定一名位于德国境内的授权代表 (Bevollmächtigter)</strong>。授权代表以自身名义向 stiftung EAR 履行注册、申报等法律义务。<br><br>
+            福瑞笛与 WEEE Return GmbH 合作（EAR 注册号：WEEE-Reg.-Nr. DE 12345678），为中国跨境电商卖家提供合规的授权代表服务。选择授权代表时请注意：<strong>每位制造商只能指定一名授权代表。</strong>
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">注册需要多长时间？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            - 包装法：EASY-LIZE 在线购买即时生效，LUCID 注册 1-3 个工作日<br>
+            - 电池法：EAR 审核通常 2-4 周<br>
+            - WEEE：EAR 注册审核通常 4-8 周<br><br>
+            建议尽早启动注册流程，避免因审核周期影响商品上架销售。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">福瑞笛的服务流程是什么？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            1. <strong>在线填写信息</strong>：在福瑞笛网站填写设备描述和主数据表<br>
+            2. <strong>签署授权合同</strong>：系统为您生成授权代表合同<br>
+            3. <strong>提交 EAR 审核</strong>：WEEE Return GmbH 向 stiftung EAR 提交注册<br>
+            4. <strong>获取注册号</strong>：审核通过后获得 WEEE/BattG 注册号<br>
+            5. <strong>年度续费</strong>：每年更新注册，提交年度报告
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">注册号需要提供给销售平台吗？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            <strong>是的。</strong>Amazon、Temu、eBay 等平台均要求卖家在后台提交 WEEE 注册号和电池法注册号。没有有效的注册号，平台将限制或下架相关商品。包装法方面，Amazon 要求卖家提交 LUCID 注册号。
+          </div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">注册后每年需要做什么？</button>
+          <div class="faq-answer"><div class="faq-answer-inner">
+            - <strong>年度数据申报</strong>：每年向 EAR 提交上一年度的实际投放量（Ist-Meldung）<br>
+            - <strong>年度统计报告</strong>（WEEE）：每年 4 月 30 日前提交<br>
+            - <strong>续费</strong>：每年按时续缴服务费和回收体系费用<br>
+            - <strong>信息更新</strong>：品牌、设备类型、重量等如有变更需及时更新<br><br>
+            授权代表会协助完成大部分年度义务，但您需要及时提供准确的销售数据。
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" style="background:var(--color-primary);color:#fff;text-align:center;">
+  <div class="container">
+    <h2 style="font-size:1.8rem;margin-bottom:16px;">还有其他问题？</h2>
+    <p style="opacity:0.9;margin-bottom:24px;">直接开始在线申报，或联系我们获取更多信息。</p>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+      <a href="/pages/forms.html" class="btn btn-accent btn-lg">在线申报</a>
+      <a href="mailto:zifeng.qian@outlook.com" class="btn btn-outline btn-lg" style="border-color:#fff;color:#fff;">邮件咨询</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div><h4>福瑞笛 FREDDY</h4><p style="font-size:0.9rem;">福瑞笛（上海）信息咨询有限公司<br>专注德国跨境合规服务</p></div>
+      <div><h4>服务项目</h4><a href="/pages/services-packaging.html">包装法</a><br><a href="/pages/services-battery.html">电池法</a><br><a href="/pages/services-weee.html">WEEE</a></div>
+      <div><h4>快速链接</h4><a href="/pages/calculator.html">费用计算器</a><br><a href="/pages/forms.html">在线申报</a><br><a href="/pages/faq.html">常见问题</a></div>
+      <div><h4>合作伙伴</h4><a href="https://www.eko-punkt.de" target="_blank">EKO-PUNKT</a><br><a href="https://www.easy-lize.cn" target="_blank">EASY-LIZE</a></div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2025 福瑞笛（上海）信息咨询有限公司</p></div>
+  </div>
+</footer>
+
+<script>
+// FAQ filter
+function filterFAQ(cat) {
+  document.querySelectorAll('.faq-nav button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.faq-section').forEach(s => {
+    s.style.display = (cat === 'all' || s.dataset.cat === cat) ? '' : 'none';
+  });
+}
+</script>
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>

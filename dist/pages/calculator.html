@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>费用计算器 — 福瑞笛 FREDDY</title>
+  <meta name="description" content="在线计算德国WEEE和电池法注册费用，输入品牌数、设备类型、重量即可估算合规成本。" />
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <script type="module" crossorigin src="/assets/main-D5fPZWVH.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-DB8YMPoC.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="container">
+    <a href="/" class="header-logo">
+      <img src="/image/福瑞笛LOGO.png" alt="FREDDY 福瑞笛">
+    </a>
+    <button class="header-toggle" id="navToggle"><span></span><span></span><span></span></button>
+    <nav class="header-nav" id="headerNav">
+      <a href="/">首页</a>
+      <div class="nav-dropdown">
+        <a href="#">服务项目</a>
+        <div class="nav-dropdown-menu">
+          <a href="/pages/services-packaging.html">德国包装法</a>
+          <a href="/pages/services-battery.html">德国电池法</a>
+          <a href="/pages/services-weee.html">德国 WEEE</a>
+        </div>
+      </div>
+      <a href="/pages/calculator.html" class="active">费用计算器</a>
+      <a href="/pages/forms.html">在线申报</a>
+      <a href="/pages/faq.html">常见问题</a>
+      <a href="/pages/download.html">下载中心</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="background: linear-gradient(135deg, #1e3a5f 0%, #0d2137 100%);">
+  <div class="container">
+    <h1>费用计算器</h1>
+    <p>输入您的品牌数量和设备类型，即时估算 WEEE 和电池法的合规费用。<br>基于 WEEE Return GmbH 2025-2026 官方报价。</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+
+    <!-- Service type selector -->
+    <div class="calculator" style="margin-bottom:40px;">
+      <h3 style="margin-bottom:20px;">选择服务类型</h3>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 24px;border:2px solid var(--color-border);border-radius:8px;cursor:pointer;" id="optWeee">
+          <input type="checkbox" checked onchange="calcAll()"> ♻️ WEEE 电子电气
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 24px;border:2px solid var(--color-border);border-radius:8px;cursor:pointer;" id="optBattery">
+          <input type="checkbox" checked onchange="calcAll()"> 🔋 电池法 BattG
+        </label>
+      </div>
+    </div>
+
+    <!-- WEEE Calculator -->
+    <div id="weeeCalc">
+      <h2 class="section-title">WEEE 费用估算</h2>
+      <div class="calculator">
+        <div class="form-group">
+          <label>设备类别数量 <span class="required">*</span></label>
+          <select class="form-control" id="weeeCats" onchange="calcWeee()">
+            <option value="1">1 类</option>
+            <option value="2">2 类</option>
+            <option value="3">3 类</option>
+            <option value="4">4 类</option>
+            <option value="5">5 类</option>
+          </select>
+          <p class="form-hint">不同类型产品属于不同设备类别（如：手机=第5类，冰箱=第1类）</p>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>品牌数量 <span class="required">*</span></label>
+            <select class="form-control" id="weeeBrands" onchange="calcWeee()">
+              <option value="1">1 个</option>
+              <option value="2">2 个</option>
+              <option value="3">3 个</option>
+              <option value="4">4 个</option>
+              <option value="5">5 个</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>年度 <span class="required">*</span></label>
+            <select class="form-control" id="weeeYear" onchange="calcWeee()">
+              <option value="first">第一年（含一次性费用）</option>
+              <option value="renewal">续费年</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>年投放重量</label>
+          <select class="form-control" id="weeeWeight" onchange="calcWeee()">
+            <option value="small">≤1 吨（类别1-3）/ ≤10 吨（类别4-6）</option>
+            <option value="large">超出标准限额</option>
+          </select>
+        </div>
+
+        <div class="calc-result" id="weeeResult">
+          <h3>WEEE 费用明细</h3>
+          <table>
+            <tr><td>WEEE Return 年服务费</td><td>129.00 €</td></tr>
+            <tr id="weeeInsolvency"><td>破产担保 (1类别)</td><td>149.00 €</td></tr>
+            <tr id="weeeExtraCats" style="display:none;"><td>额外类别费用</td><td>0.00 €</td></tr>
+            <tr id="weeeExtraBrands" style="display:none;"><td>额外品牌费用</td><td>0.00 €</td></tr>
+            <tr><td>EAR 品牌注册费</td><td id="weeeEarBrand">9.50 €</td></tr>
+            <tr><td>EAR 担保审查费 (年)</td><td>3.80 €</td></tr>
+            <tr><td>EAR 季度费</td><td>32.80 €</td></tr>
+            <tr id="weeeAuthFee"><td>EAR 授权代表确认费 (一次性)</td><td>50.76 €</td></tr>
+            <tr style="border-top:2px solid var(--color-success);"><td class="total">合计</td><td class="total" id="weeeTotal">473.26 €</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Battery Calculator -->
+    <div id="batteryCalc" style="margin-top:48px;">
+      <h2 class="section-title">电池法费用估算</h2>
+      <div class="calculator">
+        <div class="form-row">
+          <div class="form-group">
+            <label>电池品牌数量 <span class="required">*</span></label>
+            <select class="form-control" id="batBrands" onchange="calcBattery()">
+              <option value="1">1 个</option>
+              <option value="2">2 个</option>
+              <option value="3">3 个</option>
+              <option value="4">4 个</option>
+              <option value="5">5 个</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>年度 <span class="required">*</span></label>
+            <select class="form-control" id="batYear" onchange="calcBattery()">
+              <option value="first">第一年（含一次性费用）</option>
+              <option value="renewal">续费年</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>年投放电池重量</label>
+          <select class="form-control" id="batWeight" onchange="calcBattery()">
+            <option value="std">≤ 12 kg</option>
+            <option value="over">超过 12 kg（需额外咨询）</option>
+          </select>
+        </div>
+
+        <div class="calc-result" id="batResult">
+          <h3>电池法费用明细</h3>
+          <table>
+            <tr><td>WEEE Return 年服务费</td><td>129.00 €</td></tr>
+            <tr><td>电池回收体系 (首品牌)</td><td>129.00 €</td></tr>
+            <tr id="batExtraBrands" style="display:none;"><td>额外品牌费用</td><td>0.00 €</td></tr>
+            <tr><td>EAR 品牌注册费</td><td id="batEarBrand">16.40 €</td></tr>
+            <tr><td>EAR 回收体系审核费</td><td>48.00 €</td></tr>
+            <tr><td>EAR 季度费</td><td>3.80 €</td></tr>
+            <tr id="batAuthFee"><td>EAR 授权代表确认费 (一次性)</td><td>50.76 €</td></tr>
+            <tr style="border-top:2px solid var(--color-success);"><td class="total">合计</td><td class="total" id="batTotal">388.36 €</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:32px;color:var(--color-text-light);font-size:0.9rem;">
+      <p>* 以上为估算费用，实际价格可能因具体情况微调。所有报价不含增值税。</p>
+      <p>* 报价基于 WEEE Return GmbH 2025-2026 标准价目表。超出标准重量限额的费用需单独核算。</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--color-primary);color:#fff;text-align:center;">
+  <div class="container">
+    <h2 style="font-size:1.8rem;margin-bottom:16px;">准备好注册了吗？</h2>
+    <p style="opacity:0.9;margin-bottom:24px;">填写在线申报表单，我们将为您生成所需的合同和文件。</p>
+    <a href="/pages/forms.html" class="btn btn-accent btn-lg">前往在线申报 →</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div><h4>福瑞笛 FREDDY</h4><p style="font-size:0.9rem;">福瑞笛（上海）信息咨询有限公司<br>专注德国跨境合规服务</p></div>
+      <div><h4>服务项目</h4><a href="/pages/services-packaging.html">包装法</a><br><a href="/pages/services-battery.html">电池法</a><br><a href="/pages/services-weee.html">WEEE</a></div>
+      <div><h4>快速链接</h4><a href="/pages/calculator.html">费用计算器</a><br><a href="/pages/forms.html">在线申报</a><br><a href="/pages/faq.html">常见问题</a></div>
+      <div><h4>合作伙伴</h4><a href="https://www.eko-punkt.de" target="_blank">EKO-PUNKT</a><br><a href="https://www.easy-lize.cn" target="_blank">EASY-LIZE</a></div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2025 福瑞笛（上海）信息咨询有限公司</p></div>
+  </div>
+</footer>
+
+<script src="/js/calculator.js"></script>
+</body>
+</html>

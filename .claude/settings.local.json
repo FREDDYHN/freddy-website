@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Test-Path \"C:\\\\Users\\\\ThinkPad\\\\Desktop\"; $items = Get-ChildItem \"C:\\\\Users\\\\ThinkPad\" -Force; $items.Count)",
+      "PowerShell(Get-ChildItem *)"
+    ]
+  }
+}
