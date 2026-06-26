@@ -6,10 +6,10 @@ import { AR_TIER_FEES_EUR } from '../../../shared/constants.js'
 
 const router = Router()
 
-// Generate next contract number — relies on auto-increment + count for readability
+// Generate next contract number — uses MAX(id) to avoid COUNT(*) race condition
 async function nextContractNumber(db) {
-  const row = await db.get("SELECT COUNT(*) as cnt FROM contracts")
-  const n = (row.cnt + 1).toString().padStart(4, '0')
+  const row = await db.get('SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM contracts')
+  const n = String(row.next_id).padStart(4, '0')
   return 'LTO-AR-' + new Date().getFullYear() + '-' + n
 }
 

@@ -43,8 +43,8 @@ const rootPath = join(__dirname, '..', '..')
 const distPath = join(rootPath, 'frontend', 'dist')
 app.use(express.static(distPath, { maxAge: '1y', immutable: true }))
 
-// Serve static files from project root (contracts, templates)
-app.use('/projects', express.static(join(rootPath, 'projects'), { maxAge: '7d' }))
+// Serve public contract templates + registration form templates
+app.use('/projects', express.static(join(rootPath, 'projects', 'contracts'), { maxAge: '7d' }))
 app.use('/templates', express.static(join(rootPath, 'templates'), { maxAge: '7d' }))
 
 // ══════════════════════════════════════════════
@@ -59,14 +59,26 @@ app.use('/api/forms', formsRoutes)
 app.use('/api/profile', profileRoutes)
 app.use('/api/uploads', uploadsRoutes)
 
-// Serve generated contract files (auth required — generated files contain sensitive company data)
-app.get('/api/contracts/:id/download', authMiddleware, (req, res) => {
-  const filePath = join(rootPath, 'projects', 'generated', req.query.file || '')
-  if (!filePath.startsWith(join(rootPath, 'projects', 'generated'))) {
-    return res.status(403).json({ error: 'Invalid path' })
+// Serve generated contract files (auth + ownership verified)
+app.get('/api/contracts/:id/download', authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const contract = await db.get('SELECT client_id FROM contracts WHERE id = ?', req.params.id)
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    // Verify ownership: client can only download their own contracts; admin can download any
+    if (req.user.role !== 'admin' && contract.client_id !== req.user.client_id) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+    const filePath = join(rootPath, 'projects', 'generated', req.query.file || '')
+    if (!filePath.startsWith(join(rootPath, 'projects', 'generated'))) {
+      return res.status(403).json({ error: 'Invalid path' })
+    }
+    if (!existsSync(filePath)) return res.status(404).json({ error: 'File not found' })
+    res.download(filePath)
+  } catch (e) {
+    console.error('[server] download error:', e)
+    res.status(500).json({ error: e.message })
   }
-  if (!existsSync(filePath)) return res.status(404).json({ error: 'File not found' })
-  res.download(filePath)
 })
 
 // ── Client Dashboard ──
@@ -207,48 +219,47 @@ app.get('/api/admin/clients/search', authMiddleware, adminMiddleware, async (req
   }
 })
 
-// ── Admin: Export clients CSV ──
+// ── Admin: Export clients CSV (streaming — safe for 20,000+ rows) ──
 app.get('/api/admin/clients/export', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const db = await getDb()
-    const rows = await db.all(
-      `SELECT cl.company_name, cl.contact_name, cl.contact_email, cl.contact_phone,
-              cl.lucid_registration_number, cl.status as client_status, cl.created_at,
-              c.contract_number, c.tier, c.status as contract_status, c.annual_fee_eur
-       FROM clients cl
-       LEFT JOIN contracts c ON c.client_id = cl.id AND c.id = (
-         SELECT MAX(id) FROM contracts WHERE client_id = cl.id
-       )
-       ORDER BY cl.id DESC`
-    )
-
-    const headers = ['公司名称', '联系人', '邮箱', '电话', 'LUCID号', '客户状态', '注册日期', '合同编号', '套餐', '合同状态', '年费€']
-    const csv = [
-      headers.join(','),
-      ...rows.map(r => headers.map(h => {
-        const val = String(
-          h === '公司名称' ? (r.company_name || '') :
-          h === '联系人' ? (r.contact_name || '') :
-          h === '邮箱' ? (r.contact_email || '') :
-          h === '电话' ? (r.contact_phone || '') :
-          h === 'LUCID号' ? (r.lucid_registration_number || '') :
-          h === '客户状态' ? (r.client_status || '') :
-          h === '注册日期' ? (r.created_at || '') :
-          h === '合同编号' ? (r.contract_number || '') :
-          h === '套餐' ? (r.tier || '') :
-          h === '合同状态' ? (r.contract_status || '') :
-          h === '年费€' ? (r.annual_fee_eur || '') : ''
-        )
-        return '"' + val.replace(/"/g, '""') + '"'
-      }).join(','))
-    ].join('\n')
-
+    const headers = ['公司名称','联系人','邮箱','电话','LUCID号','客户状态','注册日期','合同编号','套餐','合同状态','年费€']
+    const dateStr = new Date().toISOString().slice(0, 10)
     res.setHeader('Content-Type', 'text/csv; charset=utf-8')
-    res.setHeader('Content-Disposition', `attachment; filename="freddy-clients-${new Date().toISOString().slice(0,10)}.csv"`)
-    res.send('﻿' + csv) // BOM for Excel
+    res.setHeader('Content-Disposition', `attachment; filename="freddy-clients-${dateStr}.csv"`)
+    res.write('﻿' + headers.join(',') + '\n') // BOM for Excel
+
+    const BATCH = 500
+    let offset = 0
+    while (true) {
+      const rows = await db.all(
+        `SELECT cl.company_name, cl.contact_name, cl.contact_email, cl.contact_phone,
+                cl.lucid_registration_number, cl.status as client_status, cl.created_at,
+                c.contract_number, c.tier, c.status as contract_status, c.annual_fee_eur
+         FROM clients cl
+         LEFT JOIN contracts c ON c.client_id = cl.id AND c.id = (
+           SELECT MAX(id) FROM contracts WHERE client_id = cl.id
+         )
+         ORDER BY cl.id DESC LIMIT ? OFFSET ?`,
+        BATCH, offset
+      )
+      if (rows.length === 0) break
+
+      for (const r of rows) {
+        const vals = [
+          r.company_name, r.contact_name, r.contact_email, r.contact_phone,
+          r.lucid_registration_number, r.client_status, r.created_at,
+          r.contract_number, r.tier, r.contract_status, r.annual_fee_eur,
+        ].map(v => '"' + String(v || '').replace(/"/g, '""') + '"')
+        res.write(vals.join(',') + '\n')
+      }
+      offset += BATCH
+    }
+    res.end()
   } catch (e) {
     console.error('[server] client export error:', e)
-    res.status(500).json({ error: e.message })
+    if (!res.headersSent) res.status(500).json({ error: e.message })
+    else res.end()
   }
 })
 

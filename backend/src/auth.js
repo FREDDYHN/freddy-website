@@ -70,7 +70,7 @@ router.post('/register', async (req, res) => {
 // ─── Login ───
 router.post('/login', async (req, res) => {
   try {
-    const ip = req.headers['x-forwarded-for'] || req.ip || req.socket?.remoteAddress || 'unknown'
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown'
 
     // Rate limit check
     if (!checkLoginRate(ip)) {
