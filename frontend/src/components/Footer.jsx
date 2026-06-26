@@ -27,8 +27,13 @@ export default function Footer() {
           <span className="block py-1">Stiftung EAR</span>
         </div>
       </div>
-      <div className="border-t border-gray-700 py-4 text-center text-xs text-gray-500">
-        © {new Date().getFullYear()} FREDDY 福瑞笛 — 德国跨境合规 本土授权代表 | <Link to="/downloads" className="hover:text-gray-300">法律文件</Link>
+      <div className="border-t border-gray-700 py-4 text-center text-xs text-gray-500 space-y-1">
+        <div>
+          © {new Date().getFullYear()} FREDDY 福瑞笛 — 德国跨境合规 本土授权代表 | <Link to="/downloads" className="hover:text-gray-300">法律文件</Link>
+        </div>
+        <div>
+          <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300">浙ICP备XXXXXXXX号-1</a>
+        </div>
       </div>
     </footer>
   )
