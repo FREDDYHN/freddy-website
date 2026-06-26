@@ -64,9 +64,14 @@ export default function NavBar() {
               </Link>
             </>
           ) : (
-            <Link to="/signup" className="ml-2 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-light rounded-lg transition-colors">
-              在线签约
-            </Link>
+            <>
+              <Link to="/login" className="px-3 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 rounded-md">
+                登录
+              </Link>
+              <Link to="/signup" className="ml-2 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-light rounded-lg transition-colors">
+                在线签约
+              </Link>
+            </>
           )}
         </nav>
 
@@ -114,7 +119,10 @@ export default function NavBar() {
                   className="block py-2.5 text-sm text-gray-500">退出登录</Link>
               </>
             ) : (
-              <Link to="/signup" className="block py-2.5 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>在线签约 →</Link>
+              <>
+                <Link to="/login" className="block py-2.5 text-sm text-gray-600" onClick={() => setMenuOpen(false)}>登录</Link>
+                <Link to="/signup" className="block py-2.5 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>在线签约 →</Link>
+              </>
             )}
           </div>
         </div>

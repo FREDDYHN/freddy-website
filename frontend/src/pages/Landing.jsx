@@ -21,6 +21,9 @@ export default function Landing() {
           <Link to="/signup" className="px-6 py-3 bg-accent text-white font-semibold rounded-lg hover:bg-accent-light transition-colors">
             在线签约包装法 AR
           </Link>
+          <Link to="/login" className="px-6 py-3 border border-white/30 text-white rounded-lg hover:bg-white/10 transition-colors">
+            已有账户？登录 →
+          </Link>
           <Link to="/calculator" className="px-6 py-3 border border-white/30 text-white rounded-lg hover:bg-white/10 transition-colors">
             费用计算器 →
           </Link>
