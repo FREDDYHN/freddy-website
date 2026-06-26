@@ -34,6 +34,7 @@ tar czf "$DEPLOY_TAR" \
   database/ \
   docgen/ \
   templates/ \
+  shared/ \
   ecosystem.config.js \
   projects/
 log "部署包: $(ls -lh $DEPLOY_TAR | awk '{print $5}')"
