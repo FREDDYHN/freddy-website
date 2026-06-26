@@ -52,8 +52,13 @@ export default function Profile() {
     } catch (e) { setPwMsg('❌ ' + e.message) }
   }
 
+  const userStr = sessionStorage.getItem('user')
+  const isAdmin = (() => { try { return JSON.parse(userStr)?.role === 'admin' } catch { return false } })()
+
   if (loading) return <div className="max-w-2xl mx-auto px-4 py-16"><div className="animate-pulse h-32 bg-gray-100 rounded" /></div>
-  if (!profile) return <div className="max-w-2xl mx-auto px-4 py-16 text-center"><p className="text-gray-500">请先 <Link to="/login" className="text-primary underline">登录</Link></p></div>
+  if (!userStr) return <div className="max-w-2xl mx-auto px-4 py-16 text-center"><p className="text-gray-500">请先 <Link to="/login" className="text-primary underline">登录</Link></p></div>
+  if (isAdmin) return <div className="max-w-2xl mx-auto px-4 py-16 text-center"><p className="text-gray-500">管理员账户无需维护公司资料。请前往 <Link to="/admin" className="text-primary underline">管理后台</Link></p></div>
+  if (!profile) return <div className="max-w-2xl mx-auto px-4 py-16 text-center"><p className="text-gray-500">未找到客户资料，请联系客服。</p></div>
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">

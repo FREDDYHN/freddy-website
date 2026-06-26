@@ -9,7 +9,7 @@ import profileRoutes from './routes/profile.js'
 import uploadsRoutes from './routes/uploads.js'
 import { authMiddleware, adminMiddleware } from './auth.js'
 import { checkReminders } from './services/reminders.js'
-import { generateContract, getContractUrl } from './services/contract-gen.js'
+import { generateContract } from './services/contract-gen.js'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -32,9 +32,10 @@ app.use(cors({
   },
   credentials: true,
 }))
-app.use(express.json())
+app.use(express.json({ limit: '1mb' }))
 
 // Serve frontend static build
+import { existsSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -58,8 +59,15 @@ app.use('/api/forms', formsRoutes)
 app.use('/api/profile', profileRoutes)
 app.use('/api/uploads', uploadsRoutes)
 
-// Serve generated contract files
-app.use('/projects/generated', express.static(join(rootPath, 'projects', 'generated'), { maxAge: '1h' }))
+// Serve generated contract files (auth required — generated files contain sensitive company data)
+app.get('/api/contracts/:id/download', authMiddleware, (req, res) => {
+  const filePath = join(rootPath, 'projects', 'generated', req.query.file || '')
+  if (!filePath.startsWith(join(rootPath, 'projects', 'generated'))) {
+    return res.status(403).json({ error: 'Invalid path' })
+  }
+  if (!existsSync(filePath)) return res.status(404).json({ error: 'File not found' })
+  res.download(filePath)
+})
 
 // ── Client Dashboard ──
 app.get('/api/dashboard', authMiddleware, async (req, res) => {
@@ -262,7 +270,7 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
     const { type, client_location } = req.body
     const genType = type || 'ar'
 
-    const filePath = generateContract({
+    const filePath = await generateContract({
       type: genType,
       clientLocation: client_location || 'cn',
       data: {
@@ -274,9 +282,10 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
       },
     })
 
+    const fileName = filePath.split('/').pop().split('\\').pop()
     res.json({
       success: true,
-      download_url: getContractUrl(filePath),
+      download_url: `/api/contracts/${req.params.id}/download?file=${encodeURIComponent(fileName)}`,
       contract_number: contract.contract_number,
     })
   } catch (e) {
@@ -332,7 +341,7 @@ async function start() {
   // Graceful shutdown — close DB so WAL is checkpointed cleanly
   const shutdown = async (signal) => {
     console.log(`[server] Received ${signal}, shutting down...`)
-    server.close()
+    await new Promise(resolve => server.close(resolve))
     await closeDb()
     process.exit(0)
   }

@@ -11,7 +11,8 @@
  *   Battery (中国):  projects/中国主体合同/非德国主体_WEEE&电池法合同模板_*.docx
  *   Battery (德国):  projects/德国主体合同/德国主体_WEEE&电池法合同模板_*.docx
  */
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
+import { readFile, writeFile, mkdir, access } from 'fs/promises'
+import { constants } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import Docxtemplater from 'docxtemplater'
@@ -22,8 +23,8 @@ const rootPath = join(__dirname, '..', '..', '..')
 const projectsDir = join(rootPath, 'projects')
 const outputDir = join(rootPath, 'projects', 'generated')
 
-// Ensure output directory exists
-if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true })
+// Ensure output directory exists (startup guard)
+try { await mkdir(outputDir, { recursive: true }) } catch {}
 
 /** Template paths keyed by contract type + client location */
 const TEMPLATES = {
@@ -43,13 +44,15 @@ const TEMPLATES = {
  * @param {Object} opts.data - key-value pairs to fill into the template
  * @returns {string} Path to the generated .docx file
  */
-export function generateContract({ type, clientLocation, data }) {
+export async function generateContract({ type, clientLocation, data }) {
   const key = type === 'ar' ? 'ar' : `${type}_${clientLocation || 'cn'}`
   const templatePath = TEMPLATES[key]
   if (!templatePath) throw new Error(`No template for: ${key}`)
-  if (!existsSync(templatePath)) throw new Error(`Template not found: ${templatePath}`)
 
-  const buf = readFileSync(templatePath)
+  // Check template exists (async)
+  try { await access(templatePath, constants.R_OK) } catch { throw new Error(`Template not found: ${templatePath}`) }
+
+  const buf = await readFile(templatePath)
   const zip = new PizZip(buf)
   const doc = new Docxtemplater(zip, {
     paragraphLoop: true,
@@ -102,7 +105,7 @@ export function generateContract({ type, clientLocation, data }) {
 
   const outName = `${key}_${data.contract_number || Date.now().toString(36)}.docx`
   const outPath = join(outputDir, outName)
-  writeFileSync(outPath, doc.getZip().generate({ type: 'nodebuffer' }))
+  await writeFile(outPath, doc.getZip().generate({ type: 'nodebuffer' }))
   console.log(`[contract-gen] Generated: ${outPath}`)
   return outPath
 }

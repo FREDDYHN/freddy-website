@@ -56,25 +56,18 @@ export default function Admin() {
       const res = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search)}&perPage=30`, { headers: authHeaders() })
       const d = await res.json()
       if (res.ok) {
-        // Map search results to contract-like shape for display
-        const enriched = await Promise.all(d.data.map(async (cl) => {
-          const cRes = await fetch(`/api/dashboard`, {
-            headers: { ...authHeaders(), 'X-Client-Id': String(cl.id) },
-          }).catch(() => null)
-          return { ...cl, _client: cl }
-        }))
+        // Map client search results to contract-like shape for unified table display
         setContracts(d.data.map(cl => ({
           id: cl.id,
           company_name: cl.company_name,
           contact_email: cl.contact_email,
           contact_name: cl.contact_name,
           status: cl.status,
-          contract_number: '—',
+          contract_number: '（仅客户）',
           tier: '—',
           annual_fee_eur: 0,
           start_date: cl.created_at?.slice(0, 10) || '—',
           lucid_confirmed: !!cl.lucid_registration_number,
-          _client_only: true,
         })))
         setPagination(d.pagination)
       }
