@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 const services = [
   { to: '/packaging', title: '包装法授权代表', price: '€89/年', desc: '德国包装法 VerpackG §35(2) 本土授权代表，替代EASY-LIZE，自有签约+支付，LUCID注册指导。', gradient: 'from-[#1e3a5f] to-[#2a5a8a]', tag: '2026强制' },
-  { to: '/battery', title: '德国电池法 BattG', price: '€129/年起', desc: '电池及含电池产品德国市场合规注册，与WEEE Return GmbH合作，EAR注册全流程代办。', gradient: 'from-[#5a3e1e] to-[#3d210d]' },
+  { to: '/battery', title: '德国电池法 BattG', price: '€258/年起', desc: '电池及含电池产品德国市场合规注册，与WEEE Return GmbH合作，EAR注册全流程代办。', gradient: 'from-[#5a3e1e] to-[#3d210d]' },
   { to: '/weee', title: '德国 WEEE 电子电气法', price: '€278/年起', desc: '电子电气设备德国回收合规，6大设备类别全覆盖，WEEE Return GmbH授权代表服务。', gradient: 'from-[#1e5a3f] to-[#0d3d21]' },
 ]
 

@@ -62,6 +62,7 @@ router.post('/', async (req, res) => {
 
     res.status(201).json({
       client_id: clientId,
+      contract_id: contractId,
       contract_number: contractNumber,
       annual_fee_eur: annualFee,
       start_date: startDate,
@@ -88,8 +89,8 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 })
 
-// POST /api/contracts/:id/sign — Record e-signature (public: called during signup flow)
-router.post('/:id/sign', authMiddleware, async (req, res) => {
+// POST /api/contracts/:id/sign — Record e-signature (public: called during signup flow, no auth required)
+router.post('/:id/sign', async (req, res) => {
   try {
     const db = await getDb()
     const { signer_name } = req.body

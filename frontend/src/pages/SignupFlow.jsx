@@ -65,7 +65,7 @@ export default function SignupFlow() {
       const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed')
-      const signRes = await fetch(`/api/contracts/${data.client_id}/sign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signer_name: form.signer_name }) })
+      const signRes = await fetch(`/api/contracts/${data.contract_id}/sign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signer_name: form.signer_name }) })
       const signData = await signRes.json()
       if (!signRes.ok) throw new Error(signData.error || 'Sign failed')
       setResult(data)
@@ -204,7 +204,7 @@ export default function SignupFlow() {
           </div>
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" checked={form.agreed} onChange={e => update('agreed', e.target.checked)} className="mt-0.5" />
-            <span>我已阅读并同意 <a href="/projects/contracts/LIVANTO/Bevollmächtigungsvertrag_02.docx" className="text-primary underline">授权代表合同</a>（德文版本具有法律约束力，中文版本仅供参考）</span>
+            <span>我已阅读并同意 <a href="/projects/contracts/LIVANTO/Bevollmächtigungsvertrag_03.docx" className="text-primary underline">授权代表合同</a>（德文版本具有法律约束力，中文版本仅供参考）</span>
           </label>
           <div>
             <label className="block text-sm font-medium mb-1">签署人姓名</label>

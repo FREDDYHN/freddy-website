@@ -52,6 +52,8 @@ export default function Calculator() {
           <div className="text-sm text-gray-600 space-y-1">
             <div className="flex justify-between"><span>WEEE Return 基本费</span><span>€{weeeBase.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>破产保障费</span><span>€{weeeInsolvency.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>EAR 季度费</span><span>€{weeeEarQuarterly.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>EAR 品牌注册费 ({weeeBrands}品牌 × €9.50)</span><span>€{earBrandWeee.toFixed(2)}</span></div>
             {extraCats > 0 && <div className="flex justify-between"><span>额外类别 ({weeeCats-1}×€99)</span><span>€{extraCats.toFixed(2)}</span></div>}
             {extraBrandsWeee > 0 && <div className="flex justify-between"><span>额外品牌 ({weeeBrands-1}×€79.95)</span><span>€{extraBrandsWeee.toFixed(2)}</span></div>}
             {authFirstWeee > 0 && <div className="flex justify-between"><span>EAR 一次性授权费 (首年)</span><span>€{authFirstWeee.toFixed(2)}</span></div>}
@@ -83,6 +85,8 @@ export default function Calculator() {
             <div className="flex justify-between"><span>德国电池法 BattG 基本费</span><span>€{batBase.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>回收系统费</span><span>€{batTakeback.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>EAR 会员费</span><span>€{batEarMembership.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>EAR 季度费</span><span>€{batQuarterly.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>EAR 品牌注册费 ({batBrands}品牌 × €16.40)</span><span>€{earBrandBat.toFixed(2)}</span></div>
             {extraBrandsBat > 0 && <div className="flex justify-between"><span>额外品牌 ({batBrands-1}×€49)</span><span>€{extraBrandsBat.toFixed(2)}</span></div>}
             {authFirstBat > 0 && <div className="flex justify-between"><span>EAR 一次性授权费 (首年)</span><span>€{authFirstBat.toFixed(2)}</span></div>}
             <div className="flex justify-between font-bold text-amber-800 border-t border-amber-200 pt-1 mt-1"><span>电池法 年费合计</span><span>€{batTotal.toFixed(2)}</span></div>

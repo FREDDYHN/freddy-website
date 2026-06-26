@@ -19,8 +19,13 @@ app.use(express.json())
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const distPath = join(__dirname, '..', '..', 'frontend', 'dist')
+const rootPath = join(__dirname, '..', '..')
+const distPath = join(rootPath, 'frontend', 'dist')
 app.use(express.static(distPath, { maxAge: '1y', immutable: true }))
+
+// Serve static files from project root (contracts, templates)
+app.use('/projects', express.static(join(rootPath, 'projects'), { maxAge: '7d' }))
+app.use('/templates', express.static(join(rootPath, 'templates'), { maxAge: '7d' }))
 
 // API Routes
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }))

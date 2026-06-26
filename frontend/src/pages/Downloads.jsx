@@ -1,6 +1,6 @@
 export default function Downloads() {
   const files = [
-    { name: 'LIVANTO授权代表合同模板 (V2)', desc: '§35(2) VerpackG 授权代表合同 — 德中双语', path: '/projects/contracts/LIVANTO/Bevollmächtigungsvertrag_02.docx' },
+    { name: 'LIVANTO授权代表合同模板 (V3)', desc: '§35(2) VerpackG 授权代表合同 — 德中双语', path: '/projects/contracts/LIVANTO/Bevollmächtigungsvertrag_03.docx' },
     { name: 'LUCID中文注册指南', desc: '逐步截图指导在ZSVR完成LUCID注册', path: '#', soon: true },
     { name: '包装材料申报表', desc: '按材料类别填写年度包装量', path: '#', soon: true },
     { name: 'WEEE注册表模板', desc: '德国WEEE EAR注册所需信息', path: '/templates/weee-template.docx' },

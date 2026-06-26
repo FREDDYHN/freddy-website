@@ -130,8 +130,8 @@ export default function Dashboard() {
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
         <h3 className="font-bold mb-4">快速下载</h3>
         <div className="grid md:grid-cols-3 gap-4 text-sm">
-          <a href="/projects/contracts/LIVANTO/Bevollmächtigungsvertrag_02.docx" className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 flex items-center gap-2">
-            <span className="text-lg">📄</span> 授权代表合同 (V2)
+          <a href="/projects/contracts/LIVANTO/Bevollmächtigungsvertrag_03.docx" className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 flex items-center gap-2">
+            <span className="text-lg">📄</span> 授权代表合同 (V3)
           </a>
           <a href="#" className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 flex items-center gap-2">
             <span className="text-lg">📘</span> LUCID 注册指南 (即将上线)

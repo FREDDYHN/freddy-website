@@ -4,7 +4,15 @@ export default function Battery() {
       <section className="battery-gradient text-white py-16 px-4 text-center">
         <h1 className="text-3xl md:text-4xl font-bold mb-3">德国电池法 BattG</h1>
         <p className="text-lg text-gray-300 mb-2">Batteriegesetz — 电池及含电池产品合规</p>
-        <p className="text-xl font-bold text-amber-300">€129/年起</p>
+        <p className="text-xl font-bold text-amber-300">€258/年起</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <a href="/apply?type=battery" className="inline-block px-6 py-3 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors">
+            在线申报电池法 →
+          </a>
+          <a href="/calculator" className="inline-block px-6 py-3 border border-white/30 text-white rounded-lg hover:bg-white/10 transition-colors">
+            费用计算器 →
+          </a>
+        </div>
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-16">
