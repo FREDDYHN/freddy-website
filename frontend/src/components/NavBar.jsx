@@ -32,7 +32,7 @@ export default function NavBar() {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 no-underline">
-          <img src="/freddy-logo.png" alt="FREDDY 福瑞笛" className="h-10 w-auto" />
+          <img src="/freddy-logo.png" alt="FREDDY 福瑞笛" className="h-7 w-auto" />
           <span className="hidden sm:inline text-sm text-gray-500">德国跨境合规</span>
         </Link>
 
