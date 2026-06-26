@@ -69,18 +69,20 @@ if [ ! -f data.db ]; then
 fi
 cd ..
 
-# 创建 .env
+# 创建 .env (only on first deploy — preserves existing JWT_SECRET)
 if [ ! -f backend/.env ]; then
-    cat > backend/.env << 'EOF'
+    JWT_SECRET=$(openssl rand -hex 32)
+    cat > backend/.env << EOF
 NODE_ENV=production
 PORT=3002
 BASE_URL=https://www.freddy-epr.cn
-JWT_SECRET=$(openssl rand -hex 32)
+JWT_SECRET=${JWT_SECRET}
 SMTP_HOST=
 SMTP_PORT=587
 SMTP_USER=
 SMTP_PASS=
 EOF
+    echo "✓ .env created with random JWT_SECRET"
 fi
 
 # PM2 重启
