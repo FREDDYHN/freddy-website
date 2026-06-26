@@ -148,15 +148,16 @@ router.post('/:id/sign', async (req, res) => {
     }
 
     // Verify contract exists and is in a signable state
-    const contract = await db.get('SELECT * FROM contracts WHERE id = ?', req.params.id)
+    const contract = await db.get('SELECT status FROM contracts WHERE id = ?', req.params.id)
     if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    if (contract.status === 'signed') return res.status(409).json({ error: 'Contract already signed' })
     if (contract.status !== 'pending_payment') {
       return res.status(400).json({ error: `Cannot sign a contract with status: ${contract.status}` })
     }
 
     const ip = req.headers['x-forwarded-for'] || req.ip || req.socket?.remoteAddress || 'unknown'
     await db.run(
-      "UPDATE contracts SET status = 'signed', signed_at = datetime('now'), signed_ip = ? WHERE id = ?",
+      "UPDATE contracts SET status = 'signed', signed_at = datetime('now'), signed_ip = ? WHERE id = ? AND status = 'pending_payment'",
       ip, req.params.id
     )
     res.json({ success: true, contract_id: parseInt(req.params.id), signed_at: new Date().toISOString(), signer_name: signer_name.trim() })

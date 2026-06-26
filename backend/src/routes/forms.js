@@ -7,15 +7,16 @@ const router = Router()
 
 // POST /api/forms/weee — Submit WEEE registration
 router.post('/weee', async (req, res) => {
+  const db = await getDb()
+  await db.run('BEGIN IMMEDIATE')
   try {
-    const db = await getDb()
     const { company_name, contact_name, contact_email, contact_phone, device_count, brand_count, year_type } = req.body
 
     if (!company_name || !contact_name || !contact_email) {
+      await db.run('ROLLBACK')
       return res.status(400).json({ error: 'Missing required fields' })
     }
 
-    // Create client if not exists
     let client = await db.get('SELECT id FROM clients WHERE contact_email = ?', contact_email)
     if (!client) {
       const r = await db.run('INSERT INTO clients (company_name, contact_name, contact_email, contact_phone) VALUES (?,?,?,?)',
@@ -23,13 +24,14 @@ router.post('/weee', async (req, res) => {
       client = { id: r.lastID }
     }
 
-    // Insert application record
     const result = await db.run(
       `INSERT INTO applications (client_id, type, data_json, status) VALUES (?, 'weee', ?, 'pending')`,
       client.id, JSON.stringify({ device_count, brand_count, year_type })
     )
 
-    // Send confirmation email
+    await db.run('COMMIT')
+
+    // Send confirmation email (non-critical, after commit)
     try {
       await sendConfirmation({
         email: contact_email, name: contact_name,
@@ -40,17 +42,20 @@ router.post('/weee', async (req, res) => {
 
     res.status(201).json({ application_id: result.lastID, status: 'pending', message: 'WEEE registration submitted. We will contact you within 48 hours.' })
   } catch (e) {
+    await db.run('ROLLBACK')
     res.status(500).json({ error: e.message })
   }
 })
 
 // POST /api/forms/battery — Submit Battery registration
 router.post('/battery', async (req, res) => {
+  const db = await getDb()
+  await db.run('BEGIN IMMEDIATE')
   try {
-    const db = await getDb()
     const { company_name, contact_name, contact_email, contact_phone, brand_count, year_type } = req.body
 
     if (!company_name || !contact_name || !contact_email) {
+      await db.run('ROLLBACK')
       return res.status(400).json({ error: 'Missing required fields' })
     }
 
@@ -66,6 +71,8 @@ router.post('/battery', async (req, res) => {
       client.id, JSON.stringify({ brand_count, year_type })
     )
 
+    await db.run('COMMIT')
+
     try {
       await sendConfirmation({
         email: contact_email, name: contact_name,
@@ -76,6 +83,7 @@ router.post('/battery', async (req, res) => {
 
     res.status(201).json({ application_id: result.lastID, status: 'pending', message: 'Battery registration submitted.' })
   } catch (e) {
+    await db.run('ROLLBACK')
     res.status(500).json({ error: e.message })
   }
 })

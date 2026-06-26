@@ -120,7 +120,7 @@ export default function Calculator() {
 
       {/* Combined Total */}
       <div className="bg-primary text-white rounded-xl p-6 shadow-sm text-center">
-        <p className="text-sm text-gray-300 mb-1">三项合计 (包装法AR基础 + WEEE + 电池法)</p>
+        <p className="text-sm text-gray-300 mb-1">三项合计 (包装法AR{AR_TIERS[arTier]?.name?.split(' ')[0] || ''} + WEEE + 电池法)</p>
         <p className="text-3xl font-bold">约 €{(arFeeEur + weeeTotal + batTotal).toFixed(2)}/年</p>
         <p className="text-xs text-gray-400 mt-2">* 包装法AR以所选套餐计，双元系统费另计</p>
       </div>
