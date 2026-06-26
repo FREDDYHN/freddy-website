@@ -1,10 +1,12 @@
+import { BATTERY_STARTING_PRICE, BATTERY_PRICES } from '@shared/constants.js'
+
 export default function Battery() {
   return (
     <div>
       <section className="battery-gradient text-white py-16 px-4 text-center">
         <h1 className="text-3xl md:text-4xl font-bold mb-3">德国电池法 BattG</h1>
         <p className="text-lg text-gray-300 mb-2">Batteriegesetz — 电池及含电池产品合规</p>
-        <p className="text-xl font-bold text-amber-300">€258/年起</p>
+        <p className="text-xl font-bold text-amber-300">€{BATTERY_STARTING_PRICE}/年起</p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <a href="/apply?type=battery" className="inline-block px-6 py-3 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors">
             在线申报电池法 →
@@ -39,11 +41,11 @@ export default function Battery() {
           <h2 className="text-xl font-bold mb-4">费用参考</h2>
           <div className="space-y-3 text-sm">
             {[
-              ['WEEE Return 注册费', '€129.00'],
-              ['回收系统参与费', '€129.00'],
-              ['EAR 会员年费', '€48.00'],
-              ['EAR 季度费', '€3.80'],
-              ['额外品牌 (每品牌)', '€49.00'],
+              ['注册基本费', '€' + BATTERY_PRICES.baseFee.toFixed(2)],
+              ['回收系统参与费', '€' + BATTERY_PRICES.takebackFee.toFixed(2)],
+              ['EAR 会员年费', '€' + BATTERY_PRICES.earMembership.toFixed(2)],
+              ['EAR 季度费', '€' + BATTERY_PRICES.earQuarterly.toFixed(2)],
+              ['额外品牌 (每品牌)', '€' + BATTERY_PRICES.extraBrand.toFixed(2)],
             ].map(([item, fee], i) => (
               <div key={i} className="flex justify-between py-2 border-b border-gray-100">
                 <span className="text-gray-600">{item}</span>
@@ -51,7 +53,7 @@ export default function Battery() {
               </div>
             ))}
           </div>
-          <p className="text-xs text-gray-400 mt-4">* 首年另有一笔€50.76的EAR一次性授权费。以上为参考价格，具体以实际报价为准。</p>
+          <p className="text-xs text-gray-400 mt-4">* 首年另有一笔€{BATTERY_PRICES.authFirstYear.toFixed(2)}的EAR一次性授权费。以上为参考价格，具体以实际报价为准。</p>
         </div>
       </section>
     </div>

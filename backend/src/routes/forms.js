@@ -35,7 +35,7 @@ router.post('/weee', async (req, res) => {
         contractNumber: 'WEEE-' + result.lastID,
         tier: 'weee', fee: 278,
       })
-    } catch (e) { /* email failure is non-fatal */ }
+    } catch (e) { console.error('[forms] WEEE confirmation email failed:', e.message) }
 
     res.status(201).json({ application_id: result.lastID, status: 'pending', message: 'WEEE registration submitted. We will contact you within 48 hours.' })
   } catch (e) {
@@ -71,7 +71,7 @@ router.post('/battery', async (req, res) => {
         contractNumber: 'BATT-' + result.lastID,
         tier: 'battery', fee: 129,
       })
-    } catch (e) {}
+    } catch (e) { console.error('[forms] Battery confirmation email failed:', e.message) }
 
     res.status(201).json({ application_id: result.lastID, status: 'pending', message: 'Battery registration submitted.' })
   } catch (e) {

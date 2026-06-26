@@ -1,3 +1,5 @@
+import { WEEE_STARTING_PRICE } from '@shared/constants.js'
+
 const categories = [
   { id: '1', name: '热交换器', de: 'Wärmeüberträger', examples: '冰箱、空调、冷柜、热泵' },
   { id: '2', name: '显示屏/屏幕', de: 'Bildschirme', examples: '电视、显示器、笔记本电脑屏幕 (>100cm²)' },
@@ -13,7 +15,7 @@ export default function WEEE() {
       <section className="weee-gradient text-white py-16 px-4 text-center">
         <h1 className="text-3xl md:text-4xl font-bold mb-3">德国 WEEE 电子电气设备法</h1>
         <p className="text-lg text-gray-300 mb-2">Elektro- und Elektronikgerätegesetz (ElektroG)</p>
-        <p className="text-xl font-bold text-green-300">€278/年起</p>
+        <p className="text-xl font-bold text-green-300">€{WEEE_STARTING_PRICE}/年起</p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <a href="/apply?type=weee" className="inline-block px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
             在线申报 WEEE →

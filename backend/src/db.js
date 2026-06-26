@@ -1,5 +1,6 @@
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
+import bcryptjs from 'bcryptjs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import fs from 'fs'
@@ -37,7 +38,6 @@ export async function getDb() {
 
 export async function seedAdmin() {
   const d = await getDb()
-  const bcryptjs = (await import('bcryptjs')).default
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@freddy.cn'
   const adminPass = process.env.ADMIN_PASS || 'freddy2026'
 

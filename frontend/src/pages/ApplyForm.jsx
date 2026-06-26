@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { EMAIL_RE } from '@shared/constants.js'
 
 export default function ApplyForm() {
   const [params] = useSearchParams()
@@ -9,11 +10,29 @@ export default function ApplyForm() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
 
-  const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const update = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }))
+    if (fieldErrors[k]) setFieldErrors(e => { const n = {...e}; delete n[k]; return n })
+  }
+
+  const validate = () => {
+    const errs = {}
+    if (!form.company_name.trim()) errs.company_name = '请输入公司名称'
+    if (!form.contact_name.trim()) errs.contact_name = '请输入联系人'
+    if (!form.contact_email.trim()) {
+      errs.contact_email = '请输入邮箱'
+    } else if (!EMAIL_RE.test(form.contact_email)) {
+      errs.contact_email = '邮箱格式不正确'
+    }
+    setFieldErrors(errs)
+    return Object.keys(errs).length === 0
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!validate()) return
     setLoading(true)
     setError('')
     try {
@@ -23,7 +42,7 @@ export default function ApplyForm() {
         body: JSON.stringify(form),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed')
+      if (!res.ok) throw new Error(data.error || '提交失败')
       setSubmitted(true)
     } catch (err) {
       setError(err.message)
@@ -65,15 +84,21 @@ export default function ApplyForm() {
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">公司名称 *</label>
-            <input required value={form.company_name} onChange={e => update('company_name', e.target.value)} className="w-full border rounded-lg p-2.5 text-sm" placeholder="您的公司全称" />
+            <input required value={form.company_name} onChange={e => update('company_name', e.target.value)}
+              className={`w-full border rounded-lg p-2.5 text-sm ${fieldErrors.company_name ? 'border-red-400' : ''}`} placeholder="您的公司全称" />
+            {fieldErrors.company_name && <p className="text-red-500 text-xs mt-0.5">{fieldErrors.company_name}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">联系人 *</label>
-            <input required value={form.contact_name} onChange={e => update('contact_name', e.target.value)} className="w-full border rounded-lg p-2.5 text-sm" placeholder="姓名" />
+            <input required value={form.contact_name} onChange={e => update('contact_name', e.target.value)}
+              className={`w-full border rounded-lg p-2.5 text-sm ${fieldErrors.contact_name ? 'border-red-400' : ''}`} placeholder="姓名" />
+            {fieldErrors.contact_name && <p className="text-red-500 text-xs mt-0.5">{fieldErrors.contact_name}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">邮箱 *</label>
-            <input required type="email" value={form.contact_email} onChange={e => update('contact_email', e.target.value)} className="w-full border rounded-lg p-2.5 text-sm" placeholder="your@email.com" />
+            <input required type="email" value={form.contact_email} onChange={e => update('contact_email', e.target.value)}
+              className={`w-full border rounded-lg p-2.5 text-sm ${fieldErrors.contact_email ? 'border-red-400' : ''}`} placeholder="your@email.com" />
+            {fieldErrors.contact_email && <p className="text-red-500 text-xs mt-0.5">{fieldErrors.contact_email}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">电话</label>

@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import NavBar from './components/NavBar.jsx'
 import Footer from './components/Footer.jsx'
 import Landing from './pages/Landing.jsx'
@@ -12,8 +13,22 @@ import SignupFlow from './pages/SignupFlow.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Admin from './pages/Admin.jsx'
 import ApplyForm from './pages/ApplyForm.jsx'
+import Login from './pages/Login.jsx'
 
 export default function App() {
+  const nav = useNavigate()
+
+  // Global auth:expired handler — redirects to login when token is invalid/expired
+  useEffect(() => {
+    const handler = () => {
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('user')
+      nav('/login', { replace: true })
+    }
+    window.addEventListener('auth:expired', handler)
+    return () => window.removeEventListener('auth:expired', handler)
+  }, [nav])
+
   return (
     <div className="min-h-screen flex flex-col bg-[#f8f9fa]">
       <NavBar />
@@ -27,6 +42,7 @@ export default function App() {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/downloads" element={<Downloads />} />
           <Route path="/signup" element={<SignupFlow />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/apply" element={<ApplyForm />} />

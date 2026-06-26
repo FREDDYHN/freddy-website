@@ -1,15 +1,13 @@
 import { Link } from 'react-router-dom'
+import { PACKAGING_MATERIALS, AR_TIERS } from '@shared/constants.js'
 
 export default function Packaging() {
-  const materials = [
-    { name: '玻璃 (Glas)', min: '0.02', max: '0.05' },
-    { name: '纸/纸板/纸箱 (Papier/Pappe)', min: '0.02', max: '0.15' },
-    { name: '黑色金属 (Eisenmetalle)', min: '0.15', max: '0.40' },
-    { name: '铝 (Aluminium)', min: '0.15', max: '0.40' },
-    { name: '塑料 (Kunststoffe)', min: '0.30', max: '0.80' },
-    { name: '复合材料 (Verbunde)', min: '0.20', max: '0.50' },
-    { name: '饮料纸盒 (Getränkekarton)', min: '0.15', max: '0.35' },
-  ]
+  const materials = PACKAGING_MATERIALS.map(m => ({
+    name: m.label,
+    min: m.dualSystemMin.toFixed(2),
+    max: m.dualSystemMax.toFixed(2),
+  }))
+  const tiers = Object.values(AR_TIERS)
 
   const faqs = [
     { q: '什么是德国包装法 (VerpackG)？', a: '德国包装法规定了在德国市场上销售包装产品的所有生产商、进口商和电商卖家必须履行的包装回收和再生利用义务。自2022年7月起，所有类型的包装（不仅限于面向个人消费者的包装）都必须在LUCID包装品登记处注册。' },
@@ -23,7 +21,7 @@ export default function Packaging() {
       <section className="packaging-gradient text-white py-16 px-4 text-center">
         <h1 className="text-3xl md:text-4xl font-bold mb-3">德国包装法 · 授权代表</h1>
         <p className="text-lg text-gray-300 mb-2">Verpackungsgesetz (VerpackG) §35(2) — 本土授权代表服务</p>
-        <p className="text-xl font-bold text-accent">€89 / 年起</p>
+        <p className="text-xl font-bold text-accent">€{AR_TIERS.basic.feeEur} / 年起</p>
         <div className="mt-6">
           <Link to="/signup" className="inline-block px-6 py-3 bg-accent text-white font-semibold rounded-lg hover:bg-accent-light transition-colors">
             立即签约 →
@@ -95,22 +93,24 @@ export default function Packaging() {
       <section className="max-w-4xl mx-auto px-4 py-16">
         <h2 className="text-2xl font-bold text-center mb-8">LIVANTO 授权代表服务套餐</h2>
         <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { name: '基础', price: '€89/年', features: ['核心AR服务', 'LUCID数据申报', '双元系统合同', '官方通信处理'] },
-            { name: '标准', price: '€159/年', features: ['基础全部内容', '优先响应 (48h)', '扩展分类咨询', '年度合规简报'], highlight: true },
-            { name: '高级', price: '€249/年', features: ['标准全部内容', '完整性声明协调', '专属客户经理', '24h响应时间'] },
-          ].map((t, i) => (
-            <div key={i} className={`bg-white rounded-xl p-6 shadow-sm border-2 ${t.highlight ? 'border-primary' : 'border-gray-100'} flex flex-col`}>
-              <h3 className="text-lg font-bold mb-1">{t.name}</h3>
-              <p className="text-2xl font-bold text-primary mb-4">{t.price}</p>
+          {tiers.map((t) => {
+            const features = t.key === 'basic'
+              ? ['核心AR服务', 'LUCID数据申报', '双元系统合同', '官方通信处理']
+              : t.key === 'standard'
+              ? ['基础全部内容', '优先响应 (48h)', '扩展分类咨询', '年度合规简报']
+              : ['标准全部内容', '完整性声明协调', '专属客户经理', '24h响应时间']
+            return (
+            <div key={t.key} className={`bg-white rounded-xl p-6 shadow-sm border-2 ${t.featured ? 'border-primary' : 'border-gray-100'} flex flex-col`}>
+              <h3 className="text-lg font-bold mb-1">{t.name.split(' ')[0]}</h3>
+              <p className="text-2xl font-bold text-primary mb-4">€{t.feeEur}/年</p>
               <ul className="text-sm text-gray-600 space-y-2 flex-1 mb-4">
-                {t.features.map((f, j) => <li key={j} className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> {f}</li>)}
+                {features.map((f, j) => <li key={j} className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> {f}</li>)}
               </ul>
-              <Link to="/signup" className={`block text-center py-2 rounded-lg font-medium text-sm ${t.highlight ? 'bg-primary text-white' : 'border border-primary text-primary'}`}>
-                选择{t.name}
+              <Link to="/signup" className={`block text-center py-2 rounded-lg font-medium text-sm ${t.featured ? 'bg-primary text-white' : 'border border-primary text-primary'}`}>
+                选择{t.name.split(' ')[0]}
               </Link>
             </div>
-          ))}
+          )})}
         </div>
       </section>
 
