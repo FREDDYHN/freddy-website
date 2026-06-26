@@ -10,9 +10,18 @@ const links = [
   { to: '/faq', label: '常见问题' },
 ]
 
+function useAuth() {
+  try {
+    const user = JSON.parse(sessionStorage.getItem('user') || 'null')
+    return user || null
+  } catch { return null }
+}
+
 export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
+  const user = useAuth()
+  const isLoggedIn = !!user
 
   const isActive = (path) => {
     if (path === '/') return location.pathname === '/'
@@ -42,12 +51,23 @@ export default function NavBar() {
               {l.label}
             </Link>
           ))}
-          <Link
-            to="/signup"
-            className="ml-2 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-light rounded-lg transition-colors"
-          >
-            在线签约
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link to="/dashboard" className="px-3 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 rounded-md">📋 面板</Link>
+              <Link to="/profile" className="px-3 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 rounded-md">👤 账户</Link>
+              {user?.role === 'admin' && (
+                <Link to="/admin" className="px-3 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 rounded-md">⚙️ 管理</Link>
+              )}
+              <Link to="/login" onClick={() => { sessionStorage.clear(); window.dispatchEvent(new Event('auth:expired')) }}
+                className="ml-2 px-4 py-2 text-sm font-medium text-gray-500 border rounded-lg hover:bg-gray-50 transition-colors">
+                退出
+              </Link>
+            </>
+          ) : (
+            <Link to="/signup" className="ml-2 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-light rounded-lg transition-colors">
+              在线签约
+            </Link>
+          )}
         </nav>
 
         {/* Mobile Hamburger */}
@@ -82,13 +102,21 @@ export default function NavBar() {
               {l.label}
             </Link>
           ))}
-          <Link
-            to="/signup"
-            className="block mt-2 py-2.5 text-sm font-medium text-primary"
-            onClick={() => setMenuOpen(false)}
-          >
-            在线签约 →
-          </Link>
+          <div className="border-t border-gray-100 mt-2 pt-2">
+            {isLoggedIn ? (
+              <>
+                <Link to="/dashboard" className="block py-2.5 text-sm text-gray-600" onClick={() => setMenuOpen(false)}>📋 我的面板</Link>
+                <Link to="/profile" className="block py-2.5 text-sm text-gray-600" onClick={() => setMenuOpen(false)}>👤 账户管理</Link>
+                {user?.role === 'admin' && (
+                  <Link to="/admin" className="block py-2.5 text-sm text-gray-600" onClick={() => setMenuOpen(false)}>⚙️ 管理后台</Link>
+                )}
+                <Link to="/login" onClick={() => { setMenuOpen(false); sessionStorage.clear(); window.dispatchEvent(new Event('auth:expired')) }}
+                  className="block py-2.5 text-sm text-gray-500">退出登录</Link>
+              </>
+            ) : (
+              <Link to="/signup" className="block py-2.5 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>在线签约 →</Link>
+            )}
+          </div>
         </div>
       )}
     </header>

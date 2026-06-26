@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PACKAGING_MATERIALS, AR_TIERS, EMAIL_RE } from '@shared/constants.js'
 
@@ -25,6 +25,12 @@ export default function SignupFlow() {
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
   const [errors, setErrors] = useState({})
+
+  const [bankInfo, setBankInfo] = useState(null)
+
+  useEffect(() => {
+    fetch('/api/bank-info').then(r => r.json()).then(setBankInfo).catch(() => {})
+  }, [])
 
   const [form, setForm] = useState({
     company_name: '', contact_name: '', contact_email: '', contact_phone: '', wechat_id: '',
@@ -137,18 +143,21 @@ export default function SignupFlow() {
           <p><strong>起始日期：</strong>{result.start_date}</p>
           <p><strong>支付金额：</strong>¥{result.payment?.cnyAmount}</p>
         </div>
-        <div className="bg-blue-50 rounded-xl p-6 text-left mt-6 border border-blue-200">
-          <h3 className="font-bold mb-3">💳 付款方式：银行转账</h3>
-          <p className="text-sm text-gray-600 mb-2">请将年费转账至以下账户（支持对公转账）：</p>
-          <div className="text-sm space-y-1 text-gray-700">
-            <p><strong>银行：</strong>中国银行</p>
-            <p><strong>账户名：</strong>福瑞笛（上海）信息咨询有限公司淮南分公司</p>
-            <p><strong>附言：</strong>{result.contract_number}</p>
+        {bankInfo && (
+          <div className="bg-blue-50 rounded-xl p-6 text-left mt-6 border border-blue-200">
+            <h3 className="font-bold mb-3">💳 付款方式：银行转账</h3>
+            <p className="text-sm text-gray-600 mb-2">请将年费转账至以下账户（支持对公转账）：</p>
+            <div className="text-sm space-y-1 text-gray-700">
+              <p><strong>银行：</strong>{bankInfo.bank_name}</p>
+              <p><strong>账户名：</strong>{bankInfo.account_name}</p>
+              <p><strong>账号：</strong>{bankInfo.account_number}</p>
+              <p><strong>附言：</strong>{bankInfo.reference_prefix}{result.contract_number}</p>
+            </div>
+            <p className="text-xs text-blue-600 mt-3">
+              💡 {bankInfo.note}
+            </p>
           </div>
-          <p className="text-xs text-blue-600 mt-3">
-            💡 到账后合同自动激活。我们将在 {form.contact_email} 向您发送合同PDF和LUCID注册指南。
-          </p>
-        </div>
+        )}
       </div>
     )
   }
