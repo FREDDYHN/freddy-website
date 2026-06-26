@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { REPORTING_DEADLINE_MONTH, REPORTING_DEADLINE_DAY } from '@shared/constants.js'
 
 export default function Dashboard() {
   const [data, setData] = useState(null)
@@ -100,9 +101,9 @@ export default function Dashboard() {
   const end = new Date(c.end_date)
   const daysLeft = Math.max(0, Math.ceil((end - now) / (1000 * 60 * 60 * 24)))
 
-  // Next reporting deadline: Feb 15
-  const reportYear = now.getMonth() < 1 ? now.getFullYear() : now.getFullYear() + 1
-  const reportDeadline = new Date(reportYear, 1, 15)
+  // Next reporting deadline (uses shared constants)
+  const reportYear = now.getMonth() < (REPORTING_DEADLINE_MONTH - 1) ? now.getFullYear() : now.getFullYear() + 1
+  const reportDeadline = new Date(reportYear, REPORTING_DEADLINE_MONTH - 1, REPORTING_DEADLINE_DAY)
   const daysToReport = Math.ceil((reportDeadline - now) / (1000 * 60 * 60 * 24))
 
   const statusColor = {
@@ -137,7 +138,7 @@ export default function Dashboard() {
           { label: '合同编号', value: c.contract_number, sub: c.tier?.toUpperCase() },
           { label: '年费', value: '€' + c.annual_fee_eur, sub: '含AR服务' },
           { label: '合同剩余', value: daysLeft + ' 天', sub: c.end_date, warn: daysLeft < 60 },
-          { label: '距申报截止', value: daysToReport + ' 天', sub: reportYear + '-02-15', warn: daysToReport < 45 },
+          { label: '距申报截止', value: daysToReport + ' 天', sub: reportYear + '-' + String(REPORTING_DEADLINE_MONTH).padStart(2,'0') + '-' + String(REPORTING_DEADLINE_DAY).padStart(2,'0'), warn: daysToReport < 45 },
         ].map((s, i) => (
           <div key={i} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <p className="text-xs text-gray-400 mb-1">{s.label}</p>

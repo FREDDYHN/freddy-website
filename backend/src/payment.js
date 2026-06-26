@@ -48,8 +48,12 @@ function eurToCny(eur) { return Math.round(eur * EUR_CNY_RATE * 100) / 100 }
  */
 function verifyWechatSignature(timestamp, nonce, body, signature) {
   if (!WECHAT.publicKey) {
-    console.warn('[payment] WECHAT_PUBLIC_KEY not set — skipping callback signature verification')
-    return true // Only skip if in simulation mode; in production the key MUST be set
+    if (!SIMULATION_MODE) {
+      console.error('[payment] FATAL: WECHAT_PUBLIC_KEY required in production mode')
+      return false
+    }
+    console.warn('[payment] WECHAT_PUBLIC_KEY not set — skipping verification (dev only)')
+    return true
   }
   try {
     const message = `${timestamp}\n${nonce}\n${body}\n`
@@ -68,7 +72,11 @@ function verifyWechatSignature(timestamp, nonce, body, signature) {
  */
 function verifyAlipaySignature(params) {
   if (!ALIPAY.alipayPublicKey) {
-    console.warn('[payment] ALIPAY_PUBLIC_KEY not set — skipping callback signature verification')
+    if (!SIMULATION_MODE) {
+      console.error('[payment] FATAL: ALIPAY_PUBLIC_KEY required in production mode')
+      return false
+    }
+    console.warn('[payment] ALIPAY_PUBLIC_KEY not set — skipping verification (dev only)')
     return true
   }
   try {

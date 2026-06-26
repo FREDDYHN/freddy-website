@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { getDb } from '../db.js'
 import { sendConfirmation } from '../services/email.js'
+import { WEEE_STARTING_PRICE, BATTERY_PRICES } from '../../../shared/constants.js'
 
 const router = Router()
 
@@ -33,7 +34,7 @@ router.post('/weee', async (req, res) => {
       await sendConfirmation({
         email: contact_email, name: contact_name,
         contractNumber: 'WEEE-' + result.lastID,
-        tier: 'weee', fee: 278,
+        tier: 'weee', fee: WEEE_STARTING_PRICE,
       })
     } catch (e) { console.error('[forms] WEEE confirmation email failed:', e.message) }
 
@@ -69,7 +70,7 @@ router.post('/battery', async (req, res) => {
       await sendConfirmation({
         email: contact_email, name: contact_name,
         contractNumber: 'BATT-' + result.lastID,
-        tier: 'battery', fee: 129,
+        tier: 'battery', fee: BATTERY_PRICES.baseFee,
       })
     } catch (e) { console.error('[forms] Battery confirmation email failed:', e.message) }
 

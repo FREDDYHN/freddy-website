@@ -32,12 +32,15 @@ export default function Admin() {
         throw new Error('Admin access required')
       }
 
-      const [statsData, contractsData, remindersData] = await Promise.all([
-        statsRes.json(), contractsRes.json(), remindersRes.json().catch(() => []),
+      const [statsData, contractsResolved, remindersData] = await Promise.all([
+        statsRes.json(),
+        contractsRes.json(),
+        remindersRes.json().catch(() => []),
       ])
 
       setStats(statsData)
-      setContracts(Array.isArray(contractsData) ? contractsData : [])
+      // contractsResolved may be {data, pagination} (new) or plain array (legacy)
+      setContracts(Array.isArray(contractsResolved) ? contractsResolved : (contractsResolved.data || []))
       setReminders(Array.isArray(remindersData) ? remindersData : [])
     } catch (e) {
       if (e.message !== 'login_required') setError(e.message)

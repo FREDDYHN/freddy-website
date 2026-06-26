@@ -9,15 +9,21 @@ const FROM = process.env.SMTP_FROM || 'noreply@freddy.cn'
 let transporter = null
 
 function getTransport() {
-  if (!transporter) {
-    if (process.env.SMTP_HOST) {
-      transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-      })
-    }
+  if (transporter) return transporter
+  if (process.env.SMTP_HOST) {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    })
+    // Verify connection eagerly and reset on failure
+    transporter.verify().then(() => {
+      console.log('[email] SMTP connected:', process.env.SMTP_HOST)
+    }).catch((e) => {
+      console.error('[email] SMTP verify failed:', e.message)
+      transporter = null // force reconnect next time
+    })
   }
   return transporter
 }
@@ -25,7 +31,13 @@ function getTransport() {
 async function send({ to, subject, html }) {
   const t = getTransport()
   if (t) {
-    await t.sendMail({ from: FROM, to, subject, html })
+    try {
+      await t.sendMail({ from: FROM, to, subject, html })
+    } catch (e) {
+      console.error('[email] Send failed, resetting transporter:', e.message)
+      transporter = null // force reconnect on next attempt
+      throw e
+    }
   } else {
     console.log(`[email] SIMULATION — To: ${to} | Subject: ${subject}`)
     console.log(`[email] Body preview: ${html.slice(0, 200)}...`)

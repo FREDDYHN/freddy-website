@@ -102,14 +102,29 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
   }
 })
 
-// ── Admin Contracts ──
+// ── Admin Contracts (with pagination) ──
 app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const db = await getDb()
-    const rows = await db.all(
-      'SELECT c.*, cl.company_name, cl.contact_email FROM contracts c JOIN clients cl ON c.client_id = cl.id ORDER BY c.id DESC'
-    )
-    res.json(rows)
+    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const perPage = Math.min(100, Math.max(10, parseInt(req.query.perPage) || 50))
+    const offset = (page - 1) * perPage
+
+    const [rows, countRow] = await Promise.all([
+      db.all(
+        'SELECT c.*, cl.company_name, cl.contact_email FROM contracts c JOIN clients cl ON c.client_id = cl.id ORDER BY c.id DESC LIMIT ? OFFSET ?',
+        perPage, offset
+      ),
+      db.get('SELECT COUNT(*) as total FROM contracts'),
+    ])
+
+    res.json({
+      data: rows,
+      pagination: {
+        page, perPage, total: countRow.total,
+        totalPages: Math.ceil(countRow.total / perPage),
+      },
+    })
   } catch (e) {
     console.error('[server] admin contracts error:', e)
     res.status(500).json({ error: e.message })

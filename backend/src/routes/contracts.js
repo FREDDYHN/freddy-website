@@ -24,19 +24,23 @@ function dateStr(date) {
 /**
  * Calculate contract period:
  *   - Start: first day of NEXT month (gives client time to prepare)
- *   - End:   last day of same month NEXT year
+ *   - End:   last day of the 12th month after start
  *
- * Example: signed on 2026-06-27 → start 2026-07-01, end 2027-06-30
+ * Uses the actual resolved start date for end calculation,
+ * correctly handling JavaScript Date month overflow (e.g. month 12 → January next year).
+ *
+ * Examples:
+ *   signed on 2026-06-27 → start 2026-07-01, end 2027-06-30
+ *   signed on 2026-12-15 → start 2027-01-01, end 2027-12-31
  */
 function contractPeriod() {
   const now = new Date()
   const startYear = now.getFullYear()
   const startMonth = now.getMonth() + 1  // next calendar month (0-indexed)
-  // Use explicit year/month math to handle December → January rollover
   const start = new Date(startYear, startMonth, 1)
-  const endYear = startMonth === 12 ? startYear + 2 : startYear + 1
-  const endMonth = startMonth === 12 ? 1 : startMonth  // same month number next year
-  const end = new Date(endYear, endMonth, 0) // day 0 = last day of previous month
+  // Calculate end based on the ACTUAL resolved start date
+  // (handles December→January overflow correctly via JS Date auto-roll)
+  const end = new Date(start.getFullYear() + 1, start.getMonth(), 0)
   return {
     startDate: dateStr(start),
     endDate: dateStr(end),
@@ -132,12 +136,24 @@ router.post('/:id/sign', async (req, res) => {
   try {
     const db = await getDb()
     const { signer_name } = req.body
+
+    if (!signer_name || !signer_name.trim()) {
+      return res.status(400).json({ error: 'Signer name required' })
+    }
+
+    // Verify contract exists and is in a signable state
+    const contract = await db.get('SELECT * FROM contracts WHERE id = ?', req.params.id)
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    if (contract.status !== 'pending_payment') {
+      return res.status(400).json({ error: `Cannot sign a contract with status: ${contract.status}` })
+    }
+
     const ip = req.headers['x-forwarded-for'] || req.ip || req.socket?.remoteAddress || 'unknown'
     await db.run(
       "UPDATE contracts SET status = 'signed', signed_at = datetime('now'), signed_ip = ? WHERE id = ?",
       ip, req.params.id
     )
-    res.json({ success: true, contract_id: parseInt(req.params.id), signed_at: new Date().toISOString(), signer_name })
+    res.json({ success: true, contract_id: parseInt(req.params.id), signed_at: new Date().toISOString(), signer_name: signer_name.trim() })
   } catch (e) {
     console.error('[contracts] sign error:', e)
     res.status(500).json({ error: e.message })

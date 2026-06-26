@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { EMAIL_RE } from '@shared/constants.js'
 
@@ -8,6 +8,18 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    const token = sessionStorage.getItem('token')
+    const userStr = sessionStorage.getItem('user')
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        nav(user.role === 'admin' ? '/admin' : '/dashboard', { replace: true })
+      } catch {}
+    }
+  }, [nav])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
