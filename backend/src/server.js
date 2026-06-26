@@ -20,14 +20,19 @@ const PORT = process.env.PORT || 3002
 
 const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',')
-  : ['http://localhost:5173', 'http://localhost:3002', 'http://127.0.0.1:5173']
+  : [
+      'http://localhost:5173', 'http://localhost:3002', 'http://127.0.0.1:5173',
+      'https://www.freddy-epr.com', 'https://freddy-epr.com',
+      'https://www.freddy-epr.cn', 'https://freddy-epr.cn',
+    ]
 app.use(cors({
   origin: (origin, cb) => {
+    // Allow requests with no origin (same-origin, curl, mobile) or from allowed origins
     if (!origin || ALLOWED_ORIGINS.includes(origin) || ALLOWED_ORIGINS[0] === '*') {
       cb(null, true)
     } else {
       console.warn(`[server] CORS blocked origin: ${origin}`)
-      cb(new Error('Not allowed by CORS'))
+      cb(null, false) // Deny CORS headers but don't reject the request itself
     }
   },
   credentials: true,
