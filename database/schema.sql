@@ -102,7 +102,23 @@ CREATE TABLE IF NOT EXISTS applications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS uploads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER REFERENCES clients(id),
+    contract_id INTEGER REFERENCES contracts(id),
+    file_type TEXT DEFAULT 'other',
+    original_name TEXT NOT NULL,
+    stored_path TEXT NOT NULL,
+    file_size INTEGER,
+    mime_type TEXT,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_contracts_client ON contracts(client_id);
 CREATE INDEX IF NOT EXISTS idx_packaging_contract ON packaging_data(contract_id);
 CREATE INDEX IF NOT EXISTS idx_payments_contract ON payments(contract_id);
 CREATE INDEX IF NOT EXISTS idx_reminders_due ON reminders(due_date) WHERE status = 'pending';
+CREATE INDEX IF NOT EXISTS idx_uploads_client ON uploads(client_id);
+CREATE INDEX IF NOT EXISTS idx_uploads_contract ON uploads(contract_id);
+CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(contact_email);
+CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(company_name);

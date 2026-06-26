@@ -136,16 +136,19 @@ export default function SignupFlow() {
           <p><strong>年费：</strong>€{result.annual_fee_eur}</p>
           <p><strong>起始日期：</strong>{result.start_date}</p>
           <p><strong>支付金额：</strong>¥{result.payment?.cnyAmount}</p>
-          {result.payment?.payUrl && (
-            <a href={result.payment.payUrl} target="_blank" rel="noopener noreferrer"
-              className="inline-block mt-4 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold">
-              去支付 →
-            </a>
-          )}
         </div>
-        <p className="text-sm text-gray-500">
-          支付完成后合同即激活。我们将向 {form.contact_email} 发送合同PDF和LUCID注册指南。
-        </p>
+        <div className="bg-blue-50 rounded-xl p-6 text-left mt-6 border border-blue-200">
+          <h3 className="font-bold mb-3">💳 付款方式：银行转账</h3>
+          <p className="text-sm text-gray-600 mb-2">请将年费转账至以下账户（支持对公转账）：</p>
+          <div className="text-sm space-y-1 text-gray-700">
+            <p><strong>银行：</strong>中国银行</p>
+            <p><strong>账户名：</strong>福瑞笛（上海）信息咨询有限公司淮南分公司</p>
+            <p><strong>附言：</strong>{result.contract_number}</p>
+          </div>
+          <p className="text-xs text-blue-600 mt-3">
+            💡 到账后合同自动激活。我们将在 {form.contact_email} 向您发送合同PDF和LUCID注册指南。
+          </p>
+        </div>
       </div>
     )
   }

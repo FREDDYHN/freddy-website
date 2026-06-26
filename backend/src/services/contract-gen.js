@@ -1,0 +1,115 @@
+/**
+ * FREDDY Contract Generation Service
+ *
+ * Fills .docx templates with customer data using docxtemplater,
+ * preserving 100% of the original formatting (required by EAR).
+ *
+ * Template mapping:
+ *   AR (包装法):     projects/contracts/LIVANTO/Bevollmächtigungsvertrag_03.docx
+ *   WEEE (中国主体): projects/中国主体合同/非德国主体_WEEE合同模板_*.docx
+ *   WEEE (德国主体): projects/德国主体合同/德国主体_WEEE合同模板_*.docx
+ *   Battery (中国):  projects/中国主体合同/非德国主体_WEEE&电池法合同模板_*.docx
+ *   Battery (德国):  projects/德国主体合同/德国主体_WEEE&电池法合同模板_*.docx
+ */
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
+import Docxtemplater from 'docxtemplater'
+import PizZip from 'pizzip'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const rootPath = join(__dirname, '..', '..', '..')
+const projectsDir = join(rootPath, 'projects')
+const outputDir = join(rootPath, 'projects', 'generated')
+
+// Ensure output directory exists
+if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true })
+
+/** Template paths keyed by contract type + client location */
+const TEMPLATES = {
+  ar: join(projectsDir, 'contracts', 'LIVANTO', 'Bevollmächtigungsvertrag_03.docx'),
+  weee_cn: join(projectsDir, '中国主体合同', '非德国主体_WEEE合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_WEEE.docx'),
+  weee_de: join(projectsDir, '德国主体合同', '德国主体_WEEE合同模板_Leistungsvertrag_Kunde mit Sitz in Deutschland_WEEE.docx'),
+  battery_cn: join(projectsDir, '中国主体合同', '非德国主体_WEEE&电池法合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_WEEE & Batterien.docx'),
+  battery_de: join(projectsDir, '德国主体合同', '德国主体_WEEE&电池法合同模板_Leistungsvertrag_Kunde mit Sitz in Deutschland_WEEE & Batterien.docx'),
+}
+
+/**
+ * Generate a filled .docx contract.
+ *
+ * @param {Object} opts
+ * @param {string} opts.type - 'ar' | 'weee' | 'battery'
+ * @param {string} opts.clientLocation - 'cn' (non-German) | 'de' (German)
+ * @param {Object} opts.data - key-value pairs to fill into the template
+ * @returns {string} Path to the generated .docx file
+ */
+export function generateContract({ type, clientLocation, data }) {
+  const key = type === 'ar' ? 'ar' : `${type}_${clientLocation || 'cn'}`
+  const templatePath = TEMPLATES[key]
+  if (!templatePath) throw new Error(`No template for: ${key}`)
+  if (!existsSync(templatePath)) throw new Error(`Template not found: ${templatePath}`)
+
+  const buf = readFileSync(templatePath)
+  const zip = new PizZip(buf)
+  const doc = new Docxtemplater(zip, {
+    paragraphLoop: true,
+    linebreaks: true,
+  })
+
+  // Map common field names to template placeholders
+  const tags = {
+    // Company info
+    company_name: data.company_name || data.company || '',
+    company_name_en: data.company_name_en || '',
+    company_address: data.company_address || data.address || '',
+    uscc: data.uscc || '',
+    legal_representative: data.legal_representative || data.legal_rep || '',
+    contact_name: data.contact_name || data.contact || '',
+    contact_email: data.contact_email || data.email || '',
+    contact_phone: data.contact_phone || data.phone || '',
+    // Contract info
+    contract_number: data.contract_number || '',
+    contract_date: data.contract_date || new Date().toISOString().slice(0, 10),
+    start_date: data.start_date || '',
+    end_date: data.end_date || '',
+    annual_fee_eur: data.annual_fee_eur || data.fee_eur || '',
+    // WEEE/Battery specific
+    device_count: data.device_count || '',
+    brand_count: data.brand_count || '',
+    device_categories: data.device_categories || '',
+    packaging_items: data.packaging_items || '',
+    // Signature
+    signer_name: data.signer_name || '',
+    signer_title: data.signer_title || '',
+    sign_date: data.sign_date || new Date().toISOString().slice(0, 10),
+    // LIVANTO info
+    livanto_name: 'LIVANTO GmbH',
+    livanto_address: data.livanto_address || '',
+    livanto_register: data.livanto_register || '',
+  }
+
+  try {
+    doc.setData(tags)
+    doc.render()
+  } catch (e) {
+    // If template has undefined tags, log and continue
+    console.error('[contract-gen] Template render warning:', e.message)
+    throw new Error(`Template render failed: ${e.message}`)
+  }
+
+  const outName = `${key}_${data.contract_number || Date.now().toString(36)}.docx`
+  const outPath = join(outputDir, outName)
+  writeFileSync(outPath, doc.getZip().generate({ type: 'nodebuffer' }))
+  console.log(`[contract-gen] Generated: ${outPath}`)
+  return outPath
+}
+
+/**
+ * Get the relative URL path for a generated contract file
+ */
+export function getContractUrl(filePath) {
+  const rel = filePath.replace(rootPath, '').replace(/\\/g, '/')
+  return rel.startsWith('/') ? rel : '/' + rel
+}
+
+export const contractTemplates = TEMPLATES

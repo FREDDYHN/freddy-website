@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import Admin from './pages/Admin.jsx'
 import ApplyForm from './pages/ApplyForm.jsx'
 import Login from './pages/Login.jsx'
+import Profile from './pages/Profile.jsx'
 
 export default function App() {
   const nav = useNavigate()
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/signup" element={<SignupFlow />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/apply" element={<ApplyForm />} />
         </Routes>

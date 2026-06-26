@@ -8,7 +8,7 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3002,
         BASE_URL: 'https://www.freddy-epr.cn',
-        JWT_SECRET: process.env.JWT_SECRET || 'change-me-in-production',
+        JWT_SECRET: process.env.JWT_SECRET,
         DB_PATH: '/root/freddy-website/database/data.db',
         SMTP_HOST: process.env.SMTP_HOST || '',
         SMTP_PORT: process.env.SMTP_PORT || '',

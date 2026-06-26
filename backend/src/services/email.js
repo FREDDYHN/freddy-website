@@ -17,12 +17,12 @@ function getTransport() {
       secure: process.env.SMTP_SECURE === 'true',
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     })
-    // Verify connection eagerly and reset on failure
+    // Verify eagerly — failures clear transporter so first send can retry
     transporter.verify().then(() => {
       console.log('[email] SMTP connected:', process.env.SMTP_HOST)
     }).catch((e) => {
       console.error('[email] SMTP verify failed:', e.message)
-      transporter = null // force reconnect next time
+      transporter = null
     })
   }
   return transporter

@@ -25,6 +25,7 @@ export async function getDb() {
 
   await db.exec('PRAGMA journal_mode = WAL')
   await db.exec('PRAGMA foreign_keys = ON')
+  await db.exec('PRAGMA wal_autocheckpoint = 1000')
 
   // Initialize schema
   if (fs.existsSync(SCHEMA_PATH)) {
@@ -34,6 +35,15 @@ export async function getDb() {
 
   console.log(`[db] Connected: ${DB_PATH}`)
   return db
+}
+
+export async function closeDb() {
+  if (db) {
+    await db.exec('PRAGMA wal_checkpoint(TRUNCATE)')
+    await db.close()
+    db = null
+    console.log('[db] Closed')
+  }
 }
 
 export async function seedAdmin() {

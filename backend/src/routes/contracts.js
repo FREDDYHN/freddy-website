@@ -62,12 +62,18 @@ router.post('/', async (req, res) => {
 
     const annualFee = AR_TIER_FEES_EUR[tier] || AR_TIER_FEES_EUR.basic
 
-    // 1. Create client
-    const clientResult = await db.run(
-      'INSERT INTO clients (company_name, contact_name, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?)',
-      company_name, contact_name, contact_email, contact_phone || '', wechat_id || ''
-    )
-    const clientId = clientResult.lastID
+    // 1. Create or reuse client (by email)
+    let clientId
+    const existingClient = await db.get('SELECT id FROM clients WHERE contact_email = ?', contact_email)
+    if (existingClient) {
+      clientId = existingClient.id
+    } else {
+      const clientResult = await db.run(
+        'INSERT INTO clients (company_name, contact_name, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?)',
+        company_name, contact_name, contact_email, contact_phone || '', wechat_id || ''
+      )
+      clientId = clientResult.lastID
+    }
 
     // 2. Create contract
     const contractNumber = await nextContractNumber(db)

@@ -74,7 +74,7 @@ if [ ! -f backend/.env ]; then
 NODE_ENV=production
 PORT=3002
 BASE_URL=https://www.freddy-epr.cn
-JWT_SECRET=freddy-epr-prod-2026-secure-please-change
+JWT_SECRET=$(openssl rand -hex 32)
 SMTP_HOST=
 SMTP_PORT=587
 SMTP_USER=
