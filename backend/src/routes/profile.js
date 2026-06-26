@@ -19,6 +19,8 @@ router.get('/', authMiddleware, async (req, res) => {
 })
 
 // PUT /api/profile — Update client profile
+// NOTE: Field names are directly mapped from req.body to DB columns.
+// Frontend Profile.jsx must use the same field names (company_name, uscc, etc.)
 router.put('/', authMiddleware, async (req, res) => {
   try {
     const db = await getDb()

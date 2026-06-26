@@ -92,9 +92,18 @@ export default function Admin() {
     } catch (e) { alert('请求失败: ' + e.message) }
   }
 
-  const handleExport = () => {
-    const token = sessionStorage.getItem('token')
-    if (token) window.open(`/api/admin/clients/export?token=${encodeURIComponent(token)}`, '_blank')
+  const handleExport = async () => {
+    try {
+      const res = await fetch('/api/admin/clients/export', { headers: authHeaders() })
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `freddy-clients-${new Date().toISOString().slice(0,10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) { alert('导出失败: ' + e.message) }
   }
 
   if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>

@@ -88,12 +88,15 @@ export function generateContract({ type, clientLocation, data }) {
     livanto_register: data.livanto_register || '',
   }
 
+  // Log which tags were actually filled (non-empty) for debugging template mismatches
+  const filledTags = Object.keys(tags).filter(k => tags[k])
+  console.log(`[contract-gen] Filling template ${key} with ${filledTags.length} tags: ${filledTags.join(', ')}`)
+
   try {
     doc.setData(tags)
     doc.render()
   } catch (e) {
-    // If template has undefined tags, log and continue
-    console.error('[contract-gen] Template render warning:', e.message)
+    console.error('[contract-gen] Template render error:', e.message)
     throw new Error(`Template render failed: ${e.message}`)
   }
 
