@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FREDDY 福瑞笛 — 德国跨境合规一站式服务</title>
+<style>
+  :root {
+    --navy: #1a3a5c;
+    --navy-light: #2c5f8a;
+    --white: #fff;
+    --bg: #f8fafc;
+    --text: #1a2a3a;
+    --text-secondary: #5a6d82;
+    --text-muted: #8b9aab;
+    --border: #e2e6ed;
+    --radius: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text);
+    background: var(--white);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Nav ── */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    height: 56px;
+  }
+  .nav-inner {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 20px; height: 100%;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand { font-size: 18px; font-weight: 800; color: var(--navy); text-decoration: none; letter-spacing: -0.5px; }
+  .nav-brand span { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-left: 6px; }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-links a {
+    padding: 6px 12px; border-radius: 6px;
+    font-size: 13px; font-weight: 500; color: var(--text-secondary); text-decoration: none;
+    transition: all 0.15s;
+  }
+  .nav-links a:hover { color: var(--navy); background: rgba(26,58,92,0.04); }
+  .nav-login {
+    padding: 6px 16px; border-radius: 6px;
+    font-size: 13px; font-weight: 600; color: var(--white); background: var(--navy);
+    text-decoration: none; transition: background 0.15s;
+  }
+  .nav-login:hover { background: var(--navy-light); }
+  .nav-toggle { display: none; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #1a3a5c 0%, #2c5f8a 100%);
+    color: var(--white); text-align: center;
+    padding: 56px 20px 48px;
+  }
+  .hero h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
+  .hero p { font-size: 15px; color: rgba(255,255,255,0.7); margin-bottom: 28px; max-width: 480px; margin-left: auto; margin-right: auto; }
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 12px 28px; border-radius: 8px;
+    background: var(--white); color: var(--navy);
+    font-size: 14px; font-weight: 700; text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .hero-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+
+  /* ── Services ── */
+  .services {
+    max-width: 1100px; margin: 0 auto;
+    padding: 40px 20px 48px;
+    background: var(--bg);
+  }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .service-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    text-decoration: none; color: inherit;
+    transition: box-shadow 0.2s, transform 0.2s;
+    display: flex; flex-direction: column;
+  }
+  .service-card:hover { box-shadow: 0 8px 24px rgba(26,58,92,0.08); transform: translateY(-2px); }
+  .service-card-header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 20px 20px 16px;
+  }
+  .service-card-header .tag-row {
+    display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;
+  }
+  .service-card-header h3 { font-size: 16px; font-weight: 700; }
+  .service-card-header .tag {
+    font-size: 10px; font-weight: 600;
+    background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.9);
+    padding: 2px 8px; border-radius: 100px;
+  }
+  .service-price { font-size: 30px; font-weight: 800; }
+  .service-price span { font-size: 13px; font-weight: 400; opacity: 0.6; }
+  .service-card-body {
+    padding: 16px 20px 20px;
+    flex: 1;
+    display: flex; flex-direction: column;
+    gap: 8px;
+  }
+  .service-card-body .label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .service-card-body .desc { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+
+  /* ── Footer ── */
+  .footer {
+    background: var(--navy); color: rgba(255,255,255,0.6);
+    padding: 24px 20px; text-align: center;
+    font-size: 12px; line-height: 1.8;
+  }
+  .footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
+  .footer a:hover { color: rgba(255,255,255,0.9); }
+
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .nav-toggle { display: block; }
+    .hero { padding: 40px 20px 36px; }
+    .hero h1 { font-size: 26px; }
+    .hero p { font-size: 14px; }
+    .services { padding: 32px 16px 40px; }
+    .services-grid { grid-template-columns: 1fr; gap: 16px; }
+    .service-card-header { padding: 16px; }
+    .service-card-body { padding: 14px 16px 16px; }
+    .service-price { font-size: 26px; }
+  }
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 22px; }
+    .hero-cta { padding: 10px 24px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">FREDDY<span>福瑞笛</span></a>
+    <div class="nav-links">
+      <a href="/packaging">包装法 AR</a>
+      <a href="/weee">WEEE</a>
+      <a href="/battery">电池法</a>
+      <a href="/calculator">费用计算器</a>
+      <a href="/faq">常见问题</a>
+      <a href="/downloads">下载中心</a>
+    </div>
+    <a href="/login" class="nav-login">登录</a>
+    <button class="nav-toggle" aria-label="菜单" onclick="this.closest('.nav').querySelector('.nav-links').classList.toggle('nav-links--open')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>德国跨境合规 · 一站式解决方案</h1>
+  <p>包装法 · WEEE 电子电气法 · 电池法 BattG — 德国本土授权代表，从签约到申报全闭环</p>
+  <a href="/signup" class="hero-cta">立即免费签约 →</a>
+</section>
+
+<!-- Services -->
+<section class="services">
+  <div class="services-grid">
+
+    <a href="/packaging" class="service-card">
+      <div class="service-card-header">
+        <div class="tag-row">
+          <h3>包装法授权代表</h3>
+          <span class="tag">2026 强制</span>
+        </div>
+        <p class="service-price">€89<span>/ 年</span></p>
+      </div>
+      <div class="service-card-body">
+        <p class="label">授权代表职责</p>
+        <p class="desc">LIVANTO GmbH 担任授权代表，承担双元系统对接、LUCID 数据申报、完整性声明及官方通信等全部法定义务。</p>
+      </div>
+    </a>
+
+    <a href="/battery" class="service-card">
+      <div class="service-card-header">
+        <h3>德国电池法 BattG</h3>
+        <p class="service-price">€258<span>/ 年起</span></p>
+      </div>
+      <div class="service-card-body">
+        <p class="label">授权代表职责</p>
+        <p class="desc">WEEE Return GmbH 担任授权代表，负责 EAR 注册、回收处置方案、年度申报及与德国联邦环境局 (UBA) 的全部官方沟通。</p>
+      </div>
+    </a>
+
+    <a href="/weee" class="service-card">
+      <div class="service-card-header">
+        <div class="tag-row">
+          <h3>德国 WEEE 电子电气法</h3>
+          <span class="tag">6 大类别</span>
+        </div>
+        <p class="service-price">€278<span>/ 年起</span></p>
+      </div>
+      <div class="service-card-body">
+        <p class="label">授权代表职责</p>
+        <p class="desc">WEEE Return GmbH 担任授权代表，覆盖全部 6 个设备类别，承担 EAR 注册、担保确认及年度数据申报全流程。</p>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>© 2026 FREDDY 福瑞笛 — 德国跨境合规 本土授权代表 &nbsp;|&nbsp; LIVANTO GmbH · WEEE Return GmbH</p>
+  <p><a href="https://beian.miit.gov.cn/">皖ICP备2025099866号-1</a></p>
+</footer>
+
+</body>
+</html>
