@@ -16,6 +16,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+::placeholder { color: #c0bab2; }
 input:focus::placeholder { opacity: 0; }
 
 @keyframes scan {
