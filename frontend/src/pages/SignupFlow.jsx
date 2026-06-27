@@ -272,7 +272,7 @@ export default function SignupFlow() {
               {fe('legal_representative')}
             </div>
             <div>
-              <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 英文 *</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 拼音 *</label>
               <input value={form.legal_representative_en} onChange={e => update('legal_representative_en', e.target.value)} className={`${inputCls} ${errCls('legal_representative_en', errors)}`} placeholder="Gong Feng" />
               {fe('legal_representative_en')}
             </div>
@@ -287,7 +287,7 @@ export default function SignupFlow() {
               {fe('contact_person')}
             </div>
             <div>
-              <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 英文 *</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 拼音 *</label>
               <input value={form.contact_person_en} onChange={e => update('contact_person_en', e.target.value)} className={`${inputCls} ${errCls('contact_person_en', errors)}`} placeholder="Changjiang Pan" />
               {fe('contact_person_en')}
             </div>
