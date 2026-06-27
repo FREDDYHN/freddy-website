@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { PACKAGING_MATERIALS, AR_TIERS, WEEE_PRICES, BATTERY_PRICES, EMAIL_RE, WEEE_STARTING_PRICE, BATTERY_STARTING_PRICE } from '@shared/constants.js'
 
 const MATERIALS = PACKAGING_MATERIALS
@@ -33,8 +33,8 @@ const btnCls = 'px-6 py-2.5 bg-primary text-white rounded-md text-sm font-semibo
 const btnGhostCls = 'px-5 py-2.5 border border-gray-200 rounded-md text-sm text-gray-500 hover:bg-gray-50 transition-colors'
 
 export default function SignupFlow() {
-  const [params] = useSearchParams()
-  const serviceType = params.get('type') === 'weee' ? 'weee' : params.get('type') === 'battery' ? 'battery' : 'packaging'
+  const { type } = useParams()
+  const serviceType = type === 'weee' ? 'weee' : type === 'battery' ? 'battery' : 'packaging'
   const cfg = SVC[serviceType]; const STEPS = cfg.steps
   const isPkg = serviceType === 'packaging'; const isWeee = serviceType === 'weee'
 

@@ -43,6 +43,7 @@ export default function App() {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/downloads" element={<Downloads />} />
           <Route path="/signup" element={<SignupFlow />} />
+          <Route path="/signup/:type" element={<SignupFlow />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />

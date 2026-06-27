@@ -8,7 +8,7 @@ export default function Battery() {
         <h1 className="text-2xl md:text-3xl font-extrabold mb-1">德国电池法 BattG</h1>
         <p className="text-sm text-white/60 mb-1">Batteriegesetz — 电池及含电池产品合规</p>
         <p className="text-xl font-bold mb-6">€{BATTERY_STARTING_PRICE}/年起</p>
-        <Link to="/signup?type=battery" className="inline-block px-7 py-3 text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all" style={{ background: '#c8a44e' }}>在线签约电池法 →</Link>
+        <Link to="/signup/battery" className="inline-block px-7 py-3 text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all" style={{ background: '#c8a44e' }}>在线签约电池法 →</Link>
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-12">

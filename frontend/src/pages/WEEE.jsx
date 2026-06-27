@@ -17,7 +17,7 @@ export default function WEEE() {
         <h1 className="text-2xl md:text-3xl font-extrabold mb-1">德国 WEEE 电子电气设备法</h1>
         <p className="text-sm text-white/60 mb-1">Elektro- und Elektronikgerätegesetz (ElektroG)</p>
         <p className="text-xl font-bold mb-6">€{WEEE_STARTING_PRICE}/年起</p>
-        <Link to="/signup?type=weee" className="inline-block px-7 py-3 text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all" style={{ background: '#c8a44e' }}>在线签约 WEEE →</Link>
+        <Link to="/signup/weee" className="inline-block px-7 py-3 text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all" style={{ background: '#c8a44e' }}>在线签约 WEEE →</Link>
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-12">

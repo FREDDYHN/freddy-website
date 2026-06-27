@@ -16,7 +16,7 @@ export default function Packaging() {
         <h1 className="text-2xl md:text-3xl font-extrabold mb-1">德国包装法 · 授权代表</h1>
         <p className="text-sm text-white/60 mb-1">Verpackungsgesetz (VerpackG) §35(2)</p>
         <p className="text-xl font-bold mb-6">€{AR_TIERS.basic.feeEur} / 年起</p>
-        <Link to="/signup" className="inline-block px-7 py-3 text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all" style={{ background: '#c8a44e' }}>立即签约 →</Link>
+        <Link to="/signup/packaging" className="inline-block px-7 py-3 text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all" style={{ background: '#c8a44e' }}>立即签约 →</Link>
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-12">
@@ -57,7 +57,7 @@ export default function Packaging() {
                 <h3 className="font-bold mb-1">{t.name.split(' ')[0]}</h3>
                 <p className="text-2xl font-extrabold text-primary mb-3">€{t.feeEur}/年</p>
                 <ul className="text-sm text-gray-500 space-y-1.5 flex-1 mb-4">{feats.map((f, j) => <li key={j} className="flex gap-1.5"><span className="text-green-500">✓</span>{f}</li>)}</ul>
-                <Link to="/signup" className={`block text-center py-2 rounded-md text-sm font-semibold ${t.featured ? 'bg-primary text-white' : 'border border-primary text-primary'}`}>选择{t.name.split(' ')[0]}</Link>
+                <Link to="/signup/packaging" className={`block text-center py-2 rounded-md text-sm font-semibold ${t.featured ? 'bg-primary text-white' : 'border border-primary text-primary'}`}>选择{t.name.split(' ')[0]}</Link>
               </div>
             )
           })}
