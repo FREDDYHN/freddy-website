@@ -142,7 +142,7 @@ export default function SignupFlow() {
   )
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div className="signup-dark min-h-screen py-10"><div className="max-w-3xl mx-auto px-4">
       <div className="text-center mb-10">
         <h1 className="text-2xl font-extrabold mb-1">在线签约 — {cfg.label}</h1>
         <p className="text-sm text-gray-400">{STEPS.length}步完成，约5分钟</p>
@@ -386,6 +386,7 @@ export default function SignupFlow() {
           </div>
         </div>
       )}
+    </div>
     </div>
   )
 }
