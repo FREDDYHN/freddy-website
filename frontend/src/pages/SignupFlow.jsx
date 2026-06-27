@@ -443,9 +443,10 @@ export default function SignupFlow() {
             <div className="border-t pt-2 mt-2 flex justify-between font-bold"><span>预估年费</span><span className="text-primary">€{reviewFee}</span></div>
           </div>
           <div className="flex items-center gap-3 pt-2">
-            <button onClick={handlePreview} disabled={previewing} className="px-4 py-2 border-2 border-primary text-primary rounded-md text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
+            <button onClick={handlePreview} disabled={previewing || !form.company_name || !form.contact_person || !form.contact_email} className="px-4 py-2 border-2 border-primary text-primary rounded-md text-sm font-semibold hover:bg-primary hover:text-white transition-colors disabled:opacity-40">
               {previewing ? '生成中...' : '📄 生成预览合同'}
             </button>
+            {!form.company_name && <span className="text-xs text-red-400">请先填写委托方信息</span>}
             {previewUrl && <span className="text-xs text-green-600">✅ 预览已生成</span>}
           </div>
 
