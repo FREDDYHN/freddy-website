@@ -22,7 +22,7 @@ const WEEE_CATEGORIES = [
 ]
 
 const SVC = {
-  packaging: { label: '包装法授权代表', steps: ['委托方信息', '包装申报', '套餐选择', '预览签署'], ctLabel: '授权代表合同' },
+  packaging: { label: '德国包装法 · 本土授权代表', steps: ['委托方信息', '包装申报', '套餐选择', '预览签署'], ctLabel: '授权代表合同' },
   weee: { label: 'WEEE 电子电气法', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (WEEE)' },
   battery: { label: '电池法 BattG', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (电池法)' },
 }
@@ -144,8 +144,7 @@ export default function SignupFlow() {
   return (
     <div className="min-h-screen py-10" style={{background:'#f4f2ef'}}><div className="max-w-4xl mx-auto px-4">
       <div className="text-center mb-10">
-        <h1 className="text-2xl font-extrabold mb-1">在线签约 — {cfg.label}</h1>
-        <p className="text-sm text-gray-400">{STEPS.length}步完成，约5分钟</p>
+        <h1 className="text-2xl font-extrabold mb-1">{cfg.label}</h1>
       </div>
 
       {/* Stepper — segmented blocks */}
