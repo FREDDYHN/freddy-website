@@ -267,7 +267,7 @@ export default function SignupFlow() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">手机号 *</label>
-              <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="+86 138xxxx" />
+              <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="+86 139xxxxxxxx" />
               {fe('contact_phone')}
             </div>
             <div>
