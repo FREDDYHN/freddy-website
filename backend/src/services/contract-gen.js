@@ -37,36 +37,24 @@ const TEMPLATES = {
 
 /**
  * Generate a filled .docx contract.
- *
- * @param {Object} opts
- * @param {string} opts.type - 'ar' | 'weee' | 'battery'
- * @param {string} opts.clientLocation - 'cn' (non-German) | 'de' (German)
- * @param {Object} opts.data - key-value pairs to fill into the template
- * @returns {string} Path to the generated .docx file
  */
 export async function generateContract({ type, clientLocation, data }) {
   const key = type === 'ar' ? 'ar' : `${type}_${clientLocation || 'cn'}`
   const templatePath = TEMPLATES[key]
   if (!templatePath) throw new Error(`No template for: ${key}`)
 
-  // Check template exists (async)
   try { await access(templatePath, constants.R_OK) } catch { throw new Error(`Template not found: ${templatePath}`) }
 
   const buf = await readFile(templatePath)
   const zip = new PizZip(buf)
-  const doc = new Docxtemplater(zip, {
-    paragraphLoop: true,
-    linebreaks: true,
-  })
+  const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true })
 
   // Normalize packaging items once (used in both tags and post-processing)
   const pkgItems = Array.isArray(data.packaging_items)
     ? data.packaging_items.map(p => ({ material: p.material_type||p.material||'', category: p.category||'', kg: String(p.estimated_kg||p.kg||''), example: p.example||'' }))
     : []
 
-  // Map common field names to template placeholders
   const tags = {
-    // Company info
     company_name: data.company_name || data.company || '',
     company_name_en: data.company_name_en || '',
     company_address: data.company_address || data.address || '',
@@ -79,34 +67,26 @@ export async function generateContract({ type, clientLocation, data }) {
     contact_email: data.contact_email || data.email || '',
     contact_phone: data.contact_phone || data.phone || '',
     wechat_id: data.wechat_id || '',
-    // Contract info
     contract_number: data.contract_number || '',
     contract_date: data.contract_date || new Date().toISOString().slice(0, 10),
     start_date: data.start_date || '',
     end_date: data.end_date || '',
     annual_fee_eur: data.annual_fee_eur || data.fee_eur || '',
-    // WEEE/Battery specific
     device_count: data.device_count || '',
     brand_count: data.brand_count || '',
     device_categories: data.device_categories || '',
-    packaging_rows: 'PACKAGING_DATA', // placeholder for post-processing
+    packaging_rows: 'PACKAGING_DATA',
     packaging_items: pkgItems,
-    // Signature
     signer_name: data.signer_name || '',
     signer_title: data.signer_title || '',
     sign_date: data.sign_date || new Date().toISOString().slice(0, 10),
-    // LIVANTO info
     livanto_name: 'LIVANTO GmbH',
     livanto_address: data.livanto_address || '',
     livanto_register: data.livanto_register || '',
   }
 
-  // Log which tags were actually filled (non-empty) for debugging template mismatches
   const filledTags = Object.keys(tags).filter(k => tags[k])
   console.log(`[contract-gen] Filling template ${key} with ${filledTags.length} tags: ${filledTags.join(', ')}`)
-  // Debug: log Chinese content
-  if (tags.company_name) console.log(`[contract-gen] company_name='${tags.company_name}' (len=${tags.company_name.length})`)
-  if (tags.company_address) console.log(`[contract-gen] company_address='${tags.company_address}' (len=${tags.company_address.length})`)
 
   try {
     doc.render(tags)
@@ -125,17 +105,15 @@ export async function generateContract({ type, clientLocation, data }) {
     let outXml = outZip.files['word/document.xml'].asText()
     const marker = outXml.indexOf('PACKAGING_DATA')
     if (marker > 0) {
-      // Locate the <w:tr> that contains the marker row.
-      // The data row in the template is ONE <w:tr> with one <w:tc> containing
-      // {packaging_rows} and three empty <w:tc> cells.
-      // After docxtemplater, the tag becomes the literal text "PACKAGING_DATA".
+      // The Anlage B template has ONE <w:tr> containing all cells:
+      //   cells 0-3: header (blue fill #1A237E, white bold text)
+      //   cells 4-7: data (cell 4 has {packaging_rows}→PACKAGING_DATA, 5-7 empty)
+      // We split this into header row + N data rows.
 
-      // Find the enclosing <w:tr> by walking backwards from the marker
+      // Find enclosing <w:tr> boundaries
       let trS = outXml.lastIndexOf('<w:tr', marker)
-      // Verify we got the right one — there should be no </w:tr> between trS and marker
       const endCheck = outXml.indexOf('</w:tr>', trS + 5)
       if (endCheck > 0 && endCheck < marker) {
-        // The <w:tr we found closes before the marker — look for the next one
         trS = outXml.indexOf('<w:tr', endCheck)
         if (trS < 0 || trS > marker) trS = outXml.lastIndexOf('<w:tr', marker)
       }
@@ -144,45 +122,53 @@ export async function generateContract({ type, clientLocation, data }) {
       if (trE < 0) trE = outXml.indexOf('</w:tr>', marker + 100)
       trE += '</w:tr>'.length
 
-      // Extract the cell containing PACKAGING_DATA as a template for building new cells
-      const tcS = outXml.lastIndexOf('<w:tc', marker)
-      const tcE = outXml.indexOf('</w:tc>', marker) + '</w:tc>'.length
-      const cellTpl = outXml.substring(tcS, tcE)
+      const tplRow = outXml.substring(trS, trE)
 
-      // Extract the paragraph from the cell (contains font/style info)
-      const pS = cellTpl.indexOf('<w:p')
-      const pE = cellTpl.lastIndexOf('</w:p>') + '</w:p>'.length
-      const paraTpl = cellTpl.substring(pS, pE)
+      // Split into individual <w:tc>...</w:tc> cells
+      const cells = []
+      const tcRegex = /<w:tc[\s\S]*?<\/w:tc>/g
+      let m
+      while ((m = tcRegex.exec(tplRow)) !== null) cells.push(m[0])
 
-      // Column widths for the 4-column Anlage B table
-      const colWidths = ['2600', '1000', '2200', '3955']
+      // Find the data cell index (contains PACKAGING_DATA)
+      const dataCellIdx = cells.findIndex(c => c.includes('PACKAGING_DATA'))
 
-      // Build a cell XML string for a given value and column width
-      function buildCell(val, colW) {
-        return '<w:tc>' +
-          cellTpl.substring(
-            cellTpl.indexOf('<w:tcPr>'),
-            cellTpl.indexOf('</w:tcPr>') + '</w:tcPr>'.length
-          ).replace(/<w:tcW w:w="[^"]*"/, '<w:tcW w:w="' + colW + '"') +
-          paraTpl.replace(
-            /<w:t[^>]*>[^<]*<\/w:t>/,
-            '<w:t xml:space="preserve">' + val + '</w:t>'
-          ) +
-          '</w:tc>'
+      if (dataCellIdx >= 0) {
+        // Header cells: all cells BEFORE dataCellIdx that have blue fill (1A237E)
+        const headerCells = cells.slice(0, dataCellIdx).filter(c => c.includes('1A237E'))
+
+        // Extract cell template parts from the data cell
+        const dataCellTpl = cells[dataCellIdx]
+        const tcPr = (dataCellTpl.match(/<w:tcPr>[\s\S]*?<\/w:tcPr>/) || [''])[0]
+        const paraTpl = (dataCellTpl.match(/<w:p[\s\S]*?<\/w:p>/) || [''])[0]
+
+        // Column widths for the 4 data columns
+        const colWidths = ['2600', '1000', '2200', '3955']
+
+        function buildCell(val, colW) {
+          return '<w:tc>' +
+            tcPr.replace(/<w:tcW w:w="[^"]*"/, '<w:tcW w:w="' + colW + '"') +
+            paraTpl.replace(
+              /<w:t[^>]*>[^<]*<\/w:t>/,
+              '<w:t xml:space="preserve">' + val + '</w:t>'
+            ) +
+            '</w:tc>'
+        }
+
+        // Build header row (preserve original blue-fill header cells)
+        const headerRow = '<w:tr>' + headerCells.join('') + '</w:tr>'
+
+        // Build data rows
+        const dataRows = pkgItems.map(item => {
+          const vals = [item.material, item.category, item.kg, item.example]
+          return '<w:tr>' + vals.map((v, i) => buildCell(v, colWidths[i])).join('') + '</w:tr>'
+        }).join('')
+
+        outXml = outXml.substring(0, trS) + headerRow + dataRows + outXml.substring(trE)
+        outZip.file('word/document.xml', outXml)
+
+        console.log(`[contract-gen] Post-processed ${pkgItems.length} Anlage B rows (header preserved)`)
       }
-
-      // Build all data rows
-      const rows = pkgItems.map(item => {
-        const vals = [item.material, item.category, item.kg, item.example]
-        return '<w:tr>' + vals.map((v, i) => buildCell(v, colWidths[i])).join('') + '</w:tr>'
-      }).join('')
-
-      outXml = outXml.substring(0, trS) + rows + outXml.substring(trE)
-      outZip.file('word/document.xml', outXml)
-
-      console.log(`[contract-gen] Post-processed ${pkgItems.length} Anlage B rows`)
-    } else {
-      console.log('[contract-gen] PACKAGING_DATA marker not found, skipping post-processing')
     }
     await writeFile(outPath, outZip.generate({ type: 'nodebuffer', compression: 'DEFLATE' }))
   } else {

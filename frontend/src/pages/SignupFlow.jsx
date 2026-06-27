@@ -345,20 +345,40 @@ export default function SignupFlow() {
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           <h2 className="font-bold text-lg">包装申报</h2>
           <p className="text-sm text-gray-500">添加您在德国市场使用的包装类型，授权代表据此完成双元系统对接。</p>
-          <div className="flex flex-wrap gap-2">
-            <select value={ni.material} onChange={e => setNi(n => ({ ...n, material: e.target.value }))} className="border border-gray-200 rounded-md px-3 py-2 text-sm flex-1 min-w-[140px]">{MATERIALS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}</select>
-            <select value={ni.category} onChange={e => setNi(n => ({ ...n, category: e.target.value }))} className="border border-gray-200 rounded-md px-3 py-2 text-sm w-20"><option value="B2C">B2C</option><option value="B2B">B2B</option></select>
-            <input type="number" value={ni.kg} onChange={e => setNi(n => ({ ...n, kg: e.target.value }))} placeholder="kg/年" className={`border border-gray-200 rounded-md px-3 py-2 text-sm w-20 ${errors.kg ? 'border-red-400' : ''}`} />
-            <input value={ni.example} onChange={e => setNi(n => ({ ...n, example: e.target.value }))} placeholder="产品举例" className="border border-gray-200 rounded-md px-3 py-2 text-sm w-32" />
-            <button onClick={addItem} className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-light">+ 添加</button>
+          {/* Input row — 4 columns + button, aligned with list below */}
+          <div className="grid gap-2 items-end" style={{gridTemplateColumns:'2fr 0.7fr 1fr 1.2fr auto'}}>
+            <div>
+              <label className="block text-xs text-gray-400 mb-0.5">材料类别</label>
+              <select value={ni.material} onChange={e => setNi(n => ({ ...n, material: e.target.value }))} className="w-full border border-gray-200 rounded-md px-2 py-2 text-sm">{MATERIALS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}</select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-0.5">类别</label>
+              <select value={ni.category} onChange={e => setNi(n => ({ ...n, category: e.target.value }))} className="w-full border border-gray-200 rounded-md px-2 py-2 text-sm"><option value="B2C">B2C</option><option value="B2B">B2B</option></select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-0.5">预估年量 (kg)</label>
+              <input type="number" value={ni.kg} onChange={e => setNi(n => ({ ...n, kg: e.target.value }))} placeholder="kg/年" className={`w-full border border-gray-200 rounded-md px-2 py-2 text-sm ${errors.kg ? 'border-red-400' : ''}`} />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-0.5">产品举例</label>
+              <input value={ni.example} onChange={e => setNi(n => ({ ...n, example: e.target.value }))} placeholder="如：手机壳" className="w-full border border-gray-200 rounded-md px-2 py-2 text-sm" />
+            </div>
+            <button onClick={addItem} className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-light self-end">+ 添加</button>
           </div>
-          {errors.kg && <p className="text-red-500 text-xs">{errors.kg}</p>}
+          {errors.kg && <p className="text-red-500 text-xs mt-1">{errors.kg}</p>}
           {form.packaging_items.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
+              {/* List header */}
+              <div className="grid items-center px-3 py-1.5 text-xs text-gray-400 font-medium" style={{gridTemplateColumns:'2fr 0.7fr 1fr 1.2fr auto'}}>
+                <span>材料类别</span><span>类别</span><span>预估年量</span><span>产品举例</span><span></span>
+              </div>
               {form.packaging_items.map((item, i) => (
-                <div key={i} className="flex justify-between items-center bg-gray-50 rounded-md px-4 py-2.5 text-sm">
-                  <span>{item.material}</span><span className="text-gray-400 text-xs">{item.category}</span><span className="font-medium">{item.kg} kg</span>{item.example && <span className="text-gray-400 text-xs truncate max-w-[120px]">{item.example}</span>}
-                  <button onClick={() => rmItem(i)} className="text-red-400 text-xs hover:text-red-600">删除</button>
+                <div key={i} className="grid items-center bg-gray-50 rounded-md px-3 py-2.5 text-sm" style={{gridTemplateColumns:'2fr 0.7fr 1fr 1.2fr auto'}}>
+                  <span className="font-medium truncate">{item.material}</span>
+                  <span className="text-gray-500 text-xs">{item.category}</span>
+                  <span className="font-medium tabular-nums">{item.kg} kg</span>
+                  <span className="text-gray-500 text-xs truncate">{item.example || '—'}</span>
+                  <button onClick={() => rmItem(i)} className="text-red-400 text-xs hover:text-red-600 ml-2">删除</button>
                 </div>
               ))}
             </div>
