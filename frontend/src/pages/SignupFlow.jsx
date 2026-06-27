@@ -47,7 +47,7 @@ export default function SignupFlow() {
   useEffect(() => { fetch('/api/bank-info').then(r => r.json()).then(setBankInfo).catch(() => {}) }, [])
 
   const [form, setForm] = useState({
-    company_name: '', registered_address: '', uscc: '', legal_representative: '',
+    company_name: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '',
     contact_person: '', contact_phone: '', wechat_id: '', contact_email: '',
     password: '', packaging_items: [], tier: 'standard',
     device_categories: [], brand_count: '1', year_type: 'first',
@@ -93,7 +93,7 @@ export default function SignupFlow() {
     if (!validate(3)) return
     setSubmitting(true)
     try {
-      const body = { service_type: serviceType, company_name: form.company_name.trim(), registered_address: form.registered_address.trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), contact_person: form.contact_person.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
+      const body = { service_type: serviceType, company_name: form.company_name.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), contact_person: form.contact_person.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
       if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material, category: p.category, estimated_kg: p.kg }))
       else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
       const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -176,10 +176,16 @@ export default function SignupFlow() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 / 英文+中文 *</label>
-            <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="Registered address / 公司注册地址" />
-            {fe('registered_address')}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 / 英文 *</label>
+              <input value={form.registered_address_en || ''} onChange={e => update('registered_address_en', e.target.value)} className={inputCls} placeholder="Registered address (EN)" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 / 中文 *</label>
+              <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="公司注册地址" />
+              {fe('registered_address')}
+            </div>
           </div>
 
           <div>
