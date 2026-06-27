@@ -245,7 +245,7 @@ export default function SignupFlow() {
             </div>
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 中文 *</label>
-              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={`${inputCls} ${errCls('legal_representative', errors)}`} placeholder="法定代表人姓名" />
+              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={`${inputCls} ${errCls('legal_representative', errors)}`} placeholder="刘德华" />
               {fe('legal_representative')}
             </div>
           </div>
