@@ -27,7 +27,7 @@ const SVC = {
   battery: { label: '电池法 BattG', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (电池法)' },
 }
 
-const inputCls = 'w-full border border-gray-400 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-primary'
+const inputCls = 'w-full border border-gray-400 rounded-md px-3 py-2 text-sm text-gray-400 focus:outline-none focus:border-primary focus:text-gray-700'
 const errCls = (k, errors) => errors[k] ? 'border-red-400' : ''
 const btnCls = 'px-6 py-2.5 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary-light disabled:opacity-50 transition-colors'
 const btnGhostCls = 'px-5 py-2.5 border border-gray-200 rounded-md text-sm text-gray-500 hover:bg-gray-50 transition-colors'
