@@ -20,7 +20,8 @@ export default function Landing() {
 
       {/* Service Cards */}
       <section className="max-w-6xl mx-auto px-4 -mt-8 relative z-10 pb-4">
-        <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">三大产品</h2>
+        <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">三大产品</h2>
+        <p className="text-sm text-gray-500 text-center mb-8">根据您的出口产品类型，选择对应的合规服务</p>
         <div className="grid md:grid-cols-3 gap-6">
           {services.map(s => (
             <Link key={s.to} to={s.to} className="block bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
@@ -42,9 +43,9 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-800 text-center mb-16">四步完成合规，授权全程代表护航</h2>
           <div className="relative">
-            {/* Progress bar */}
-            <div className="hidden md:block absolute top-5 left-0 right-0 h-0.5 bg-gray-200" />
-            <div className="hidden md:block absolute top-5 left-0 w-full h-0.5 bg-gradient-to-r from-primary via-primary to-gray-200" />
+            {/* Progress bar line */}
+            <div className="hidden md:block absolute top-5 left-[8%] right-[8%] h-0.5 bg-gray-200" />
+            <div className="hidden md:block absolute top-5 left-[8%] h-0.5 bg-primary" style={{ width: '62%' }} />
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-4">
               {[
@@ -68,10 +69,13 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="bg-gradient-to-r from-primary to-primary-dark text-white py-16 px-4 text-center">
-        <h2 className="text-2xl font-bold mb-4">2026年8月12日起，法规强制要求</h2>
-        <p className="text-gray-300 mb-6 max-w-xl mx-auto">PPWR生效后，所有无德国分支机构的厂商必须在德国指定授权代表。提前准备，避免销售禁令。</p>
-        <Link to="/signup" className="inline-block px-8 py-3 bg-accent text-white font-semibold rounded-lg hover:bg-accent-light transition-colors">
+      <section className="hero-gradient text-white py-16 px-4 text-center">
+        <div className="inline-block bg-accent/20 text-accent-light text-sm font-bold px-4 py-1.5 rounded-full mb-6">
+          ⚠ 2026年8月12日起强制
+        </div>
+        <h2 className="text-2xl font-bold mb-4">PPWR 法规全面生效</h2>
+        <p className="text-gray-300 mb-8 max-w-xl mx-auto leading-relaxed">所有无德国分支机构的厂商必须在德国指定授权代表。提前准备，避免销售禁令和高额罚款。</p>
+        <Link to="/signup" className="inline-block px-8 py-3 bg-accent text-white font-semibold rounded-lg hover:bg-accent-light transition-colors shadow-lg shadow-accent/20">
           立即签约包装法 AR →
         </Link>
       </section>
