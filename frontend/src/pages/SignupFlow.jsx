@@ -457,7 +457,25 @@ export default function SignupFlow() {
             <div><span className="inline-block w-40 text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>
             <div><span className="inline-block w-40 text-gray-400">手机</span><span className="font-medium">{form.contact_phone}</span></div>
             <div><span className="inline-block w-40 text-gray-400">微信</span><span className="font-medium">{form.wechat_id}</span></div>
-            {isPkg && <><div><span className="inline-block w-40 text-gray-400">套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div><div><span className="inline-block w-40 text-gray-400">包装类型</span><span className="font-medium">{form.packaging_items.length} 种</span></div></>}
+            {isPkg && <>
+                <div><span className="inline-block w-40 text-gray-400">套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div>
+                <div className="mt-3">
+                  <span className="inline-block w-40 text-gray-400 align-top">包装申报</span>
+                  <div className="inline-block">
+                    <div className="grid text-xs text-gray-400 mb-1" style={{gridTemplateColumns:'2fr 0.7fr 1fr 1.2fr'}}>
+                      <span>材料类别</span><span>类别</span><span>预估年量</span><span>产品举例</span>
+                    </div>
+                    {form.packaging_items.map((item, i) => (
+                      <div key={i} className="grid text-sm mb-0.5" style={{gridTemplateColumns:'2fr 0.7fr 1fr 1.2fr'}}>
+                        <span className="font-medium">{item.material}</span>
+                        <span className="text-gray-500">{item.category}</span>
+                        <span className="tabular-nums">{item.kg} kg</span>
+                        <span className="text-gray-500 truncate">{item.example || '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>}
             {isWeee && <div><span className="inline-block w-40 text-gray-400">设备类别</span><span className="font-medium">{form.device_categories.length} 类</span></div>}
             {!isPkg && <div><span className="inline-block w-40 text-gray-400">品牌数</span><span className="font-medium">{form.brand_count}</span></div>}
             <div className="border-t pt-2 mt-2 font-bold"><span>预估年费：</span><span className="text-primary">€{reviewFee}</span></div>
