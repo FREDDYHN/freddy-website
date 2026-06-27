@@ -67,6 +67,8 @@ export default function SignupFlow() {
       if (!form.company_name.trim()) errs.company_name = '请输入公司名称（中文）'
       if (!form.registered_address.trim()) errs.registered_address = '请输入注册地址'
       if (!form.contact_name.trim()) errs.contact_name = '请输入联系人姓名'
+      if (!form.contact_phone.trim()) errs.contact_phone = '请输入手机号'
+      if (!form.wechat_id.trim()) errs.wechat_id = '请输入微信号'
       if (!form.contact_email.trim()) { errs.contact_email = '请输入邮箱' }
       else if (!EMAIL_RE.test(form.contact_email)) { errs.contact_email = '邮箱格式不正确' }
       if (!form.password || form.password.length < 6) errs.password = '请设置登录密码（至少6位）'
@@ -267,14 +269,16 @@ export default function SignupFlow() {
               {fieldError('contact_email')}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">手机号</label>
+              <label className="block text-sm font-medium mb-1">手机号 *</label>
               <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)}
-                className="w-full border rounded-lg p-2 text-sm" />
+                className={`w-full border rounded-lg p-2 text-sm ${errors.contact_phone ? 'border-red-400' : ''}`} placeholder="用于合同联系" />
+              {fieldError('contact_phone')}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">微信号</label>
+              <label className="block text-sm font-medium mb-1">微信号 *</label>
               <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)}
-                className="w-full border rounded-lg p-2 text-sm" placeholder="选填" />
+                className={`w-full border rounded-lg p-2 text-sm ${errors.wechat_id ? 'border-red-400' : ''}`} placeholder="用于客服联系" />
+              {fieldError('wechat_id')}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">登录密码 *</label>
@@ -286,7 +290,7 @@ export default function SignupFlow() {
           </div>
           <div className="flex justify-end pt-4">
             <button onClick={() => nextStep(1)}
-              disabled={!form.company_name || !form.contact_name || !form.contact_email || !form.password}
+              disabled={!form.company_name || !form.registered_address || !form.contact_name || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password}
               className="px-6 py-2 bg-primary text-white rounded-lg font-medium disabled:opacity-50">下一步 →</button>
           </div>
         </div>
@@ -441,6 +445,8 @@ export default function SignupFlow() {
             {form.legal_representative && <div className="flex justify-between"><span>法定代表人</span><span className="font-medium">{form.legal_representative}</span></div>}
             <div className="flex justify-between"><span>联系人</span><span className="font-medium">{form.contact_name}</span></div>
             <div className="flex justify-between"><span>邮箱</span><span className="font-medium">{form.contact_email}</span></div>
+            <div className="flex justify-between"><span>手机</span><span className="font-medium">{form.contact_phone}</span></div>
+            <div className="flex justify-between"><span>微信</span><span className="font-medium">{form.wechat_id}</span></div>
             {isPackaging && <div className="flex justify-between"><span>套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div>}
             {isPackaging && <div className="flex justify-between"><span>包装类型</span><span className="font-medium">{form.packaging_items.length} 种</span></div>}
             {isWeee && <div className="flex justify-between"><span>设备类别</span><span className="font-medium">{form.device_categories.length} 类</span></div>}

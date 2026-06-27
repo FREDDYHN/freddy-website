@@ -76,9 +76,9 @@ router.post('/', async (req, res) => {
             contact_name, contact_email, contact_phone, wechat_id,
             packaging_items, tier, password, device_categories, brand_count, year_type } = req.body
 
-    if (!company_name || !contact_name || !contact_email) {
+    if (!company_name || !contact_name || !contact_email || !registered_address || !contact_phone || !wechat_id) {
       await db.run('ROLLBACK')
-      return res.status(400).json({ error: 'Missing required fields: company_name, contact_name, contact_email' })
+      return res.status(400).json({ error: 'Missing required fields: company_name, registered_address, contact_name, contact_email, contact_phone, wechat_id' })
     }
 
     const svcType = service_type || 'packaging'
