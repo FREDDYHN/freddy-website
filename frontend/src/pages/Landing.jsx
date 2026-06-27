@@ -20,8 +20,6 @@ export default function Landing() {
 
       {/* Service Cards */}
       <section className="max-w-6xl mx-auto px-4 -mt-8 relative z-10 pb-4">
-        <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">三大产品</h2>
-        <p className="text-sm text-gray-500 text-center mb-8">根据您的出口产品类型，选择对应的合规服务</p>
         <div className="grid md:grid-cols-3 gap-6">
           {services.map(s => (
             <Link key={s.to} to={s.to} className="block bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
