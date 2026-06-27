@@ -23,11 +23,15 @@ export default function Packaging() {
           {tiers.map(t => {
             const feats = t.key === 'basic' ? ['核心 AR 服务', 'LUCID 数据申报', '双元系统合同', '官方通信处理'] : t.key === 'standard' ? ['基础全部内容', '优先响应 (48h)', '扩展分类咨询', '年度合规简报'] : ['标准全部内容', '完整性声明协调', '专属客户经理', '24h 响应']
             return (
-              <div key={t.key} className="bg-white rounded-lg p-5 border-2 flex flex-col border-gray-100">
-                <h3 className="font-bold mb-1 text-center">{t.name.split(' ')[0]}套餐</h3>
-                <ul className="text-sm text-gray-500 space-y-1.5 flex-1 mb-3">{feats.map((f, j) => <li key={j} className="flex gap-1.5"><span className="text-green-500">✓</span>{f}</li>)}</ul>
-                <p className="text-2xl font-extrabold text-primary mb-3 text-right">€{t.feeEur}<span className="text-sm text-gray-400 font-normal">/年</span></p>
-                <Link to="/signup/packaging" className="block text-center py-2 rounded-md text-sm font-semibold bg-primary text-white">选择{t.name.split(' ')[0]}套餐</Link>
+              <div key={t.key} className="bg-white rounded-lg border border-gray-100 flex flex-col overflow-hidden">
+                <div className="bg-primary text-white text-center py-4">
+                  <h3 className="font-bold text-lg">{t.name.split(' ')[0]}套餐</h3>
+                </div>
+                <div className="p-5 flex flex-col flex-1">
+                  <ul className="text-sm text-gray-500 space-y-1.5 flex-1 mb-3">{feats.map((f, j) => <li key={j} className="flex gap-1.5"><span className="text-green-500">✓</span>{f}</li>)}</ul>
+                  <p className="text-2xl font-extrabold text-primary mb-3 text-right">€{t.feeEur}<span className="text-sm text-gray-400 font-normal">/年</span></p>
+                  <Link to="/signup/packaging" className="block text-center py-2 rounded-md text-sm font-semibold bg-primary text-white">选择{t.name.split(' ')[0]}套餐</Link>
+                </div>
               </div>
             )
           })}
