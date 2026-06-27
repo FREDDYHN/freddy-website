@@ -86,9 +86,10 @@ export async function generateContract({ type, clientLocation, data }) {
     device_categories: data.device_categories || '',
     packaging_items: Array.isArray(data.packaging_items)
       ? (() => {
-          const hdr = 'Nr.\t\tMaterialfraktion / 材料类别\t\tKategorie / 类别\t\tMenge (kg)\t\tProduktbeispiel / 产品举例'
+          const T = '\t\t\t\t\t'
+          const hdr = `Nr.${T}Materialfraktion / 材料类别${T}Kategorie / 类别${T}Menge (kg)${T}Produktbeispiel / 产品举例`
           const rows = data.packaging_items.map((p,i) =>
-            `${i+1}\t\t${p.material_type||p.material||''}\t\t${p.category||''}\t\t${p.estimated_kg||p.kg||''}\t\t${p.example||''}`
+            `${i+1}${T}${p.material_type||p.material||''}${T}${p.category||''}${T}${p.estimated_kg||p.kg||''}${T}${p.example||''}`
           )
           return hdr + '\n' + rows.join('\n')
         })()
