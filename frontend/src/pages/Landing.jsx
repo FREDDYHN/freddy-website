@@ -48,7 +48,7 @@ export default function Landing() {
             {[
               { step: '01', icon: '📦', title: '选择产品', desc: '确定需要合规的产品类型：包装法、WEEE电子电气法、电池法 BattG' },
               { step: '02', icon: '📝', title: '填写信息', desc: '在线提交公司及商品信息，全程中文引导，约5分钟完成' },
-              { step: '03', icon: '📄', title: '签订合同', desc: '系统自动生成授权代表合同，在线签署，即时生效' },
+              { step: '03', icon: '📄', title: '签订合同', desc: '系统生成授权代表合同，下载后签字盖章，上传即完成签署' },
               { step: '04', icon: '🤝', title: '授权代表接手', desc: '授权代表接管LUCID/EAR注册、双元系统对接、年度申报等全部合规工作' },
             ].map((s, i) => (
               <div key={i} className="relative text-center">
