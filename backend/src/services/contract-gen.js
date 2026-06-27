@@ -100,10 +100,12 @@ export async function generateContract({ type, clientLocation, data }) {
   // Log which tags were actually filled (non-empty) for debugging template mismatches
   const filledTags = Object.keys(tags).filter(k => tags[k])
   console.log(`[contract-gen] Filling template ${key} with ${filledTags.length} tags: ${filledTags.join(', ')}`)
+  // Debug: log Chinese content
+  if (tags.company_name) console.log(`[contract-gen] company_name='${tags.company_name}' (len=${tags.company_name.length})`)
+  if (tags.company_address) console.log(`[contract-gen] company_address='${tags.company_address}' (len=${tags.company_address.length})`)
 
   try {
-    doc.setData(tags)
-    doc.render()
+    doc.render(tags)
   } catch (e) {
     console.error('[contract-gen] Template render error:', e.message)
     throw new Error(`Template render failed: ${e.message}`)
