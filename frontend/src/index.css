@@ -16,7 +16,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-::placeholder { color: #c0bab2; }
+::placeholder { color: #9ca3af; }
 input:focus::placeholder { opacity: 0; }
 
 @keyframes scan {
