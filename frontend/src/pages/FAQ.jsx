@@ -13,7 +13,7 @@ export default function FAQ() {
   const [open, setOpen] = useState(null)
   return (
     <div>
-      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #1a3a2a, #2d5a3e, #1a3a2a)' }}>
+      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #3d5a48, #527a60, #3d5a48)' }}>
         <h1 className="text-2xl font-extrabold">常见问题</h1>
       </section>
       <section className="max-w-2xl mx-auto px-4 py-10 space-y-3">

@@ -12,11 +12,11 @@ export default function Packaging() {
 
   return (
     <div>
-      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #1a3a2a, #2d5a3e, #1a3a2a)' }}>
+      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #3d5a48, #527a60, #3d5a48)' }}>
         <h1 className="text-2xl md:text-3xl font-extrabold mb-1">德国包装法 · 授权代表</h1>
         <p className="text-sm text-white/60 mb-1">Verpackungsgesetz (VerpackG) §35(2)</p>
         <p className="text-xl font-bold mb-6">€{AR_TIERS.basic.feeEur} / 年起</p>
-        <Link to="/signup/packaging" className="inline-block px-7 py-3 text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all" style={{ background: '#2d8a4e' }}>立即签约 →</Link>
+        <Link to="/signup/packaging" className="inline-block px-7 py-3 text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all" style={{ background: '#5a9470' }}>立即签约 →</Link>
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-12">

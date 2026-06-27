@@ -13,11 +13,11 @@ const cats = [
 export default function WEEE() {
   return (
     <div>
-      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #1a3a2a, #2d5a3e, #1a3a2a)' }}>
+      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #3d5a48, #527a60, #3d5a48)' }}>
         <h1 className="text-2xl md:text-3xl font-extrabold mb-1">德国 WEEE 电子电气设备法</h1>
         <p className="text-sm text-white/60 mb-1">Elektro- und Elektronikgerätegesetz (ElektroG)</p>
         <p className="text-xl font-bold mb-6">€{WEEE_STARTING_PRICE}/年起</p>
-        <Link to="/signup/weee" className="inline-block px-7 py-3 text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all" style={{ background: '#2d8a4e' }}>在线签约 WEEE →</Link>
+        <Link to="/signup/weee" className="inline-block px-7 py-3 text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all" style={{ background: '#5a9470' }}>在线签约 WEEE →</Link>
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-12">
