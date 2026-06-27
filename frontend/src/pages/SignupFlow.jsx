@@ -188,7 +188,7 @@ export default function SignupFlow() {
                     </span>
                   </div>
                   <div style={{
-                    marginTop:6, fontSize:12, fontWeight:current ? 600 : 400,
+                    marginTop:6, fontSize:12, fontWeight:(current || done) ? 600 : 400,
                     color: current ? '#4a5d50' : done ? '#6b8a75' : '#a09a92',
                     textAlign:'center', whiteSpace:'nowrap', transition:'color 0.4s ease',
                   }}>
