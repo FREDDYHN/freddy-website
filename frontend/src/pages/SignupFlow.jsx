@@ -168,7 +168,7 @@ export default function SignupFlow() {
           {/* Firmenname / 公司名称 — bilingual */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">Firmenname *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">公司名称（英或德）*</label>
               <input value={form.company_name_en} onChange={e => update('company_name_en', e.target.value)} className={`${inputCls} ${errCls('company_name_en', errors)}`} placeholder="Company name (DE/EN)" />
               {fe('company_name_en')}
             </div>
@@ -182,7 +182,7 @@ export default function SignupFlow() {
           {/* Anschrift / 地址 — bilingual */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">Anschrift</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">注册地址（英或德）</label>
               <input value={form.registered_address_en || ''} onChange={e => update('registered_address_en', e.target.value)} className={inputCls} placeholder="Registered address (EN)" />
             </div>
             <div>
@@ -224,7 +224,7 @@ export default function SignupFlow() {
           {/* gesetzl. Vertreter / 法定代表人 — bilingual */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">gesetzl. Vertreter</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人（英或德）</label>
               <input value={form.legal_representative_en || ''} onChange={e => update('legal_representative_en', e.target.value)} className={inputCls} placeholder="Legal representative (EN)" />
             </div>
             <div>
