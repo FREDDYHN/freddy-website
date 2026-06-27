@@ -49,7 +49,7 @@ export default function SignupFlow() {
   const [form, setForm] = useState({
     company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '', legal_representative_en: '',
     contact_person: '', contact_person_en: '', contact_phone: '', wechat_id: '', contact_email: '',
-    password: '', packaging_items: [], tier: 'standard',
+    password: '', password_confirm: '', packaging_items: [], tier: 'standard',
     device_categories: [], brand_count: '1', year_type: 'first',
     signer_name: '', agreed: false,
   })
@@ -72,6 +72,7 @@ export default function SignupFlow() {
       if (!form.contact_email.trim()) e.contact_email = '请输入邮箱'
       else if (!EMAIL_RE.test(form.contact_email)) e.contact_email = '邮箱格式不正确'
       if (!form.password || form.password.length < 6) e.password = '请设置登录密码（至少6位）'
+      if (form.password !== form.password_confirm) e.password_confirm = '两次密码输入不一致'
     }
     if (s === 3) {
       if (!form.agreed) e.agreed = '请阅读并同意合同条款'
@@ -287,14 +288,21 @@ export default function SignupFlow() {
             {fe('contact_email')}
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold mb-1 text-gray-500">Passwort / 登录密码 *</label>
-            <input type="password" value={form.password} onChange={e => update('password', e.target.value)} className={`${inputCls} ${errCls('password', errors)}`} placeholder="至少6位，用于登录Dashboard" />
-            {fe('password')}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">Passwort / 登录密码 *</label>
+              <input type="password" value={form.password} onChange={e => update('password', e.target.value)} className={`${inputCls} ${errCls('password', errors)}`} placeholder="至少6位字母数字组合" />
+              {fe('password')}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">Passwort / 确认密码 *</label>
+              <input type="password" value={form.password_confirm} onChange={e => update('password_confirm', e.target.value)} className={`${inputCls} ${errCls('password_confirm', errors)}`} placeholder="请再次输入密码" />
+              {fe('password_confirm')}
+            </div>
           </div>
 
           <div className="flex justify-end pt-2">
-            <button onClick={() => next(1)} disabled={!form.company_name || !form.company_name_en || !form.registered_address || !form.contact_person || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password} className={btnCls}>下一步 →</button>
+            <button onClick={() => next(1)} disabled={!form.company_name || !form.company_name_en || !form.registered_address || !form.legal_representative || !form.legal_representative_en || !form.contact_person || !form.contact_person_en || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password || !form.password_confirm} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
