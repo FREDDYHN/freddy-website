@@ -72,7 +72,8 @@ router.post('/', async (req, res) => {
   const db = await getDb()
   await db.run('BEGIN IMMEDIATE')
   try {
-    const { service_type, company_name, contact_name, contact_email, contact_phone, wechat_id,
+    const { service_type, company_name, company_name_en, registered_address, uscc, legal_representative,
+            contact_name, contact_email, contact_phone, wechat_id,
             packaging_items, tier, password, device_categories, brand_count, year_type } = req.body
 
     if (!company_name || !contact_name || !contact_email) {
@@ -105,10 +106,15 @@ router.post('/', async (req, res) => {
     const existingClient = await db.get('SELECT id FROM clients WHERE contact_email = ?', contact_email)
     if (existingClient) {
       clientId = existingClient.id
+      // Update existing client with latest info
+      await db.run(
+        'UPDATE clients SET company_name=?, company_name_en=?, registered_address=?, uscc=?, legal_representative=?, contact_name=?, contact_phone=?, wechat_id=? WHERE id=?',
+        company_name, company_name_en || '', registered_address || '', uscc || '', legal_representative || '', contact_name, contact_phone || '', wechat_id || '', clientId
+      )
     } else {
       const clientResult = await db.run(
-        'INSERT INTO clients (company_name, contact_name, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?)',
-        company_name, contact_name, contact_email, contact_phone || '', wechat_id || ''
+        'INSERT INTO clients (company_name, company_name_en, registered_address, uscc, legal_representative, contact_name, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        company_name, company_name_en || '', registered_address || '', uscc || '', legal_representative || '', contact_name, contact_email, contact_phone || '', wechat_id || ''
       )
       clientId = clientResult.lastID
     }

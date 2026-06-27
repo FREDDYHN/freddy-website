@@ -2,9 +2,21 @@ import { Link } from 'react-router-dom'
 import { AR_TIERS, BATTERY_STARTING_PRICE, WEEE_STARTING_PRICE } from '@shared/constants.js'
 
 const services = [
-  { to: '/packaging', title: '包装法授权代表', price: `€${AR_TIERS.basic.feeEur}/年`, desc: '德国包装法 VerpackG §35(2) 本土授权代表，替代EASY-LIZE，自有签约+支付，LUCID注册指导。', gradient: 'from-[#1e3a5f] to-[#2a5a8a]', tag: '2026强制' },
-  { to: '/battery', title: '德国电池法 BattG', price: `€${BATTERY_STARTING_PRICE}/年起`, desc: '电池及含电池产品德国市场合规注册，与WEEE Return GmbH合作，EAR注册全流程代办。', gradient: 'from-[#5a3e1e] to-[#3d210d]' },
-  { to: '/weee', title: '德国 WEEE 电子电气法', price: `€${WEEE_STARTING_PRICE}/年起`, desc: '电子电气设备德国回收合规，6大设备类别全覆盖，WEEE Return GmbH授权代表服务。', gradient: 'from-[#1e5a3f] to-[#0d3d21]' },
+  {
+    to: '/packaging', title: '包装法授权代表', price: `€${AR_TIERS.basic.feeEur}/年`, priceLabel: '年费',
+    desc: 'LIVANTO GmbH 作为您在德国的授权代表，承担双元系统对接、LUCID数据申报、完整性声明、运输包装回收及官方通信等全部法定义务。',
+    gradient: 'from-[#1e3a5f] to-[#2a5a8a]', tag: '2026强制',
+  },
+  {
+    to: '/battery', title: '德国电池法 BattG', price: `€${BATTERY_STARTING_PRICE}/年起`, priceLabel: '年起',
+    desc: 'WEEE Return GmbH 作为授权代表，负责 EAR 注册、回收处置方案、年度申报及与德国联邦环境局（UBA）的全部官方沟通。',
+    gradient: 'from-[#5a3e1e] to-[#3d210d]',
+  },
+  {
+    to: '/weee', title: '德国 WEEE 电子电气法', price: `€${WEEE_STARTING_PRICE}/年起`, priceLabel: '年起',
+    desc: 'WEEE Return GmbH 作为授权代表，覆盖6大设备类别，承担 EAR 注册、担保确认、回收处理及年度数据申报全流程。',
+    gradient: 'from-[#1e5a3f] to-[#0d3d21]',
+  },
 ]
 
 export default function Landing() {
@@ -18,7 +30,7 @@ export default function Landing() {
       {/* Progress Flow */}
       <section className="bg-white py-20 px-4 border-y border-gray-100">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-800 text-center mb-16">四步完成合规，授权全程代表护航</h2>
+          <h2 className="text-2xl font-bold text-gray-800 text-center mb-16">四步完成合规，授权代表全程护航</h2>
           <div className="relative">
             <div className="hidden md:block absolute top-5 left-[8%] right-[8%] h-0.5 bg-gray-200" />
             <div className="hidden md:block absolute top-5 left-[8%] right-[8%] h-0.5 bg-gradient-to-r from-primary to-primary/40" />
@@ -45,18 +57,22 @@ export default function Landing() {
       </section>
 
       {/* Service Cards */}
-      <section className="max-w-6xl mx-auto px-4 -mt-8 relative z-10 pb-4">
+      <section className="max-w-6xl mx-auto px-4 -mt-8 relative z-10 pb-20">
         <div className="grid md:grid-cols-3 gap-6">
           {services.map(s => (
             <Link key={s.to} to={s.to} className="block bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
-              <div className={`bg-gradient-to-r ${s.gradient} p-4 text-white`}>
+              <div className={`bg-gradient-to-r ${s.gradient} p-5 text-white`}>
                 <div className="flex justify-between items-start">
                   <h3 className="font-bold text-lg">{s.title}</h3>
                   {s.tag && <span className="text-xs bg-white/20 px-2 py-0.5 rounded">{s.tag}</span>}
                 </div>
-                <p className="text-2xl font-bold mt-2">{s.price}</p>
+                <p className="text-3xl font-bold mt-3">{s.price}</p>
+                <p className="text-xs text-white/60 mt-1">{s.priceLabel}</p>
               </div>
-              <div className="p-4 text-sm text-gray-600 group-hover:text-gray-800">{s.desc}</div>
+              <div className="p-5 text-sm text-gray-600 group-hover:text-gray-800 leading-relaxed">
+                <p className="text-xs text-gray-400 mb-1">授权代表职责</p>
+                {s.desc}
+              </div>
             </Link>
           ))}
         </div>

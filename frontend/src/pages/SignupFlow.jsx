@@ -46,7 +46,8 @@ export default function SignupFlow() {
   }, [])
 
   const [form, setForm] = useState({
-    company_name: '', contact_name: '', contact_email: '', contact_phone: '', wechat_id: '',
+    company_name: '', company_name_en: '', registered_address: '', uscc: '', legal_representative: '',
+    contact_name: '', contact_email: '', contact_phone: '', wechat_id: '',
     password: '', packaging_items: [], tier: 'standard',
     device_categories: [], brand_count: '1', year_type: 'first',
     signer_name: '', agreed: false,
@@ -63,7 +64,8 @@ export default function SignupFlow() {
   const validateStep = (stepNum) => {
     const errs = {}
     if (stepNum === 0) {
-      if (!form.company_name.trim()) errs.company_name = '请输入公司名称'
+      if (!form.company_name.trim()) errs.company_name = '请输入公司名称（中文）'
+      if (!form.registered_address.trim()) errs.registered_address = '请输入注册地址'
       if (!form.contact_name.trim()) errs.contact_name = '请输入联系人姓名'
       if (!form.contact_email.trim()) { errs.contact_email = '请输入邮箱' }
       else if (!EMAIL_RE.test(form.contact_email)) { errs.contact_email = '邮箱格式不正确' }
@@ -106,6 +108,10 @@ export default function SignupFlow() {
       const body = {
         service_type: serviceType,
         company_name: form.company_name.trim(),
+        company_name_en: form.company_name_en.trim(),
+        registered_address: form.registered_address.trim(),
+        uscc: form.uscc.trim(),
+        legal_representative: form.legal_representative.trim(),
         contact_name: form.contact_name.trim(),
         contact_email: form.contact_email.trim(),
         contact_phone: form.contact_phone.trim(),
@@ -220,12 +226,34 @@ export default function SignupFlow() {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-4">
           <h2 className="text-lg font-bold">公司信息</h2>
           <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">公司名称 *</label>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1">公司名称（中文）*</label>
               <input value={form.company_name} onChange={e => update('company_name', e.target.value)}
-                className={`w-full border rounded-lg p-2 text-sm ${errors.company_name ? 'border-red-400' : ''}`} placeholder="您的公司全称" />
+                className={`w-full border rounded-lg p-2 text-sm ${errors.company_name ? 'border-red-400' : ''}`} placeholder="您的公司全称（中文）" />
               {fieldError('company_name')}
             </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1">公司名称（英文）</label>
+              <input value={form.company_name_en} onChange={e => update('company_name_en', e.target.value)}
+                className="w-full border rounded-lg p-2 text-sm" placeholder="Company name in English (用于德国合同)" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1">注册地址 *</label>
+              <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)}
+                className={`w-full border rounded-lg p-2 text-sm ${errors.registered_address ? 'border-red-400' : ''}`} placeholder="公司注册地址（合同中Anschrift字段）" />
+              {fieldError('registered_address')}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">统一社会信用代码</label>
+              <input value={form.uscc} onChange={e => update('uscc', e.target.value)}
+                className="w-full border rounded-lg p-2 text-sm" placeholder="选填，用于合同USt-ID" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">法定代表人</label>
+              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)}
+                className="w-full border rounded-lg p-2 text-sm" placeholder="签署合同的法定代表" />
+            </div>
+            <div className="border-t border-gray-100 md:col-span-2"></div>
             <div>
               <label className="block text-sm font-medium mb-1">联系人 *</label>
               <input value={form.contact_name} onChange={e => update('contact_name', e.target.value)}
@@ -406,7 +434,11 @@ export default function SignupFlow() {
           <h2 className="text-lg font-bold">确认并签署</h2>
           <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
             <div className="flex justify-between"><span>服务</span><span className="font-medium">{cfg.label}</span></div>
-            <div className="flex justify-between"><span>公司</span><span className="font-medium">{form.company_name}</span></div>
+            <div className="flex justify-between"><span>公司（中文）</span><span className="font-medium">{form.company_name}</span></div>
+            {form.company_name_en && <div className="flex justify-between"><span>公司（英文）</span><span className="font-medium">{form.company_name_en}</span></div>}
+            <div className="flex justify-between"><span>注册地址</span><span className="font-medium text-xs">{form.registered_address}</span></div>
+            {form.uscc && <div className="flex justify-between"><span>信用代码</span><span className="font-medium text-xs">{form.uscc}</span></div>}
+            {form.legal_representative && <div className="flex justify-between"><span>法定代表人</span><span className="font-medium">{form.legal_representative}</span></div>}
             <div className="flex justify-between"><span>联系人</span><span className="font-medium">{form.contact_name}</span></div>
             <div className="flex justify-between"><span>邮箱</span><span className="font-medium">{form.contact_email}</span></div>
             {isPackaging && <div className="flex justify-between"><span>套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div>}
