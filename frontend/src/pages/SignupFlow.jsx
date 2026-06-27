@@ -166,34 +166,34 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">公司名称/英文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">公司名称 / 英文 *</label>
               <input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="Company name (DE/EN)" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">公司名称/中文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">公司名称 / 中文 *</label>
               <input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="公司全称（中文）" />
               {fe('company_name')}
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium mb-1 text-gray-500">注册地址/英文+中文 *</label>
+            <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 / 英文+中文 *</label>
             <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="Registered address / 公司注册地址" />
             {fe('registered_address')}
           </div>
 
           <div>
-            <label className="block text-xs font-medium mb-1 text-gray-500">统一社会信用代码/英文+中文</label>
+            <label className="block text-xs font-medium mb-1 text-gray-500">统一社会信用代码 / 英文+中文</label>
             <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={inputCls} placeholder="[falls vorhanden / 如有]" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人/英文</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人 / 英文</label>
               <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="Legal representative" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人/中文</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人 / 中文</label>
               <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="法定代表人姓名" />
               {fe('legal_representative')}
             </div>
@@ -203,11 +203,11 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">联系人/英文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 / 英文 *</label>
               <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="Contact person" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">联系人/中文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 / 中文 *</label>
               <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="联系人姓名" />
               {fe('contact_person')}
             </div>
@@ -215,11 +215,11 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">手机号/英文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">手机号 / 英文 *</label>
               <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="+86 138xxxx" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">手机号/中文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">手机号 / 中文 *</label>
               <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="手机号码" />
               {fe('contact_phone')}
             </div>
@@ -227,11 +227,11 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">微信号/英文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">微信号 / 英文 *</label>
               <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="WeChat ID" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">微信号/中文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">微信号 / 中文 *</label>
               <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="微信号" />
               {fe('wechat_id')}
             </div>
@@ -366,7 +366,7 @@ export default function SignupFlow() {
             {form.company_name_en && <div className="flex justify-between"><span className="text-gray-400">公司(EN)</span><span className="font-medium text-xs">{form.company_name_en}</span></div>}
             <div className="flex justify-between"><span className="text-gray-400">地址</span><span className="font-medium text-xs">{form.registered_address}</span></div>
             {form.uscc && <div className="flex justify-between"><span className="text-gray-400">信用代码</span><span className="font-medium text-xs">{form.uscc}</span></div>}
-            {form.legal_representative && <div className="flex justify-between"><span className="text-gray-400">法定代表人/中文</span><span className="font-medium">{form.legal_representative}</span></div>}
+            {form.legal_representative && <div className="flex justify-between"><span className="text-gray-400">法定代表人 / 中文</span><span className="font-medium">{form.legal_representative}</span></div>}
             <div className="flex justify-between"><span className="text-gray-400">联系人</span><span className="font-medium">{form.contact_person}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">手机</span><span className="font-medium">{form.contact_phone}</span></div>
