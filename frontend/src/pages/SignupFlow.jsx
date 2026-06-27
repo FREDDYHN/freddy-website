@@ -478,7 +478,7 @@ export default function SignupFlow() {
               </>}
             {isWeee && <div><span className="inline-block w-40 text-gray-400">设备类别</span><span className="font-medium">{form.device_categories.length} 类</span></div>}
             {!isPkg && <div><span className="inline-block w-40 text-gray-400">品牌数</span><span className="font-medium">{form.brand_count}</span></div>}
-            <div className="border-t pt-2 mt-2 font-bold"><span>预估年费：</span><span className="text-primary">€{reviewFee}</span></div>
+            <div className="border-t pt-2 mt-2 font-bold"><span>预估年费：</span><span className="text-primary">€{reviewFee}</span>{isPkg && <span className="text-gray-400 text-xs font-normal"> + 回收费用（按实际量缴纳）</span>}</div>
           </div>
           <div className="flex items-center gap-3 pt-2">
             <button onClick={handlePreview} disabled={previewing || !form.company_name || !form.contact_person || !form.contact_email} className="px-4 py-2 border-2 border-primary text-primary rounded-md text-sm font-semibold hover:bg-primary hover:text-white transition-colors disabled:opacity-40">
