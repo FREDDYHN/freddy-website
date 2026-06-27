@@ -47,7 +47,7 @@ export default function SignupFlow() {
   useEffect(() => { fetch('/api/bank-info').then(r => r.json()).then(setBankInfo).catch(() => {}) }, [])
 
   const [form, setForm] = useState({
-    company_name: '', company_name_en: '', registered_address: '', uscc: '', legal_representative: '',
+    company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '', legal_representative_en: '',
     contact_name: '', contact_email: '', contact_phone: '', wechat_id: '',
     password: '', packaging_items: [], tier: 'standard',
     device_categories: [], brand_count: '1', year_type: 'first',
@@ -61,6 +61,7 @@ export default function SignupFlow() {
     const e = {}
     if (s === 0) {
       if (!form.company_name.trim()) e.company_name = '请输入公司名称（中文）'
+      if (!form.company_name_en.trim()) e.company_name_en = '请输入 Firmenname'
       if (!form.registered_address.trim()) e.registered_address = '请输入注册地址'
       if (!form.contact_name.trim()) e.contact_name = '请输入联系人姓名'
       if (!form.contact_phone.trim()) e.contact_phone = '请输入手机号'
@@ -93,7 +94,7 @@ export default function SignupFlow() {
     if (!validate(3)) return
     setSubmitting(true)
     try {
-      const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), contact_name: form.contact_name.trim(), contact_email: form.contact_email.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), password: form.password, tier: form.tier }
+      const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: (form.legal_representative_en || '').trim(), contact_name: form.contact_name.trim(), contact_email: form.contact_email.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), password: form.password, tier: form.tier }
       if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material, category: p.category, estimated_kg: p.kg }))
       else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
       const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -158,25 +159,98 @@ export default function SignupFlow() {
         ))}
       </div>
 
-      {/* Step 0: Company Info */}
+      {/* Step 0: 委托方信息 (Auftraggeber) */}
       {step === 0 && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           <h2 className="font-bold text-lg">委托方信息</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="md:col-span-2"><label className="block text-sm font-medium mb-1 text-gray-600">公司名称（中文）*</label><input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="公司全称" />{fe('company_name')}</div>
-            <div className="md:col-span-2"><label className="block text-sm font-medium mb-1 text-gray-600">公司名称（英文）</label><input value={form.company_name_en} onChange={e => update('company_name_en', e.target.value)} className={inputCls} placeholder="Company name (用于德国合同)" /></div>
-            <div className="md:col-span-2"><label className="block text-sm font-medium mb-1 text-gray-600">注册地址 *</label><input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="公司注册地址" />{fe('registered_address')}</div>
-            <div><label className="block text-sm font-medium mb-1 text-gray-600">统一社会信用代码</label><input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={inputCls} placeholder="选填" /></div>
-            <div><label className="block text-sm font-medium mb-1 text-gray-600">法定代表人</label><input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="签署合同的法定代表" /></div>
-            <div className="md:col-span-2 border-t border-gray-100 pt-2"></div>
-            <div><label className="block text-sm font-medium mb-1 text-gray-600">联系人 *</label><input value={form.contact_name} onChange={e => update('contact_name', e.target.value)} className={`${inputCls} ${errCls('contact_name', errors)}`} placeholder="姓名" />{fe('contact_name')}</div>
-            <div><label className="block text-sm font-medium mb-1 text-gray-600">邮箱 *</label><input type="email" value={form.contact_email} onChange={e => update('contact_email', e.target.value)} className={`${inputCls} ${errCls('contact_email', errors)}`} placeholder="your@email.com" />{fe('contact_email')}</div>
-            <div><label className="block text-sm font-medium mb-1 text-gray-600">手机号 *</label><input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="用于联系" />{fe('contact_phone')}</div>
-            <div><label className="block text-sm font-medium mb-1 text-gray-600">微信号 *</label><input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="客服联系" />{fe('wechat_id')}</div>
-            <div><label className="block text-sm font-medium mb-1 text-gray-600">登录密码 *</label><input type="password" value={form.password} onChange={e => update('password', e.target.value)} className={`${inputCls} ${errCls('password', errors)}`} placeholder="至少6位" />{fe('password')}</div>
+          <p className="text-xs text-gray-400 -mt-2">对应合同 §1 Vertragsparteien — Auftraggeber / Kunde</p>
+
+          {/* Firmenname / 公司名称 — bilingual */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">Firmenname *</label>
+              <input value={form.company_name_en} onChange={e => update('company_name_en', e.target.value)} className={`${inputCls} ${errCls('company_name_en', errors)}`} placeholder="Company name (DE/EN)" />
+              {fe('company_name_en')}
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">公司名称 *</label>
+              <input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="公司全称（中文）" />
+              {fe('company_name')}
+            </div>
           </div>
+
+          {/* Anschrift / 地址 — bilingual */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">Anschrift</label>
+              <input value={form.registered_address_en || ''} onChange={e => update('registered_address_en', e.target.value)} className={inputCls} placeholder="Registered address (EN)" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 *</label>
+              <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="公司注册地址" />
+              {fe('registered_address')}
+            </div>
+          </div>
+
+          {/* USt-ID / 信用代码 — universal */}
+          <div>
+            <label className="block text-xs font-medium mb-1 text-gray-500">USt-ID / VAT / 统一社会信用代码</label>
+            <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={inputCls} placeholder="选填" />
+          </div>
+
+          <div className="border-t border-gray-100"></div>
+
+          {/* E-Mail — universal */}
+          <div>
+            <label className="block text-xs font-medium mb-1 text-gray-500">E-Mail / 电子邮箱 *</label>
+            <input type="email" value={form.contact_email} onChange={e => update('contact_email', e.target.value)} className={`${inputCls} ${errCls('contact_email', errors)}`} placeholder="your@email.com" />
+            {fe('contact_email')}
+          </div>
+
+          {/* Telefon — universal */}
+          <div>
+            <label className="block text-xs font-medium mb-1 text-gray-500">Telefon / 电话 *</label>
+            <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="+86 138xxxx" />
+            {fe('contact_phone')}
+          </div>
+
+          {/* WeChat — universal */}
+          <div>
+            <label className="block text-xs font-medium mb-1 text-gray-500">WeChat / 微信 *</label>
+            <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="微信号" />
+            {fe('wechat_id')}
+          </div>
+
+          {/* gesetzl. Vertreter / 法定代表人 — bilingual */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">gesetzl. Vertreter</label>
+              <input value={form.legal_representative_en || ''} onChange={e => update('legal_representative_en', e.target.value)} className={inputCls} placeholder="Legal representative (EN)" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人</label>
+              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="法定代表人姓名" />
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100"></div>
+
+          {/* Contact person */}
+          <div>
+            <label className="block text-xs font-medium mb-1 text-gray-500">Ansprechpartner / 联系人 *</label>
+            <input value={form.contact_name} onChange={e => update('contact_name', e.target.value)} className={`${inputCls} ${errCls('contact_name', errors)}`} placeholder="姓名" />
+            {fe('contact_name')}
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-xs font-medium mb-1 text-gray-500">Passwort / 登录密码 *</label>
+            <input type="password" value={form.password} onChange={e => update('password', e.target.value)} className={`${inputCls} ${errCls('password', errors)}`} placeholder="至少6位，用于登录Dashboard" />
+            {fe('password')}
+          </div>
+
           <div className="flex justify-end pt-2">
-            <button onClick={() => next(1)} disabled={!form.company_name || !form.registered_address || !form.contact_name || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password} className={btnCls}>下一步 →</button>
+            <button onClick={() => next(1)} disabled={!form.company_name || !form.company_name_en || !form.registered_address || !form.contact_name || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
