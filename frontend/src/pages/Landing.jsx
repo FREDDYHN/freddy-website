@@ -19,8 +19,8 @@ export default function Landing() {
       </section>
 
       {/* Service Cards */}
-      <section className="max-w-lg mx-auto px-4 -mt-8 relative z-10">
-        <div className="flex flex-col gap-4">
+      <section className="max-w-6xl mx-auto px-4 -mt-8 relative z-10">
+        <div className="grid md:grid-cols-3 gap-6">
           {services.map(s => (
             <Link key={s.to} to={s.to} className="block bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
               <div className={`bg-gradient-to-r ${s.gradient} p-4 text-white`}>
