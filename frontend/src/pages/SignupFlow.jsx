@@ -141,7 +141,7 @@ export default function SignupFlow() {
   )
 
   return (
-    <div className="min-h-screen py-10" style={{background:'#f4f2ef'}}><div className="max-w-5xl mx-auto px-4">
+    <div className="min-h-screen py-10" style={{background:'#f4f2ef'}}><div className="max-w-4xl mx-auto px-4">
       <div className="text-center mb-10">
         <h1 className="text-2xl font-extrabold mb-1">在线签约 — {cfg.label}</h1>
         <p className="text-sm text-gray-400">{STEPS.length}步完成，约5分钟</p>
@@ -227,12 +227,11 @@ export default function SignupFlow() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">统一社会信用代码 / 税号</label>
-              <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={inputCls} placeholder="[falls vorhanden / 如有]" />
-            </div>
-            <div></div>
+          <div>
+            <label className="block text-xs font-medium mb-1 text-gray-500">统一社会信用代码 / 税号</label>
+            <div className="grid grid-cols-2 gap-3"><div>
+            <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={inputCls} placeholder="[falls vorhanden / 如有]" />
+            </div></div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
