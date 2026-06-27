@@ -13,9 +13,6 @@ export default function Landing() {
       {/* Hero */}
       <section className="hero-gradient text-white py-20 px-4 text-center">
         <h1 className="text-3xl md:text-5xl font-bold mb-4">德国跨境合规 · 一站式解决方案</h1>
-        <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
-          LIVANTO GMBH &nbsp;·&nbsp; EKO-PUNKT &nbsp;·&nbsp; WEEE RETURN GmbH
-        </p>
       </section>
 
       {/* Progress Flow */}
