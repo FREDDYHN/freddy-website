@@ -205,12 +205,12 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">公司名称 / 英文或拼音 *</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">公司名称 / 英文或拼音 *</label>
               <input value={form.company_name_en} onChange={e => update('company_name_en', e.target.value)} className={`${inputCls} ${errCls('company_name_en', errors)}`} placeholder="FREDDY (SHANGHAI) INFORMATION CONSULTING LTD." />
               {fe('company_name_en')}
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">公司名称 / 中文 *</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">公司名称 / 中文 *</label>
               <input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="福瑞笛（上海）信息咨询有限公司" />
               {fe('company_name')}
             </div>
@@ -218,18 +218,18 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 / 英文或拼音 *</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">注册地址 / 英文或拼音 *</label>
               <input value={form.registered_address_en || ''} onChange={e => update('registered_address_en', e.target.value)} className={inputCls} placeholder="Room 5808, 58th Floor, Jin Mao Tower, 88 Lujiazui Ring Road, Shanghai, China" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 / 中文 *</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">注册地址 / 中文 *</label>
               <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="中国上海市浦东新区陆家嘴环路88号金茂大厦58层5808室" />
               {fe('registered_address')}
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium mb-1 text-gray-500">统一社会信用代码 / 税号（如有）</label>
+            <label className="block text-xs font-semibold mb-1 text-gray-500">统一社会信用代码 / 税号（如有）</label>
             <div className="grid grid-cols-2 gap-3"><div>
             <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={inputCls} placeholder="91340400MADDK97K4X" />
             </div></div>
@@ -237,11 +237,11 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人 / 英文</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 英文</label>
               <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="Legal representative" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人 / 中文</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 中文</label>
               <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="法定代表人姓名" />
               {fe('legal_representative')}
             </div>
@@ -251,11 +251,11 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 / 英文 *</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 英文 *</label>
               <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="Contact person" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 / 中文 *</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 中文 *</label>
               <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="联系人姓名" />
               {fe('contact_person')}
             </div>
@@ -263,12 +263,12 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">手机号 *</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">手机号 *</label>
               <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="+86 138xxxx" />
               {fe('contact_phone')}
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">微信号 *</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">微信号 *</label>
               <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="WeChat ID" />
               {fe('wechat_id')}
             </div>
@@ -277,13 +277,13 @@ export default function SignupFlow() {
           <div className="border-t border-gray-100"></div>
 
           <div>
-            <label className="block text-xs font-medium mb-1 text-gray-500">E-Mail / 电子邮箱（用于登录）*</label>
+            <label className="block text-xs font-semibold mb-1 text-gray-500">E-Mail / 电子邮箱（用于登录）*</label>
             <input type="email" value={form.contact_email} onChange={e => update('contact_email', e.target.value)} className={`${inputCls} ${errCls('contact_email', errors)}`} placeholder="your@email.com" />
             {fe('contact_email')}
           </div>
 
           <div>
-            <label className="block text-xs font-medium mb-1 text-gray-500">Passwort / 登录密码 *</label>
+            <label className="block text-xs font-semibold mb-1 text-gray-500">Passwort / 登录密码 *</label>
             <input type="password" value={form.password} onChange={e => update('password', e.target.value)} className={`${inputCls} ${errCls('password', errors)}`} placeholder="至少6位，用于登录Dashboard" />
             {fe('password')}
           </div>
