@@ -1,129 +1,73 @@
 import { useState } from 'react'
 import { WEEE_PRICES, BATTERY_PRICES, AR_TIERS } from '@shared/constants.js'
 
+const selCls = 'border border-gray-200 rounded-md px-3 py-2 text-sm'
+
 export default function Calculator() {
-  const [weeeCats, setWeeeCats] = useState(1)
-  const [weeeBrands, setWeeeBrands] = useState(1)
-  const [weeeYear, setWeeeYear] = useState('first')
-  const [batBrands, setBatBrands] = useState(1)
-  const [batYear, setBatYear] = useState('first')
-  const [arTier, setArTier] = useState('basic')
+  const [wc, setWc] = useState(1); const [wb, setWb] = useState(1); const [wy, setWy] = useState('first')
+  const [bb, setBb] = useState(1); const [by, setBy] = useState('first'); const [ar, setAr] = useState('basic')
 
-  const Pw = WEEE_PRICES
-  const extraCats = Math.max(0, (weeeCats - 1) * Pw.extraCategory)
-  const extraBrandsWeee = Math.max(0, (weeeBrands - 1) * Pw.extraBrand)
-  const earBrandWeee = weeeBrands * Pw.earBrandReg
-  const authFirstWeee = weeeYear === 'first' ? Pw.authFirstYear : 0
-  const weeeTotal = Pw.baseFee + Pw.insolvencyFee + Pw.earQuarterly + extraCats + extraBrandsWeee + earBrandWeee + authFirstWeee
-
-  const Pb = BATTERY_PRICES
-  const extraBrandsBat = Math.max(0, (batBrands - 1) * Pb.extraBrand)
-  const earBrandBat = batBrands * Pb.earBrandReg
-  const authFirstBat = batYear === 'first' ? Pb.authFirstYear : 0
-  const batTotal = Pb.baseFee + Pb.takebackFee + Pb.earMembership + Pb.earQuarterly + extraBrandsBat + earBrandBat + authFirstBat
-
-  const arFeeEur = AR_TIERS[arTier]?.feeEur || 89
+  const Pw = WEEE_PRICES; const Pb = BATTERY_PRICES
+  const we = Math.max(0, (wc - 1) * Pw.extraCategory) + Math.max(0, (wb - 1) * Pw.extraBrand) + wb * Pw.earBrandReg + (wy === 'first' ? Pw.authFirstYear : 0)
+  const wt = Pw.baseFee + Pw.insolvencyFee + Pw.earQuarterly + we
+  const be = Math.max(0, (bb - 1) * Pb.extraBrand) + bb * Pb.earBrandReg + (by === 'first' ? Pb.authFirstYear : 0)
+  const bt = Pb.baseFee + Pb.takebackFee + Pb.earMembership + Pb.earQuarterly + be
+  const af = AR_TIERS[ar]?.feeEur || 89
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-16">
-      <h1 className="text-3xl font-bold text-center mb-12">费用计算器</h1>
+    <div className="max-w-3xl mx-auto px-4 py-10">
+      <h1 className="text-2xl font-extrabold text-center mb-10">费用计算器</h1>
 
-      {/* WEEE Calculator */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
-        <h2 className="text-xl font-bold mb-6 text-green-700">WEEE 电子电气法</h2>
-        <div className="grid md:grid-cols-3 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">设备类别数量</label>
-            <select value={weeeCats} onChange={e => setWeeeCats(+e.target.value)} className="w-full border rounded-lg p-2 text-sm">
-              {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">品牌数量</label>
-            <select value={weeeBrands} onChange={e => setWeeeBrands(+e.target.value)} className="w-full border rounded-lg p-2 text-sm">
-              {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">年份类型</label>
-            <select value={weeeYear} onChange={e => setWeeeYear(e.target.value)} className="w-full border rounded-lg p-2 text-sm">
-              <option value="first">首年</option>
-              <option value="renewal">续年</option>
-            </select>
-          </div>
+      <div className="bg-white border border-gray-100 rounded-lg p-5 mb-6">
+        <h2 className="font-bold text-lg mb-4 text-primary">WEEE 电子电气法</h2>
+        <div className="grid md:grid-cols-3 gap-4 mb-4">
+          <div><label className="block text-sm font-medium text-gray-500 mb-1">设备类别数量</label><select value={wc} onChange={e => setWc(+e.target.value)} className={selCls + ' w-full'}>{[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+          <div><label className="block text-sm font-medium text-gray-500 mb-1">品牌数量</label><select value={wb} onChange={e => setWb(+e.target.value)} className={selCls + ' w-full'}>{[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+          <div><label className="block text-sm font-medium text-gray-500 mb-1">年份类型</label><select value={wy} onChange={e => setWy(e.target.value)} className={selCls + ' w-full'}><option value="first">首年</option><option value="renewal">续年</option></select></div>
         </div>
-        <div className="bg-green-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 space-y-1">
-            <div className="flex justify-between"><span>WEEE Return 基本费</span><span>€{Pw.baseFee.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>破产保障费</span><span>€{Pw.insolvencyFee.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>EAR 季度费</span><span>€{Pw.earQuarterly.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>EAR 品牌注册费 ({weeeBrands}品牌 × €{Pw.earBrandReg})</span><span>€{earBrandWeee.toFixed(2)}</span></div>
-            {extraCats > 0 && <div className="flex justify-between"><span>额外类别 ({weeeCats-1}×€{Pw.extraCategory})</span><span>€{extraCats.toFixed(2)}</span></div>}
-            {extraBrandsWeee > 0 && <div className="flex justify-between"><span>额外品牌 ({weeeBrands-1}×€{Pw.extraBrand})</span><span>€{extraBrandsWeee.toFixed(2)}</span></div>}
-            {authFirstWeee > 0 && <div className="flex justify-between"><span>EAR 一次性授权费 (首年)</span><span>€{authFirstWeee.toFixed(2)}</span></div>}
-            <div className="flex justify-between font-bold text-green-800 border-t border-green-200 pt-1 mt-1"><span>WEEE 年费合计</span><span>€{weeeTotal.toFixed(2)}</span></div>
-          </div>
+        <div className="bg-gray-50 rounded-md p-4 text-sm space-y-1.5 text-gray-600">
+          <R k="WEEE Return 基本费" v={`€${Pw.baseFee.toFixed(2)}`} /><R k="破产保障费" v={`€${Pw.insolvencyFee.toFixed(2)}`} /><R k="EAR 季度费" v={`€${Pw.earQuarterly.toFixed(2)}`} /><R k={`EAR 品牌注册费 (${wb}品牌)`} v={`€${(wb * Pw.earBrandReg).toFixed(2)}`} />
+          {wc > 1 && <R k={`额外类别 ×${wc - 1}`} v={`€${(Math.max(0, (wc - 1) * Pw.extraCategory)).toFixed(2)}`} />}
+          {wb > 1 && <R k={`额外品牌 ×${wb - 1}`} v={`€${(Math.max(0, (wb - 1) * Pw.extraBrand)).toFixed(2)}`} />}
+          {wy === 'first' && <R k="EAR 一次性授权费 (首年)" v={`€${Pw.authFirstYear.toFixed(2)}`} />}
+          <div className="flex justify-between font-bold text-primary border-t border-gray-200 pt-2 mt-1"><span>WEEE 年费合计</span><span>€{wt.toFixed(2)}</span></div>
         </div>
       </div>
 
-      {/* Battery Calculator */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
-        <h2 className="text-xl font-bold mb-6 text-amber-700">电池法 BattG</h2>
-        <div className="grid md:grid-cols-2 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">品牌数量</label>
-            <select value={batBrands} onChange={e => setBatBrands(+e.target.value)} className="w-full border rounded-lg p-2 text-sm">
-              {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">年份类型</label>
-            <select value={batYear} onChange={e => setBatYear(e.target.value)} className="w-full border rounded-lg p-2 text-sm">
-              <option value="first">首年</option>
-              <option value="renewal">续年</option>
-            </select>
-          </div>
+      <div className="bg-white border border-gray-100 rounded-lg p-5 mb-6">
+        <h2 className="font-bold text-lg mb-4 text-primary">电池法 BattG</h2>
+        <div className="grid md:grid-cols-2 gap-4 mb-4">
+          <div><label className="block text-sm font-medium text-gray-500 mb-1">品牌数量</label><select value={bb} onChange={e => setBb(+e.target.value)} className={selCls + ' w-full'}>{[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+          <div><label className="block text-sm font-medium text-gray-500 mb-1">年份类型</label><select value={by} onChange={e => setBy(e.target.value)} className={selCls + ' w-full'}><option value="first">首年</option><option value="renewal">续年</option></select></div>
         </div>
-        <div className="bg-amber-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 space-y-1">
-            <div className="flex justify-between"><span>德国电池法 BattG 基本费</span><span>€{Pb.baseFee.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>回收系统费</span><span>€{Pb.takebackFee.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>EAR 会员费</span><span>€{Pb.earMembership.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>EAR 季度费</span><span>€{Pb.earQuarterly.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>EAR 品牌注册费 ({batBrands}品牌 × €{Pb.earBrandReg})</span><span>€{earBrandBat.toFixed(2)}</span></div>
-            {extraBrandsBat > 0 && <div className="flex justify-between"><span>额外品牌 ({batBrands-1}×€{Pb.extraBrand})</span><span>€{extraBrandsBat.toFixed(2)}</span></div>}
-            {authFirstBat > 0 && <div className="flex justify-between"><span>EAR 一次性授权费 (首年)</span><span>€{authFirstBat.toFixed(2)}</span></div>}
-            <div className="flex justify-between font-bold text-amber-800 border-t border-amber-200 pt-1 mt-1"><span>电池法 年费合计</span><span>€{batTotal.toFixed(2)}</span></div>
-          </div>
+        <div className="bg-gray-50 rounded-md p-4 text-sm space-y-1.5 text-gray-600">
+          <R k="电池法基本费" v={`€${Pb.baseFee.toFixed(2)}`} /><R k="回收系统费" v={`€${Pb.takebackFee.toFixed(2)}`} /><R k="EAR 会员费" v={`€${Pb.earMembership.toFixed(2)}`} /><R k="EAR 季度费" v={`€${Pb.earQuarterly.toFixed(2)}`} /><R k={`EAR 品牌注册费 (${bb}品牌)`} v={`€${(bb * Pb.earBrandReg).toFixed(2)}`} />
+          {bb > 1 && <R k={`额外品牌 ×${bb - 1}`} v={`€${(Math.max(0, (bb - 1) * Pb.extraBrand)).toFixed(2)}`} />}
+          {by === 'first' && <R k="EAR 一次性授权费 (首年)" v={`€${Pb.authFirstYear.toFixed(2)}`} />}
+          <div className="flex justify-between font-bold text-primary border-t border-gray-200 pt-2 mt-1"><span>电池法 年费合计</span><span>€{bt.toFixed(2)}</span></div>
         </div>
       </div>
 
-      {/* Packaging AR */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
-        <h2 className="text-xl font-bold mb-6 text-primary">包装法 AR 授权代表</h2>
-        <p className="text-sm text-gray-500 mb-4">LIVANTO GmbH — 三档服务套餐</p>
-        <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="bg-white border border-gray-100 rounded-lg p-5 mb-6">
+        <h2 className="font-bold text-lg mb-4 text-primary">包装法 AR 授权代表</h2>
+        <p className="text-sm text-gray-400 mb-3">LIVANTO GmbH — 三档服务套餐</p>
+        <div className="grid grid-cols-3 gap-3 mb-3">
           {Object.values(AR_TIERS).map(t => (
-            <label key={t.key}
-              className={`flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-gray-50 ${arTier === t.key ? 'border-primary bg-primary/5' : ''}`}>
-              <input type="radio" name="arTier" value={t.key} checked={arTier === t.key}
-                onChange={e => setArTier(e.target.value)} className="text-primary" />
-              <span className="text-sm">
-                <span className="font-medium">{t.name}</span><br />
-                <span className="text-gray-500">€{t.feeEur}/年</span>
-              </span>
+            <label key={t.key} className={`flex items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-gray-50 text-sm ${ar === t.key ? 'border-primary bg-primary/5' : 'border-gray-200'}`}>
+              <input type="radio" name="ar" value={t.key} checked={ar === t.key} onChange={e => setAr(e.target.value)} /><span><span className="font-medium">{t.name.split(' ')[0]}</span><br /><span className="text-gray-400">€{t.feeEur}/年</span></span>
             </label>
           ))}
         </div>
-        <p className="text-xs text-gray-400">* 双元系统许可费另计，按实际用量过账</p>
+        <p className="text-xs text-gray-400">* 双元系统许可费另计</p>
       </div>
 
-      {/* Combined Total */}
-      <div className="bg-primary text-white rounded-xl p-6 shadow-sm text-center">
-        <p className="text-sm text-gray-300 mb-1">三项合计 (包装法AR{AR_TIERS[arTier]?.name?.split(' ')[0] || ''} + WEEE + 电池法)</p>
-        <p className="text-3xl font-bold">约 €{(arFeeEur + weeeTotal + batTotal).toFixed(2)}/年</p>
-        <p className="text-xs text-gray-400 mt-2">* 包装法AR以所选套餐计，双元系统费另计</p>
+      <div className="bg-primary text-white rounded-lg p-6 text-center">
+        <p className="text-sm text-white/60 mb-1">三项合计 (包装法 {AR_TIERS[ar]?.name?.split(' ')[0] || ''} + WEEE + 电池法)</p>
+        <p className="text-3xl font-extrabold">约 €{(af + wt + bt).toFixed(2)}/年</p>
+        <p className="text-xs text-white/40 mt-2">* 包装法双元系统费另计</p>
       </div>
     </div>
   )
 }
+
+function R({ k, v }) { return <div className="flex justify-between"><span>{k}</span><span>{v}</span></div> }
