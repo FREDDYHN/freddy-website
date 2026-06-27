@@ -18,6 +18,21 @@ export default function Packaging() {
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-12">
+        <h2 className="text-xl font-bold text-center mb-6">授权代表服务套餐</h2>
+        <div className="grid md:grid-cols-3 gap-4 mb-12">
+          {tiers.map(t => {
+            const feats = t.key === 'basic' ? ['核心 AR 服务', 'LUCID 数据申报', '双元系统合同', '官方通信处理'] : t.key === 'standard' ? ['基础全部内容', '优先响应 (48h)', '扩展分类咨询', '年度合规简报'] : ['标准全部内容', '完整性声明协调', '专属客户经理', '24h 响应']
+            return (
+              <div key={t.key} className={`bg-white rounded-lg p-5 border-2 flex flex-col ${t.featured ? 'border-primary' : 'border-gray-100'}`}>
+                <h3 className="font-bold mb-1">{t.name.split(' ')[0]}</h3>
+                <p className="text-2xl font-extrabold text-primary mb-3">€{t.feeEur}/年</p>
+                <ul className="text-sm text-gray-500 space-y-1.5 flex-1 mb-4">{feats.map((f, j) => <li key={j} className="flex gap-1.5"><span className="text-green-500">✓</span>{f}</li>)}</ul>
+                <Link to="/signup/packaging" className={`block text-center py-2 rounded-md text-sm font-semibold ${t.featured ? 'bg-primary text-white' : 'border border-primary text-primary'}`}>选择{t.name.split(' ')[0]}</Link>
+              </div>
+            )
+          })}
+        </div>
+
         <h2 className="text-xl font-bold text-center mb-8">三步完成包装法合规</h2>
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {[{ s: '1', t: 'LUCID 注册', d: '在 ZSVR 官网自行注册获取 LUCID 号，我们提供中文指南' }, { s: '2', t: '签约授权代表', d: '在线填写公司+包装信息，签署授权代表合同，支付年费' }, { s: '3', t: 'LIVANTO 处理合规', d: '确认授权→签订双元系统合同→提交年度数据申报' }].map((s, i) => (
@@ -35,21 +50,6 @@ export default function Packaging() {
             <thead><tr className="bg-primary text-white"><th className="p-3 text-left">材料类别</th><th className="p-3 text-right">最低 €/kg</th><th className="p-3 text-right">最高 €/kg</th></tr></thead>
             <tbody>{materials.map((m, i) => <tr key={i} className={i % 2 ? 'bg-gray-50' : ''}><td className="p-3">{m.name}</td><td className="p-3 text-right">€{m.min}</td><td className="p-3 text-right">€{m.max}</td></tr>)}</tbody>
           </table>
-        </div>
-
-        <h2 className="text-xl font-bold text-center mb-6">授权代表服务套餐</h2>
-        <div className="grid md:grid-cols-3 gap-4 mb-12">
-          {tiers.map(t => {
-            const feats = t.key === 'basic' ? ['核心 AR 服务', 'LUCID 数据申报', '双元系统合同', '官方通信处理'] : t.key === 'standard' ? ['基础全部内容', '优先响应 (48h)', '扩展分类咨询', '年度合规简报'] : ['标准全部内容', '完整性声明协调', '专属客户经理', '24h 响应']
-            return (
-              <div key={t.key} className={`bg-white rounded-lg p-5 border-2 flex flex-col ${t.featured ? 'border-primary' : 'border-gray-100'}`}>
-                <h3 className="font-bold mb-1">{t.name.split(' ')[0]}</h3>
-                <p className="text-2xl font-extrabold text-primary mb-3">€{t.feeEur}/年</p>
-                <ul className="text-sm text-gray-500 space-y-1.5 flex-1 mb-4">{feats.map((f, j) => <li key={j} className="flex gap-1.5"><span className="text-green-500">✓</span>{f}</li>)}</ul>
-                <Link to="/signup/packaging" className={`block text-center py-2 rounded-md text-sm font-semibold ${t.featured ? 'bg-primary text-white' : 'border border-primary text-primary'}`}>选择{t.name.split(' ')[0]}</Link>
-              </div>
-            )
-          })}
         </div>
 
         <h2 className="text-xl font-bold text-center mb-6">常见问题</h2>
