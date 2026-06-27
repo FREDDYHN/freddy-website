@@ -42,7 +42,7 @@ export default function SignupFlow() {
   const urlTier = searchParams.get('tier') || 'basic'
   const [step, setStep] = useState(() => Math.max(1, parseInt(searchParams.get('step')) || 1) - 1)
   const [submitting, setSubmitting] = useState(false)
-  const [previewId, setPreviewId] = useState(null)
+  const [previewData, setPreviewData] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [previewing, setPreviewing] = useState(false)
   const [result, setResult] = useState(null)
@@ -112,11 +112,11 @@ export default function SignupFlow() {
     try {
       const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildBody()) })
       const data = await res.json(); if (!res.ok) throw new Error(data.error || '创建合同失败')
-      setPreviewId(data.contract_id)
-      const genRes = await fetch(`/api/contracts/${data.contract_id}/generate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'ar', client_location: 'cn' }) })
-      const genData = await genRes.json(); if (!genRes.ok) throw new Error(genData.error || '生成失败')
-      setPreviewUrl(genData.download_url)
-      window.open(genData.download_url, '_blank')
+      setPreviewData(data)
+      if (data.download_url) {
+        setPreviewUrl(data.download_url)
+        window.open(data.download_url, '_blank')
+      }
     } catch (e) { alert('预览生成失败: ' + e.message) }
     setPreviewing(false)
   }
@@ -125,17 +125,18 @@ export default function SignupFlow() {
     if (!validate(STEPS.length - 1)) return
     setSubmitting(true)
     try {
-      let contractId = previewId
-      if (!contractId) {
+      let contractId
+      if (previewData) {
+        contractId = previewData.contract_id
+      } else {
         const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildBody()) })
         const data = await res.json(); if (!res.ok) throw new Error(data.error || '创建合同失败')
         contractId = data.contract_id
-        setResult(data)
-      } else {
-        setResult({ contract_id: contractId })
+        setPreviewData(data)
       }
       const sRes = await fetch(`/api/contracts/${contractId}/sign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signer_name: form.signer_name.trim() }) })
       const sData = await sRes.json(); if (!sRes.ok) throw new Error(sData.error || '签名失败')
+      setResult(previewData || { contract_id: contractId })
       goStep(4)
     } catch (e) { alert('提交失败: ' + e.message) }
     setSubmitting(false)
@@ -153,7 +154,7 @@ export default function SignupFlow() {
       <h1 className="text-2xl font-extrabold mb-2">合同签署成功</h1>
       <p className="text-sm text-gray-500 mb-6">请登录您的账户下载合同并完成后续流程</p>
       <div className="bg-white border border-gray-100 rounded-lg p-5 text-left space-y-3 mb-6 text-sm">
-        <div className="flex justify-between"><span className="text-gray-400">合同编号</span><span className="font-mono font-medium">{result.contract_number || previewId}</span></div>
+        <div className="flex justify-between"><span className="text-gray-400">合同编号</span><span className="font-mono font-medium">{result.contract_number || previewData?.contract_number}</span></div>
         <div className="flex justify-between"><span className="text-gray-400">登录邮箱</span><span className="font-medium">{form.contact_email}</span></div>
       </div>
       <Link to={`/login?email=${encodeURIComponent(form.contact_email)}`} className="inline-block px-6 py-3 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary-light">前往登录 →</Link>

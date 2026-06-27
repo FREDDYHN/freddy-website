@@ -3,6 +3,7 @@ import bcryptjs from 'bcryptjs'
 import { getDb } from '../db.js'
 import { authMiddleware } from '../auth.js'
 import { createPayment } from '../payment.js'
+import { generateContract, getContractUrl } from '../services/contract-gen.js'
 import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES } from '../../../shared/constants.js'
 
 const router = Router()
@@ -163,6 +164,31 @@ router.post('/', async (req, res) => {
 
     await db.run('COMMIT')
 
+    // Generate contract DOCX for preview
+    let download_url = null
+    try {
+      const genType = svcType === 'weee' ? 'weee' : svcType === 'battery' ? 'battery' : 'ar'
+      const filePath = await generateContract({
+        type: genType,
+        clientLocation: 'cn',
+        data: {
+          company_name, company_name_en: company_name_en || company_name,
+          company_address: registered_address || '',
+          registered_address_en: registered_address_en || '',
+          uscc: uscc || '',
+          legal_representative: legal_representative || '',
+          legal_representative_en: legal_representative_en || '',
+          contact_person: contact_person || '',
+          contact_person_en: contact_person_en || '',
+          contact_email, contact_phone, wechat_id,
+          contract_number: contractNumber, annual_fee_eur: annualFee,
+          start_date: startDate, end_date: endDate,
+          packaging_items: svcType === 'packaging' ? (packaging_items || []) : '',
+        },
+      })
+      download_url = getContractUrl(filePath)
+    } catch (e) { console.error('[contracts] Preview generation failed:', e.message) }
+
     res.status(201).json({
       client_id: clientId,
       contract_id: contractId,
@@ -171,6 +197,7 @@ router.post('/', async (req, res) => {
       start_date: startDate,
       end_date: endDate,
       payment,
+      download_url,
     })
   } catch (e) {
     await db.run('ROLLBACK')
