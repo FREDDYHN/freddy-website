@@ -1,2 +1,3 @@
 node_modules/\ndist/\ndatabase/data.db*\n*.pyc\n__pycache__/\n.env
 freddy-epr-deploy.tar.gz
+projects/generated/

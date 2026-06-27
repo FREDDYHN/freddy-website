@@ -59,6 +59,11 @@ export async function generateContract({ type, clientLocation, data }) {
     linebreaks: true,
   })
 
+  // Normalize packaging items once (used in both tags and post-processing)
+  const pkgItems = Array.isArray(data.packaging_items)
+    ? data.packaging_items.map(p => ({ material: p.material_type||p.material||'', category: p.category||'', kg: String(p.estimated_kg||p.kg||''), example: p.example||'' }))
+    : []
+
   // Map common field names to template placeholders
   const tags = {
     // Company info
@@ -84,16 +89,8 @@ export async function generateContract({ type, clientLocation, data }) {
     device_count: data.device_count || '',
     brand_count: data.brand_count || '',
     device_categories: data.device_categories || '',
-    packaging_items: Array.isArray(data.packaging_items)
-      ? (() => {
-          const T = '\t\t\t\t\t'
-          const hdr = `Nr.${T}Materialfraktion / 材料类别${T}Kategorie / 类别${T}Menge (kg)${T}Produktbeispiel / 产品举例`
-          const rows = data.packaging_items.map((p,i) =>
-            `${i+1}${T}${p.material_type||p.material||''}${T}${p.category||''}${T}${p.estimated_kg||p.kg||''}${T}${p.example||''}`
-          )
-          return hdr + '\n' + rows.join('\n')
-        })()
-      : (data.packaging_items || ''),
+    packaging_rows: 'PACKAGING_DATA', // placeholder for post-processing
+    packaging_items: pkgItems,
     // Signature
     signer_name: data.signer_name || '',
     signer_title: data.signer_title || '',
@@ -120,7 +117,77 @@ export async function generateContract({ type, clientLocation, data }) {
 
   const outName = `${key}_${data.contract_number || Date.now().toString(36)}.docx`
   const outPath = join(outputDir, outName)
-  await writeFile(outPath, doc.getZip().generate({ type: 'nodebuffer' }))
+  const outBuf = doc.getZip().generate({ type: 'nodebuffer' })
+
+  // Post-process: fill Anlage B table rows from packaging_items array
+  if (pkgItems.length > 0) {
+    const outZip = new PizZip(outBuf)
+    let outXml = outZip.files['word/document.xml'].asText()
+    const marker = outXml.indexOf('PACKAGING_DATA')
+    if (marker > 0) {
+      // Locate the <w:tr> that contains the marker row.
+      // The data row in the template is ONE <w:tr> with one <w:tc> containing
+      // {packaging_rows} and three empty <w:tc> cells.
+      // After docxtemplater, the tag becomes the literal text "PACKAGING_DATA".
+
+      // Find the enclosing <w:tr> by walking backwards from the marker
+      let trS = outXml.lastIndexOf('<w:tr', marker)
+      // Verify we got the right one — there should be no </w:tr> between trS and marker
+      const endCheck = outXml.indexOf('</w:tr>', trS + 5)
+      if (endCheck > 0 && endCheck < marker) {
+        // The <w:tr we found closes before the marker — look for the next one
+        trS = outXml.indexOf('<w:tr', endCheck)
+        if (trS < 0 || trS > marker) trS = outXml.lastIndexOf('<w:tr', marker)
+      }
+
+      let trE = outXml.indexOf('</w:tr>', marker)
+      if (trE < 0) trE = outXml.indexOf('</w:tr>', marker + 100)
+      trE += '</w:tr>'.length
+
+      // Extract the cell containing PACKAGING_DATA as a template for building new cells
+      const tcS = outXml.lastIndexOf('<w:tc', marker)
+      const tcE = outXml.indexOf('</w:tc>', marker) + '</w:tc>'.length
+      const cellTpl = outXml.substring(tcS, tcE)
+
+      // Extract the paragraph from the cell (contains font/style info)
+      const pS = cellTpl.indexOf('<w:p')
+      const pE = cellTpl.lastIndexOf('</w:p>') + '</w:p>'.length
+      const paraTpl = cellTpl.substring(pS, pE)
+
+      // Column widths for the 4-column Anlage B table
+      const colWidths = ['2600', '1000', '2200', '3955']
+
+      // Build a cell XML string for a given value and column width
+      function buildCell(val, colW) {
+        return '<w:tc>' +
+          cellTpl.substring(
+            cellTpl.indexOf('<w:tcPr>'),
+            cellTpl.indexOf('</w:tcPr>') + '</w:tcPr>'.length
+          ).replace(/<w:tcW w:w="[^"]*"/, '<w:tcW w:w="' + colW + '"') +
+          paraTpl.replace(
+            /<w:t[^>]*>[^<]*<\/w:t>/,
+            '<w:t xml:space="preserve">' + val + '</w:t>'
+          ) +
+          '</w:tc>'
+      }
+
+      // Build all data rows
+      const rows = pkgItems.map(item => {
+        const vals = [item.material, item.category, item.kg, item.example]
+        return '<w:tr>' + vals.map((v, i) => buildCell(v, colWidths[i])).join('') + '</w:tr>'
+      }).join('')
+
+      outXml = outXml.substring(0, trS) + rows + outXml.substring(trE)
+      outZip.file('word/document.xml', outXml)
+
+      console.log(`[contract-gen] Post-processed ${pkgItems.length} Anlage B rows`)
+    } else {
+      console.log('[contract-gen] PACKAGING_DATA marker not found, skipping post-processing')
+    }
+    await writeFile(outPath, outZip.generate({ type: 'nodebuffer', compression: 'DEFLATE' }))
+  } else {
+    await writeFile(outPath, outBuf)
+  }
   console.log(`[contract-gen] Generated: ${outPath}`)
   return outPath
 }
