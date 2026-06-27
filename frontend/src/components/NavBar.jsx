@@ -24,9 +24,8 @@ export default function NavBar() {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 h-14">
       <div className="max-w-5xl mx-auto px-5 h-full flex items-center justify-between">
-        <Link to="/" className="flex items-baseline gap-1.5 no-underline">
-          <span className="text-lg font-extrabold tracking-tight text-primary">FREDDY</span>
-          <span className="text-xs text-gray-400 font-medium">福瑞笛</span>
+        <Link to="/" className="flex items-center gap-2 no-underline">
+          <img src="/freddy-logo.png" alt="FREDDY 福瑞笛" className="h-7 w-auto" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-0.5">

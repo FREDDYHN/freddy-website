@@ -8,7 +8,7 @@ const files = [
 export default function Downloads() {
   return (
     <div>
-      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #1a3a5c, #2c5f8a)' }}>
+      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #1e3a5f, #2c5478, #3d5a40)' }}>
         <h1 className="text-2xl font-extrabold">下载中心</h1>
         <p className="text-sm text-white/60 mt-1">合同模板 · 价格表 · 合规指南</p>
       </section>

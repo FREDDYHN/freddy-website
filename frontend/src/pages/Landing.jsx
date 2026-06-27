@@ -10,10 +10,10 @@ const cards = [
 export default function Landing() {
   return (
     <div>
-      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #1a3a5c 0%, #2c5f8a 100%)' }}>
+      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2c5478 50%, #3d5a40 100%)' }}>
         <h1 className="text-2xl md:text-3xl font-extrabold mb-2 tracking-tight">德国跨境合规 · 一站式解决方案</h1>
         <p className="text-sm md:text-base mb-7 max-w-lg mx-auto text-white/70">包装法 · WEEE 电子电气法 · 电池法 BattG — 德国本土授权代表，从签约到申报全闭环</p>
-        <Link to="/signup" className="inline-block px-7 py-3 bg-white text-primary text-sm font-bold rounded-lg hover:-translate-y-0.5 hover:shadow-lg transition-all">立即免费签约 →</Link>
+        <Link to="/signup" className="inline-block px-7 py-3 bg-gold text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 hover:shadow-lg transition-all" style={{ background: '#c8a44e' }}>立即免费签约 →</Link>
       </section>
 
       <section className="py-10 px-4 bg-bg">
@@ -25,7 +25,7 @@ export default function Landing() {
                   <h3 className="font-bold text-base">{c.title}</h3>
                   {c.tag && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/20">{c.tag}</span>}
                 </div>
-                <p className="text-2xl font-extrabold">{c.price}<span className="text-sm font-normal text-white/50 ml-0.5">{c.period}</span></p>
+                <p className="text-2xl font-extrabold" style={{ color: '#c8a44e' }}>{c.price}<span className="text-sm font-normal text-white/50 ml-0.5">{c.period}</span></p>
               </div>
               <div className="p-4 flex-1">
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">授权代表职责</p>
