@@ -13,7 +13,7 @@ export default function Packaging() {
   return (
     <div>
       <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #3d5a48, #527a60, #3d5a48)' }}>
-        <h1 className="text-2xl md:text-3xl font-extrabold mb-1">德国包装法 · 授权代表</h1>
+        <h1 className="text-2xl md:text-3xl font-extrabold mb-1">德国包装法 · 本土授权代表</h1>
         <p className="text-sm text-white/60 mb-1">gemäß § 35 Absatz 2 Verpackungsgesetz (VerpackG) / PPWR (EU) 2025/40</p>
         <p className="text-xl font-bold">€{AR_TIERS.basic.feeEur} / 年起</p>
       </section>
