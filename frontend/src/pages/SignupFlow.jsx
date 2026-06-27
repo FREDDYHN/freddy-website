@@ -100,10 +100,21 @@ export default function SignupFlow() {
     if (!validate(STEPS.length - 1)) return
     setSubmitting(true)
     try {
+      // 1. Create contract (also creates user account)
       const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildBody()) })
       const data = await res.json(); if (!res.ok) throw new Error(data.error || '创建合同失败')
-      // Redirect to login — client completes download/sign/upload in Dashboard
-      navigate(`/login?email=${encodeURIComponent(form.contact_email)}&contract=${data.contract_number || ''}`)
+
+      // 2. Auto-login with credentials from step 0
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.contact_email, password: form.password }),
+      })
+      const loginData = await loginRes.json()
+      if (!loginRes.ok) throw new Error(loginData.error || '自动登录失败')
+
+      // 3. Store token and redirect to Dashboard
+      localStorage.setItem('token', loginData.token)
+      navigate('/dashboard')
     } catch (e) { alert('创建失败: ' + e.message); setSubmitting(false) }
   }
 
