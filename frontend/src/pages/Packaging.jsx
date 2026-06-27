@@ -25,8 +25,8 @@ export default function Packaging() {
             return (
               <div key={t.key} className="bg-white rounded-lg p-5 border-2 flex flex-col border-gray-100">
                 <h3 className="font-bold mb-1 text-center">{t.name.split(' ')[0]}套餐</h3>
-                <p className="text-2xl font-extrabold text-primary mb-3 text-center">€{t.feeEur}/年</p>
-                <ul className="text-sm text-gray-500 space-y-1.5 flex-1 mb-4">{feats.map((f, j) => <li key={j} className="flex gap-1.5"><span className="text-green-500">✓</span>{f}</li>)}</ul>
+                <ul className="text-sm text-gray-500 space-y-1.5 flex-1 mb-3">{feats.map((f, j) => <li key={j} className="flex gap-1.5"><span className="text-green-500">✓</span>{f}</li>)}</ul>
+                <p className="text-2xl font-extrabold text-primary mb-3 text-right">€{t.feeEur}<span className="text-sm text-gray-400 font-normal">/年</span></p>
                 <Link to="/signup/packaging" className="block text-center py-2 rounded-md text-sm font-semibold bg-primary text-white">选择{t.name.split(' ')[0]}套餐</Link>
               </div>
             )
