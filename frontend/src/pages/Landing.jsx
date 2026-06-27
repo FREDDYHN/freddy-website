@@ -14,15 +14,14 @@ export default function Landing() {
         <h1 className="text-5xl md:text-6xl font-extrabold mb-10 tracking-tight">德国跨境合规 · 一站式解决方案</h1>
         {/* Flow diagram — 线贯穿标签 */}
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center">
             {['选择产品','信息填写','合同签订','授权代表全面接手'].map((label, i) => (
-              <div key={i} className="flex items-center flex-1">
-                <span className="text-xs md:text-sm text-white/80 font-medium px-4 py-1.5 rounded-full mx-auto relative" style={{
+              <div key={i} className="flex items-center" style={{flex:1}}>
+                <span className="text-xs md:text-sm text-white/80 font-medium px-4 py-1.5 rounded-full" style={{
                   background: 'rgba(255,255,255,0.08)',
-                  borderTop: '1px solid rgba(255,255,255,0.2)',
-                  borderBottom: '1px solid rgba(255,255,255,0.2)',
+                  border: '1px solid rgba(255,255,255,0.15)',
                 }}>{label}</span>
-                {i < 3 && <div className="flex-1 h-px" style={{background:'rgba(255,255,255,0.15)'}}></div>}
+                {i < 3 && <div className="h-px" style={{flex:1, background:'rgba(255,255,255,0.12)', minWidth:12}}></div>}
               </div>
             ))}
           </div>
