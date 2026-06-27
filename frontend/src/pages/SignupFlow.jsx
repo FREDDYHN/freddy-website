@@ -22,7 +22,7 @@ const WEEE_CATEGORIES = [
 ]
 
 const SVC = {
-  packaging: { label: '德国包装法 · 本土授权代表', steps: ['委托方信息', '包装申报', '预览签署'], ctLabel: '授权代表合同' },
+  packaging: { label: '德国包装法 · 本土授权代表', steps: ['委托方信息', '包装申报', '预览合同'], ctLabel: '授权代表合同' },
   weee: { label: 'WEEE 电子电气法', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (WEEE)' },
   battery: { label: '电池法 BattG', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (电池法)' },
 }
