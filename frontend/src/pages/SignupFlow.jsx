@@ -256,12 +256,12 @@ export default function SignupFlow() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 英文 *</label>
-              <input value={form.contact_person_en} onChange={e => update('contact_person_en', e.target.value)} className={`${inputCls} ${errCls('contact_person_en', errors)}`} placeholder="Jeff Chang" />
+              <input value={form.contact_person_en} onChange={e => update('contact_person_en', e.target.value)} className={`${inputCls} ${errCls('contact_person_en', errors)}`} placeholder="Changjiang Pan" />
               {fe('contact_person_en')}
             </div>
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 中文 *</label>
-              <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="张信哲" />
+              <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="潘长江" />
               {fe('contact_person')}
             </div>
           </div>
