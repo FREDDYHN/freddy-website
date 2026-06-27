@@ -1,56 +1,40 @@
+import { Link } from 'react-router-dom'
 import { WEEE_STARTING_PRICE } from '@shared/constants.js'
 
-const categories = [
-  { id: '1', name: '热交换器', de: 'Wärmeüberträger', examples: '冰箱、空调、冷柜、热泵' },
-  { id: '2', name: '显示屏/屏幕', de: 'Bildschirme', examples: '电视、显示器、笔记本电脑屏幕 (>100cm²)' },
-  { id: '3', name: '灯具', de: 'Lampen', examples: 'LED灯、荧光灯、节能灯' },
-  { id: '4', name: '大型设备', de: 'Großgeräte', examples: '洗衣机、烤箱、复印机 (>50cm)' },
-  { id: '5', name: '小型设备', de: 'Kleingeräte', examples: '手机、相机、吹风机 (<50cm)' },
-  { id: '6', name: '小型IT设备', de: 'Kleine IT-Geräte', examples: '路由器、键盘、移动硬盘' },
+const cats = [
+  { id: '1', n: '热交换器', de: 'Wärmeüberträger', ex: '冰箱、空调、冷柜、热泵' },
+  { id: '2', n: '显示屏/屏幕', de: 'Bildschirme', ex: '电视、显示器 (>100cm²)' },
+  { id: '3', n: '灯具', de: 'Lampen', ex: 'LED灯、荧光灯、节能灯' },
+  { id: '4', n: '大型设备', de: 'Großgeräte', ex: '洗衣机、烤箱、复印机 (>50cm)' },
+  { id: '5', n: '小型设备', de: 'Kleingeräte', ex: '手机、相机、吹风机 (<50cm)' },
+  { id: '6', n: '小型IT设备', de: 'Kleine IT-Geräte', ex: '路由器、键盘、移动硬盘' },
 ]
 
 export default function WEEE() {
   return (
     <div>
-      <section className="weee-gradient text-white py-16 px-4 text-center">
-        <h1 className="text-3xl md:text-4xl font-bold mb-3">德国 WEEE 电子电气设备法</h1>
-        <p className="text-lg text-gray-300 mb-2">Elektro- und Elektronikgerätegesetz (ElektroG)</p>
-        <p className="text-xl font-bold text-white">€{WEEE_STARTING_PRICE}/年起</p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <a href="/signup?type=weee" className="inline-block px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-light transition-colors">
-            在线签约 WEEE →
-          </a>
-          <a href="/calculator" className="inline-block px-6 py-3 border border-white/30 text-white rounded-lg hover:bg-white/10 transition-colors">
-            费用计算器 →
-          </a>
-        </div>
+      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #1a3a5c, #2c5f8a)' }}>
+        <h1 className="text-2xl md:text-3xl font-extrabold mb-1">德国 WEEE 电子电气设备法</h1>
+        <p className="text-sm text-white/60 mb-1">Elektro- und Elektronikgerätegesetz (ElektroG)</p>
+        <p className="text-xl font-bold mb-6">€{WEEE_STARTING_PRICE}/年起</p>
+        <Link to="/signup?type=weee" className="inline-block px-7 py-3 bg-white text-primary text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all">在线签约 WEEE →</Link>
       </section>
 
-      <section className="max-w-4xl mx-auto px-4 py-16">
-        <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
-          <h2 className="text-xl font-bold mb-4">什么是 WEEE？</h2>
-          <p className="text-gray-600 leading-relaxed">
-            WEEE (Waste Electrical and Electronic Equipment) 即电子电气设备废弃物。德国《电子电气设备法》(ElektroG) 要求所有在德国市场上销售电子电气设备的生产商和进口商必须在德国基金会 EAR (Stiftung Elektro-Altgeräte Register) 完成注册，并承担产品废弃后的回收和处理义务。
-          </p>
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
-            <strong>注意：</strong>非欧盟生产商必须在德国指定一名授权代表 (Authorised Representative) 才能完成EAR注册。福瑞笛通过 WEEE Return GmbH 为您提供本土授权代表服务。
-          </div>
+      <section className="max-w-4xl mx-auto px-4 py-12">
+        <div className="bg-white border border-gray-100 rounded-lg p-6 mb-8">
+          <h2 className="text-lg font-bold mb-3">什么是 WEEE？</h2>
+          <p className="text-sm text-gray-500 leading-relaxed">德国《电子电气设备法》(ElektroG) 要求所有在德国市场销售电子电气设备的生产商和进口商必须在 EAR 基金会完成注册，并承担产品废弃后的回收处理义务。非欧盟生产商必须指定德国本土授权代表才能完成注册。</p>
         </div>
-      </section>
 
-      <section className="max-w-4xl mx-auto px-4 pb-16">
-        <h2 className="text-xl font-bold mb-6">六大设备类别</h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          {categories.map(c => (
-            <div key={c.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center text-sm font-bold">{c.id}</span>
-                <div>
-                  <h3 className="font-bold text-sm">{c.name}</h3>
-                  <p className="text-xs text-gray-400">{c.de}</p>
-                </div>
+        <h2 className="text-lg font-bold mb-5">六大设备类别</h2>
+        <div className="grid md:grid-cols-2 gap-3">
+          {cats.map(c => (
+            <div key={c.id} className="bg-white border border-gray-100 rounded-lg p-4 flex items-start gap-3">
+              <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold shrink-0">{c.id}</span>
+              <div>
+                <h3 className="font-bold text-sm">{c.n} <span className="text-xs text-gray-400 font-normal">{c.de}</span></h3>
+                <p className="text-xs text-gray-500 mt-0.5">{c.ex}</p>
               </div>
-              <p className="text-xs text-gray-500">例: {c.examples}</p>
             </div>
           ))}
         </div>
