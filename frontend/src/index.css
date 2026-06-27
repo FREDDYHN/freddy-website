@@ -16,3 +16,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+

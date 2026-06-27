@@ -147,15 +147,54 @@ export default function SignupFlow() {
         <p className="text-sm text-gray-400">{STEPS.length}步完成，约5分钟</p>
       </div>
 
-      {/* Stepper */}
-      <div className="flex justify-center mb-10">
-        {STEPS.map((s, i) => (
-          <div key={i} className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${i <= step ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'}`}>{i + 1}</div>
-            <span className={`ml-2 text-sm hidden sm:inline ${i <= step ? 'text-primary font-medium' : 'text-gray-400'}`}>{s}</span>
-            {i < STEPS.length - 1 && <div className={`w-6 md:w-10 h-0.5 mx-1 md:mx-2 ${i < step ? 'bg-primary' : 'bg-gray-200'}`} />}
+      {/* Stepper — segmented blocks */}
+      <div className="mb-10" style={{padding:'0 8px'}}>
+        <div style={{maxWidth:700, margin:'0 auto'}}>
+          <div style={{display:'flex', gap:4}}>
+            {STEPS.map((s, i) => {
+              const done = i < step
+              const current = i === step
+              return (
+                <div key={i} style={{flex:1, position:'relative'}}>
+                  <div style={{
+                    height:40, borderRadius:8,
+                    background: done ? 'linear-gradient(135deg, #1a3a2a, #2d8a4e)' :
+                                current ? '#ffffff' : '#f4f2ef',
+                    border: current ? '2px solid #2d8a4e' :
+                            done ? 'none' : '1px solid #d4cfc8',
+                    boxShadow: done ? '0 0 10px rgba(45,138,78,0.2)' :
+                               current ? '0 0 0 4px rgba(45,138,78,0.08)' : 'none',
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    transition:'all 0.4s ease',
+                    overflow:'hidden', position:'relative',
+                  }}>
+                    {current && (
+                      <div style={{
+                        position:'absolute', top:0, bottom:0, width:24,
+                        background:'linear-gradient(90deg, transparent 0%, rgba(45,138,78,0.06) 40%, rgba(45,138,78,0.12) 50%, rgba(45,138,78,0.06) 60%, transparent 100%)',
+                        animation:'scan 2s ease-in-out infinite',
+                      }}/>
+                    )}
+                    <span style={{
+                      fontSize:13, fontWeight:700,
+                      color: done ? '#e8f5e9' : current ? '#1a3a2a' : '#a09a92',
+                      zIndex:1, transition:'color 0.4s ease',
+                    }}>
+                      {done ? '✓' : i + 1}
+                    </span>
+                  </div>
+                  <div style={{
+                    marginTop:6, fontSize:12, fontWeight:current ? 600 : 400,
+                    color: current ? '#1a3a2a' : done ? '#2d8a4e' : '#a09a92',
+                    textAlign:'center', whiteSpace:'nowrap', transition:'color 0.4s ease',
+                  }}>
+                    {s}
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        ))}
+        </div>
       </div>
 
       {/* Step 0: §1 Vertragsparteien — Auftraggeber / Kunde */}
