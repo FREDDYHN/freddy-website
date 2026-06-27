@@ -22,7 +22,7 @@ const WEEE_CATEGORIES = [
 ]
 
 const SVC = {
-  packaging: { label: '德国包装法 · 本土授权代表', steps: ['委托方信息', '包装申报', '预览合同'], ctLabel: '授权代表合同' },
+  packaging: { label: '德国包装法 · 本土授权代表', steps: ['委托方信息', '包装申报', '信息确认'], ctLabel: '授权代表合同' },
   weee: { label: 'WEEE 电子电气法', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (WEEE)' },
   battery: { label: '电池法 BattG', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (电池法)' },
 }
@@ -154,8 +154,8 @@ export default function SignupFlow() {
       <h1 className="text-2xl font-extrabold mb-2">合同签署成功</h1>
       <p className="text-sm text-gray-500 mb-6">请登录您的账户下载合同并完成后续流程</p>
       <div className="bg-white border border-gray-100 rounded-lg p-5 text-left space-y-3 mb-6 text-sm">
-        <div className="flex justify-between"><span className="text-gray-400">合同编号</span><span className="font-mono font-medium">{result.contract_number || previewData?.contract_number}</span></div>
-        <div className="flex justify-between"><span className="text-gray-400">登录邮箱</span><span className="font-medium">{form.contact_email}</span></div>
+        <div className="flex"><span className="text-gray-400">合同编号</span><span className="font-mono font-medium">{result.contract_number || previewData?.contract_number}</span></div>
+        <div className="flex"><span className="text-gray-400">登录邮箱</span><span className="font-medium">{form.contact_email}</span></div>
       </div>
       <Link to={`/login?email=${encodeURIComponent(form.contact_email)}`} className="inline-block px-6 py-3 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary-light">前往登录 →</Link>
       <div className="mt-8 text-left bg-gray-50 border border-gray-100 rounded-lg p-5 text-sm">
@@ -402,9 +402,9 @@ export default function SignupFlow() {
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           <h2 className="font-bold text-lg text-center">费用确认</h2>
           <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
-            {isWeee && <div className="flex justify-between"><span className="text-gray-500">设备类别</span><span>{form.device_categories.length} 类</span></div>}
-            <div className="flex justify-between"><span className="text-gray-500">品牌数量</span><span>{form.brand_count}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">年份类型</span><span>{form.year_type === 'first' ? '首年' : '续年'}</span></div>
+            {isWeee && <div className="flex"><span className="text-gray-500">设备类别</span><span>{form.device_categories.length} 类</span></div>}
+            <div className="flex"><span className="text-gray-500">品牌数量</span><span>{form.brand_count}</span></div>
+            <div className="flex"><span className="text-gray-500">年份类型</span><span>{form.year_type === 'first' ? '首年' : '续年'}</span></div>
             <div className="border-t pt-2 mt-2 space-y-1">
               {isWeee && <><Row k="基础服务费" v={`€${WEEE_PRICES.baseFee}`} />{form.device_categories.length > 1 && <Row k={`额外类别 ×${form.device_categories.length - 1}`} v={`€${Math.max(0, form.device_categories.length - 1) * (WEEE_PRICES.extraCategory || 99)}`} />}{parseInt(form.brand_count) > 1 && <Row k={`额外品牌 ×${parseInt(form.brand_count) - 1}`} v={`€${Math.max(0, parseInt(form.brand_count) - 1) * (WEEE_PRICES.extraBrand || 79.95)}`} />}{form.year_type === 'first' && <Row k="首年授权费" v={`€${WEEE_PRICES.authFirstYear || 50.76}`} />}</>}
               {!isWeee && <><Row k="基础服务费" v={`€${BATTERY_PRICES.baseFee}`} />{parseInt(form.brand_count) > 1 && <Row k={`额外品牌 ×${parseInt(form.brand_count) - 1}`} v={`€${Math.max(0, parseInt(form.brand_count) - 1) * (BATTERY_PRICES.extraBrand || 49)}`} />}{form.year_type === 'first' && <Row k="首年授权费" v={`€${BATTERY_PRICES.authFirstYear || 50.76}`} />}</>}
@@ -412,7 +412,7 @@ export default function SignupFlow() {
             <div className="border-t pt-2 mt-2 flex justify-between font-bold text-base"><span>预估年费</span><span className="text-primary">€{reviewFee}</span></div>
           </div>
           <p className="text-xs text-gray-400">* 最终费用以合同为准</p>
-          <div className="flex justify-between">
+          <div className="flex">
             <button onClick={() => goStep(1)} className={btnGhostCls}>← 上一步</button>
             <button onClick={() => goStep(3)} className={btnCls}>下一步 →</button>
           </div>
@@ -422,24 +422,24 @@ export default function SignupFlow() {
       {/* Step (last): Review & Sign */}
       {step === STEPS.length - 1 && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
-          <h2 className="font-bold text-lg">预览合同</h2>
+          <h2 className="font-bold text-lg">信息确认</h2>
           <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
-            <div className="flex justify-between"><span className="text-gray-400">服务</span><span className="font-medium">{cfg.label}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">公司（英文）</span><span className="font-medium text-xs">{form.company_name_en}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">公司（中文）</span><span className="font-medium">{form.company_name}</span></div>
-            {form.registered_address_en && <div className="flex justify-between"><span className="text-gray-400">地址（英文）</span><span className="font-medium text-xs">{form.registered_address_en}</span></div>}
-            <div className="flex justify-between"><span className="text-gray-400">地址（中文）</span><span className="font-medium text-xs">{form.registered_address}</span></div>
-            {form.uscc && <div className="flex justify-between"><span className="text-gray-400">信用代码</span><span className="font-medium text-xs">{form.uscc}</span></div>}
-            {form.legal_representative_en && <div className="flex justify-between"><span className="text-gray-400">法定代表人（英文）</span><span className="font-medium text-xs">{form.legal_representative_en}</span></div>}
-            <div className="flex justify-between"><span className="text-gray-400">法定代表人（中文）</span><span className="font-medium">{form.legal_representative}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">联系人（英文）</span><span className="font-medium text-xs">{form.contact_person_en}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">联系人（中文）</span><span className="font-medium">{form.contact_person}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">手机</span><span className="font-medium">{form.contact_phone}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">微信</span><span className="font-medium">{form.wechat_id}</span></div>
-            {isPkg && <><div className="flex justify-between"><span className="text-gray-400">套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div><div className="flex justify-between"><span className="text-gray-400">包装类型</span><span className="font-medium">{form.packaging_items.length} 种</span></div></>}
-            {isWeee && <div className="flex justify-between"><span className="text-gray-400">设备类别</span><span className="font-medium">{form.device_categories.length} 类</span></div>}
-            {!isPkg && <div className="flex justify-between"><span className="text-gray-400">品牌数</span><span className="font-medium">{form.brand_count}</span></div>}
+            <div><span className="text-gray-400">服务</span>&nbsp;&nbsp;<span className="font-medium">{cfg.label}</span></div>
+            <div className="flex"><span className="text-gray-400">公司（英文）</span><span className="font-medium text-xs">{form.company_name_en}</span></div>
+            <div className="flex"><span className="text-gray-400">公司（中文）</span><span className="font-medium">{form.company_name}</span></div>
+            {form.registered_address_en && <div className="flex"><span className="text-gray-400">地址（英文）</span><span className="font-medium text-xs">{form.registered_address_en}</span></div>}
+            <div className="flex"><span className="text-gray-400">地址（中文）</span><span className="font-medium text-xs">{form.registered_address}</span></div>
+            {form.uscc && <div className="flex"><span className="text-gray-400">信用代码</span><span className="font-medium text-xs">{form.uscc}</span></div>}
+            {form.legal_representative_en && <div className="flex"><span className="text-gray-400">法定代表人（英文）</span><span className="font-medium text-xs">{form.legal_representative_en}</span></div>}
+            <div className="flex"><span className="text-gray-400">法定代表人（中文）</span><span className="font-medium">{form.legal_representative}</span></div>
+            <div className="flex"><span className="text-gray-400">联系人（英文）</span><span className="font-medium text-xs">{form.contact_person_en}</span></div>
+            <div className="flex"><span className="text-gray-400">联系人（中文）</span><span className="font-medium">{form.contact_person}</span></div>
+            <div className="flex"><span className="text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>
+            <div className="flex"><span className="text-gray-400">手机</span><span className="font-medium">{form.contact_phone}</span></div>
+            <div className="flex"><span className="text-gray-400">微信</span><span className="font-medium">{form.wechat_id}</span></div>
+            {isPkg && <><div className="flex"><span className="text-gray-400">套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div><div className="flex"><span className="text-gray-400">包装类型</span><span className="font-medium">{form.packaging_items.length} 种</span></div></>}
+            {isWeee && <div className="flex"><span className="text-gray-400">设备类别</span><span className="font-medium">{form.device_categories.length} 类</span></div>}
+            {!isPkg && <div className="flex"><span className="text-gray-400">品牌数</span><span className="font-medium">{form.brand_count}</span></div>}
             <div className="border-t pt-2 mt-2 flex justify-between font-bold"><span>预估年费</span><span className="text-primary">€{reviewFee}</span></div>
           </div>
           <div className="flex items-center gap-3 pt-2">
