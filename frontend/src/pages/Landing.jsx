@@ -16,7 +16,7 @@ export default function Landing() {
         <Link to="/signup/packaging" className="inline-block px-7 py-3 bg-gold text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 hover:shadow-lg transition-all" style={{ background: '#2d8a4e' }}>立即免费签约 →</Link>
       </section>
 
-      <section className="py-10 px-4 bg-bg">
+      <section className="py-10 px-4" style={{background:'#f4f2ef'}}>
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
           {cards.map(c => (
             <Link key={c.to} to={c.to} className="bg-white border border-gray-200 rounded-lg overflow-hidden flex flex-col hover:shadow-md hover:-translate-y-0.5 transition-all">
