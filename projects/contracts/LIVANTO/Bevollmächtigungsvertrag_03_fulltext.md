@@ -1,96 +1,112 @@
-# Bevollmächtigungsvertrag V3 — 完整修订文本
-## 授权代表合同 V3
+# Bevollmächtigungsvertrag V3 — 从 DOCX 提取的完整文本
+# 授权代表合同 V3
+
+> 来源: Bevollmächtigungsvertrag_03.docx (实际DOCX文件)
 
 ---
 
-# Bevollmächtigungsvertrag
-# 授权代表合同
+Bevollmächtigungsvertrag
 
-**gemäß § 35 Absatz 2 Verpackungsgesetz (VerpackG) / PPWR (EU) 2025/40**
-**依据《德国包装法》§35条第2款 / 欧盟PPWR 2025/40**
+授权代表合同
 
----
+gemäß § 35 Absatz 2 Verpackungsgesetz (VerpackG) / PPWR (EU) 2025/40
 
-Dieser Bevollmächtigungsvertrag ist ein Geschäftsbesorgungsvertrag gemäß § 675 BGB zur Bestellung eines Bevollmächtigten nach § 35 Absatz 2 VerpackG. Der Bevollmächtigte handelt im eigenen Namen und gilt als „Quasi-Hersteller" im Sinne des Verpackungsgesetzes, ohne selbst Verpackungen in Verkehr zu bringen.
+依据《德国包装法》§35条第2款 / 欧盟PPWR 2025/40
 
-本合同为依据《德国民法典》(BGB)第675条之事务处理合同，旨在根据《德国包装法》(VerpackG)第35条第2款指定授权代表。授权代表以其自身名义行事，在《包装法》意义上被视为"准生产商"，但其自身并不投放包装。
+Dieser Bevollmächtigungsvertrag ist ein Geschäftsbesorgungsvertrag gemäß § 675 BGB zur Bestellung eines Bevollmächtigten nach § 35 Absatz 2 VerpackG. Der Bevollmächtigte handelt im eigenen Namen und gilt als „Quasi-Hersteller&quot; im Sinne des Verpackungsgesetzes, ohne selbst Verpackungen in Verkehr zu bringen.
+
+本合同为依据《德国民法典》(BGB)第675条之事务处理合同，旨在根据《德国包装法》(VerpackG)第35条第2款指定授权代表。授权代表以其自身名义行事，在《包装法》意义上被视为&quot;准生产商&quot;，但其自身并不投放包装。
 
 Ab dem 12. August 2026 tritt die EU-Verpackungsverordnung (PPWR) 2025/40 vollständig in Kraft. Das VerpackG wird durch das Verpackungsrecht-Durchführungsgesetz (VerpackDG) abgelöst. Die Bestellung eines Bevollmächtigten wird für alle Hersteller ohne Niederlassung in Deutschland verpflichtend.
 
 自2026年8月12日起，《欧盟包装与包装废弃物法规》(PPWR) 2025/40全面生效，《包装法》将被《包装法实施法》(VerpackDG)取代。届时所有在德国无分支机构的生产商必须指定授权代表。
 
----
+§1  Vertragsparteien    合同双方
 
-## §1 Vertragsparteien / 合同双方
+Auftraggeber / Kunde:
 
-**Auftraggeber / Kunde:**
 委托方 / 客户：
 
 [Firmenname des Kunden — wird bei Vertragsschluss ausgefüllt]
+
 [客户公司名称 — 签约时填写]
 
 Anschrift: [Adresse]
+
 地址：[地址]
 
 USt-ID / VAT: [falls vorhanden]
+
 增值税号：[如有]
 
 E-Mail: [E-Mail-Adresse]
+
 电子邮箱：[邮箱地址]
 
-- nachfolgend **„Kunde"** genannt -
-- 以下称**"客户"** -
+- nachfolgend „Kunde&quot; genannt -
 
-**Bevollmächtigter:**
+- 以下称&quot;客户&quot; -
+
+Bevollmächtigter:
+
 授权代表：
 
-**LIVANTO GmbH**
+LIVANTO GmbH
+
 LIVANTO 有限责任公司
 
 Anschrift: Luisenhoffnung 3C, 44225 Dortmund, Deutschland
+
 地址：Luisenhoffnung 3C, 44225 Dortmund, Germany
 
 Geschäftsführer: Zifeng Qian
+
 总经理：钱子风
 
 Handelsregister: [HRB-Nr.]  |  USt-ID: [DE...]
+
 商业登记号：[HRB-Nr.]  |  增值税号：[DE...]
 
-- nachfolgend **„Bevollmächtigter"** genannt -
-- 以下称**"授权代表"** -
+- nachfolgend „Bevollmächtigter&quot; genannt -
 
----
+- 以下称&quot;授权代表&quot; -
 
-## §2 Vertragsgegenstand / 合同标的
+§2  Vertragsgegenstand    合同标的
 
-(1) Der Kunde bestellt hiermit unwiderruflich die LIVANTO GmbH zu seinem Bevollmächtigten gemäß § 35 Absatz 2 VerpackG. Der Bevollmächtigte übernimmt sämtliche Pflichten des Kunden als Hersteller nach dem Verpackungsgesetz — mit alleiniger Ausnahme der Registrierungspflicht nach § 9 VerpackG, die beim Kunden verbleibt. Eine Beschränkung auf einzelne Pflichten ist ausgeschlossen („Ganz-oder-Gar-Nicht-Lösung").
+(1) Der Kunde bestellt hiermit unwiderruflich die LIVANTO GmbH zu seinem Bevollmächtigten gemäß § 35 Absatz 2 VerpackG. Der Bevollmächtigte übernimmt sämtliche Pflichten des Kunden als Hersteller nach dem Verpackungsgesetz — mit alleiniger Ausnahme der Registrierungspflicht nach § 9 VerpackG, die beim Kunden verbleibt. Eine Beschränkung auf einzelne Pflichten ist ausgeschlossen („Ganz-oder-Gar-Nicht-Lösung&quot;).
 
-(1) 客户在此不可撤销地指定LIVANTO有限责任公司为其依据《包装法》第35条第2款的授权代表。授权代表承担客户作为生产商在《包装法》下的全部义务——唯一例外为第9条规定的注册义务（由客户自行履行）。禁止将授权限制于部分义务（"全有或全无原则"）。
+(1) 客户在此不可撤销地指定LIVANTO有限责任公司为其依据《包装法》第35条第2款的授权代表。授权代表承担客户作为生产商在《包装法》下的全部义务——唯一例外为第9条规定的注册义务（由客户自行履行）。禁止将授权限制于部分义务（&quot;全有或全无原则&quot;）。
 
-(2) Der Bevollmächtigte handelt im eigenen Namen. Er wird als „Quasi-Hersteller" behandelt und ist unmittelbar gegenüber der ZSVR, den dualen Systemen und den zuständigen Behörden verantwortlich.
+(2) Der Bevollmächtigte handelt im eigenen Namen. Er wird als „Quasi-Hersteller&quot; behandelt und ist unmittelbar gegenüber der ZSVR, den dualen Systemen und den zuständigen Behörden verantwortlich.
 
-(2) 授权代表以其自身名义行事，被视为"准生产商"，直接对包装品中央登记处(ZSVR)、双元系统和各主管部门负责。
+(2) 授权代表以其自身名义行事，被视为&quot;准生产商&quot;，直接对包装品中央登记处(ZSVR)、双元系统和各主管部门负责。
 
 (3) Der Umfang der Bevollmächtigung umfasst insbesondere die folgenden Pflichten (nicht abschließende Aufzählung):
 
 (3) 授权范围特别包括以下义务（非穷尽列举）：
 
 a)  Abschluss und Aufrechterhaltung des Systembeteiligungsvertrages mit einem dualen System (§ 7 VerpackG)
+
 a)  签订并维持与双元系统的系统参与合同（《包装法》第7条）
 
 b)  Datenmeldung an die ZSVR nach Materialfraktionen (§ 10 VerpackG)
+
 b)  按材料分类向ZSVR进行数据申报（《包装法》第10条）
 
 c)  Vollständigkeitserklärung, soweit gesetzlich erforderlich (§ 11 VerpackG)
+
 c)  完整性声明（如法律要求，《包装法》第11条）
 
 d)  Rücknahmeorganisation für Transport-, Um- und Verkaufsverpackungen (§ 15 VerpackG)
+
 d)  运输包装、外包装和销售包装的回收组织（《包装法》第15条）
 
 e)  Pfandbeteiligung für Einweggetränkeverpackungen (§ 31 VerpackG)
+
 e)  一次性饮料包装的押金系统参与（《包装法》第31条）
 
 f)  Entgegennahme von behördlichen Mitteilungen und Bescheiden
+
 f)  接收主管部门的通知和决定
 
 (4) Der Bevollmächtigte ist berechtigt, zur Erfüllung seiner Pflichten Dritte (z. B. duale Systembetreiber, Wirtschaftsprüfer) einzuschalten.
@@ -101,17 +117,11 @@ f)  接收主管部门的通知和决定
 
 (5) 客户声明的包装种类和数量（附件B）为其最佳估计。实际法律义务可能超出该范围。
 
-(6) Eine Lizenzierung von Markenrechten (z. B. „Der Grüne Punkt") ist nicht Gegenstand dieses Vertrages.
+(6) Die Bestellung gilt ab Vertragsbeginn für sämtliche vom Kunden im Geltungsbereich des VerpackG in Verkehr gebrachten Verpackungen. Bei Inkrafttreten des VerpackDG/PPWR zum 12. August 2026 setzt sich die Bevollmächtigung unter dem neuen Rechtsrahmen fort.
 
-(6) 商标使用许可（如"绿点"标识）不属于本合同标的。
+(6) 本授权自合同生效起适用于客户在《包装法》适用范围内投放的所有包装。2026年8月12日《包装法实施法》/PPWR生效后，授权在新的法律框架下继续有效。
 
-(7) Die Bestellung gilt ab Vertragsbeginn für sämtliche vom Kunden im Geltungsbereich des VerpackG in Verkehr gebrachten Verpackungen. Bei Inkrafttreten des VerpackDG/PPWR zum 12. August 2026 setzt sich die Bevollmächtigung unter dem neuen Rechtsrahmen fort.
-
-(7) 本授权自合同生效起适用于客户在《包装法》适用范围内投放的所有包装。2026年8月12日《包装法实施法》/PPWR生效后，授权在新的法律框架下继续有效。
-
----
-
-## §3 Pflichten des Kunden / 客户义务
+§3  Pflichten des Kunden    客户义务
 
 (1) Der Kunde ist verpflichtet, sich eigenständig im Verpackungsregister LUCID zu registrieren (§ 9 VerpackG) und seine Registrierungsdaten stets aktuell zu halten. Diese Pflicht kann nicht auf den Bevollmächtigten übertragen werden.
 
@@ -121,25 +131,23 @@ f)  接收主管部门的通知和决定
 
 (2) 合同签订后，客户应立即在LUCID中指定LIVANTO有限责任公司为授权代表，并在整个合同期内保持该指定。
 
-(3) Der Kunde übermittelt dem Bevollmächtigten jährlich bis zum 15. Februar des Folgejahres vollständige und wahrheitsgemäße Angaben zu allen im vorangegangenen Kalenderjahr in Verkehr gebrachten Verpackungen, aufgeschlüsselt nach Materialfraktionen und Verpackungskategorien.
+(3) Der Kunde übermittelt dem Bevollmächtigten jährlich bis zum 1. März des Folgejahres vollständige und wahrheitsgemäße Angaben zu allen im vorangegangenen Kalenderjahr in Verkehr gebrachten Verpackungen, aufgeschlüsselt nach Materialfraktionen und Verpackungskategorien.
 
-(3) 客户每年应在次年2月15日前向授权代表提供上一日历年投放市场的所有包装的完整真实数据，按材料类别和包装类别细分。
+(3) 客户每年应在次年3月1日前向授权代表提供上一日历年投放市场的所有包装的完整真实数据，按材料类别和包装类别细分。
 
-(4) **[GEÄNDERT / 已修改]** Änderungen der Verpackungsarten oder eine Abweichung von mehr als 30 % gegenüber der Erstdeklaration sind dem Bevollmächtigten unverzüglich mitzuteilen. Unterlässt der Kunde diese Mitteilung schuldhaft, haftet er für sämtliche dem Bevollmächtigten daraus entstehenden Mehrkosten, Bußgelder oder sonstigen Nachteile.
+(4) Änderungen der Verpackungsarten oder eine Abweichung von mehr als 30 % gegenüber der Erstdeklaration sind dem Bevollmächtigten unverzüglich mitzuteilen. Unterlässt der Kunde diese Mitteilung schuldhaft, haftet er für sämtliche dem Bevollmächtigten daraus entstehenden Mehrkosten, Bußgelder oder sonstigen Nachteile.
 
-(4) **[GEÄNDERT / 已修改]** 包装种类变更或实际数量与首次申报偏差超过30%的，应立即通知授权代表。如客户因过错未履行该通知义务，客户应对由此给授权代表造成的所有额外费用、罚款或其他损失承担责任。
+(4) 包装种类变更或实际数量与首次申报偏差超过30%的，应立即通知授权代表。如客户因过错未履行该通知义务，客户应对由此给授权代表造成的所有额外费用、罚款或其他损失承担责任。
 
 (5) Der Kunde bestätigt, seinen Herstellerstatus gemäß VerpackG geprüft zu haben. Das Risiko einer Fehlklassifizierung trägt der Kunde. Der Kunde benennt einen Ansprechpartner und stellt sicher, dass Anfragen des Bevollmächtigten innerhalb von 14 Tagen beantwortet werden.
 
 (5) 客户确认已核实其根据《包装法》的生产商身份，错误分类的风险由客户承担。客户指定一名联系人，确保在14天内回复授权代表的询问。
 
-(6) **[GEÄNDERT / 已修改]** Der Kunde stellt den Bevollmächtigten von sämtlichen Ansprüchen Dritter (ZSVR, duale Systeme, Behörden, Wettbewerber) frei, die aus unrichtigen, unvollständigen oder verspäteten Angaben des Kunden entstehen. Dies umfasst ausdrücklich Bußgelder, Sanktionen, Vertriebsverbote, Abmahnkosten und Rechtsverfolgungskosten. Der Bevollmächtigte kann die Zahlung der entsprechenden Beträge vom Kunden verlangen. Erfolgt die Zahlung nicht innerhalb von 30 Tagen nach Zugang der schriftlichen Zahlungsaufforderung, ist der Bevollmächtigte zur außerordentlichen fristlosen Kündigung berechtigt; in diesem Fall werden bereits gezahlte Gebühren nicht erstattet. Die Geltendmachung weitergehender Schadensersatzansprüche bleibt vorbehalten.
+(6) Der Kunde stellt den Bevollmächtigten von sämtlichen Ansprüchen Dritter (ZSVR, duale Systeme, Behörden, Wettbewerber) frei, die aus unrichtigen, unvollständigen oder verspäteten Angaben des Kunden entstehen. Dies umfasst ausdrücklich Bußgelder, Sanktionen, Vertriebsverbote, Abmahnkosten und Rechtsverfolgungskosten. Der Bevollmächtigte kann die Zahlung der entsprechenden Beträge vom Kunden verlangen. Erfolgt die Zahlung nicht innerhalb von 30 Tagen nach Zugang der schriftlichen Zahlungsaufforderung, ist der Bevollmächtigte zur außerordentlichen fristlosen Kündigung berechtigt; in diesem Fall werden bereits gezahlte Gebühren nicht erstattet. Die Geltendmachung weitergehender Schadensersatzansprüche bleibt vorbehalten.
 
-(6) **[GEÄNDERT / 已修改]** 客户应赔偿授权代表因客户提供的不正确、不完整或延迟数据而产生的所有第三方（包括ZSVR、双元系统、主管部门、竞争对手）索赔，明确包括罚款、制裁、销售禁令、警告费用和法律追诉费用。授权代表可要求客户支付相应款项。如客户在收到书面付款要求后30天内未支付，授权代表有权特别无通知终止合同；此种情况下，已支付的费用不予退还。主张进一步损害赔偿的权利不受影响。
+(6) 客户应赔偿授权代表因客户提供的不正确、不完整或延迟数据而产生的所有第三方（包括ZSVR、双元系统、主管部门、竞争对手）索赔，明确包括罚款、制裁、销售禁令、警告费用和法律追诉费用。授权代表可要求客户支付相应款项。如客户在收到书面付款要求后30天内未支付，授权代表有权特别无通知终止合同；此种情况下，已支付的费用不予退还。主张进一步损害赔偿的权利不受影响。
 
----
-
-## §4 Pflichten des Bevollmächtigten / 授权代表义务
+§4  Pflichten des Bevollmächtigten    授权代表义务
 
 (1) Der Bevollmächtigte bestätigt unverzüglich nach Benennung durch den Kunden die Autorisierung im LUCID-Portal.
 
@@ -165,17 +173,15 @@ f)  接收主管部门的通知和决定
 
 (6) 授权代表就涉及客户义务的法律框架（《包装法》、PPWR、《包装法实施法》）的重大变更通知客户。
 
----
-
-## §5 Verpackungsdaten und Meldewesen / 包装数据与报告
+§5  Verpackungsdaten und Meldewesen    包装数据与报告
 
 (1) Bei Vertragsschluss gibt der Kunde seine voraussichtlichen jährlichen Verpackungsmengen an (Erstdeklaration, Anlage B). Diese dienen als Grundlage für den Abschluss des dualen Systemvertrages.
 
 (1) 合同签订时，客户提供预计年度包装量（首次申报，附件B），作为签订双元系统合同的基础。
 
-(2) Die jährliche Ist-Mengen-Meldung erfolgt bis zum 15. Februar des Folgejahres über das Online-Portal des Bevollmächtigten. **[„ausschließlich" gestrichen / 已删除"仅可"]**
+(2) Die jährliche Ist-Mengen-Meldung erfolgt bis zum 1. März des Folgejahres über das Online-Portal des Bevollmächtigten.
 
-(2) 年度实际数量申报截止日期为次年2月15日，通过授权代表的在线门户提交。**[已删除"仅可"]**
+(2) 年度实际数量申报截止日期为次年3月1日，通过授权代表的在线门户提交。
 
 (3) Überschreiten die tatsächlichen Mengen die gemeldeten Mengen um mehr als 20 %, wird auf die Überschreitungsmenge ein Zuschlag von 20 % erhoben. Unterschreiten die tatsächlichen Mengen die gemeldeten Mengen, erfolgt eine Rückerstattung nur bis zu einer Abweichung von 10 %.
 
@@ -185,13 +191,11 @@ f)  接收主管部门的通知和决定
 
 (4) 客户未按期申报的，授权代表可将上年数量（首年则为预估量）视为实际数量处理。此情形下不予退款。
 
-(5) **[GEÄNDERT / 已修改]** Meldungen, die ohne vorherige schriftliche Zustimmung des Bevollmächtigten nicht über das Online-Portal eingereicht werden, gelten als nicht vorgelegt. Bei nachweislichem technischen Ausfall des Portals kann der Bevollmächtigte die Einreichung per E-Mail gestatten. Die Zulässigkeit der E-Mail-Einreichung ist vom Bevollmächtigten vorab schriftlich zu bestätigen.
+(5) Meldungen, die ohne vorherige schriftliche Zustimmung des Bevollmächtigten nicht über das Online-Portal eingereicht werden, gelten als nicht vorgelegt. Bei nachweislichem technischen Ausfall des Portals kann der Bevollmächtigte die Einreichung per E-Mail gestatten. Die Zulässigkeit der E-Mail-Einreichung ist vom Bevollmächtigten vorab schriftlich zu bestätigen.
 
-(5) **[GEÄNDERT / 已修改]** 未经授权代表事先书面同意，未通过在线门户提交的申报视为未提交。如门户出现可证明的技术故障，授权代表可允许通过电子邮件提交。电子邮件提交的有效性需由授权代表事先书面确认。
+(5) 未经授权代表事先书面同意，未通过在线门户提交的申报视为未提交。如门户出现可证明的技术故障，授权代表可允许通过电子邮件提交。电子邮件提交的有效性需由授权代表事先书面确认。
 
----
-
-## §6 Vergütung und Zahlungsbedingungen / 费用与支付
+§6  Vergütung und Zahlungsbedingungen    费用与支付
 
 (1) Der Kunde entrichtet eine jährliche Grundgebühr gemäß der gewählten Servicestufe nach Anlage C.
 
@@ -202,14 +206,20 @@ f)  接收主管部门的通知和决定
 (2) 除基本费用外，客户承担应向双元系统支付的全部许可费用（系统参与费），按实际金额原价过账，不加价。
 
 Servicestufen (siehe Anlage C):
+
 服务等级（详见附件C）：
 
-- **Basis (EUR 89,00/Jahr):** Kern-AR-Dienstleistungen
-- **基础 (89.00欧元/年):** 核心AR服务
-- **Standard (EUR 159,00/Jahr):** Basis + prioritäre Reaktionszeit (48 h) + erweiterte Klassifizierungsberatung + jährlicher Compliance-Kurzbericht
-- **标准 (159.00欧元/年):** 基础+优先响应(48h)+扩展分类咨询+年度合规简报
-- **Premium (EUR 249,00/Jahr):** Standard + Vollständigkeitserklärungs-Koordination + persönlicher Ansprechpartner + 24h-Reaktionszeit
-- **高级 (249.00欧元/年):** 标准+完整性声明协调+专属客户经理+24h响应
+• Basis (EUR 89,00/Jahr): Kern-AR-Dienstleistungen
+
+• 基础 (89.00欧元/年)：核心AR服务
+
+• Standard (EUR 159,00/Jahr): Basis + prioritäre Reaktionszeit (48 h) + erweiterte Klassifizierungsberatung + jährlicher Compliance-Kurzbericht
+
+• 标准 (159.00欧元/年)：基础+优先响应(48h)+扩展分类咨询+年度合规简报
+
+• Premium (EUR 249,00/Jahr): Standard + Vollständigkeitserklärungs-Koordination + persönlicher Ansprechpartner + 24h-Reaktionszeit
+
+• 高级 (249.00欧元/年)：标准+完整性声明协调+专属客户经理+24h响应
 
 (3) Alle Beträge verstehen sich netto zuzüglich der gesetzlichen Mehrwertsteuer.
 
@@ -219,21 +229,19 @@ Servicestufen (siehe Anlage C):
 
 (4) 年费每年提前开具发票，付款期限为发票日期后14天。
 
-(5) Die Zahlung erfolgt über den Zahlungsdienstleister FREDDY gemäß Anlage A. Die Zahlung an FREDDY gilt als wirksame und schuldbefreiende Zahlung an LIVANTO. **[„ausschließlich" gestrichen / 已删除"仅可"]**
+(5) Die Zahlung erfolgt über den Zahlungsdienstleister FREDDY gemäß Anlage A. Die Zahlung an FREDDY gilt als wirksame und schuldbefreiende Zahlung an LIVANTO.
 
-(5) 付款通过支付服务商FREDDY（附件A）进行。向FREDDY付款视为向LIVANTO有效且解除债务的付款。**[已删除"仅可"]**
+(5) 付款通过支付服务商FREDDY（附件A）进行。向FREDDY付款视为向LIVANTO有效且解除债务的付款。
 
-(6) **[GEÄNDERT / 已修改]** Der Bevollmächtigte ist berechtigt, die Jahresgrundgebühr einmal pro Kalenderjahr mit einer Frist von zwei Monaten anzupassen. Die Anpassung ist auf die Veränderung des Verbraucherpreisindex (VPI) für Deutschland beschränkt. Übersteigt die Anpassung 10 %, steht dem Kunden ein Sonderkündigungsrecht mit einer Frist von einem Monat zum Anpassungszeitpunkt zu. Führen wesentliche Änderungen der gesetzlichen Rahmenbedingungen (insbesondere VerpackG, PPWR, VerpackDG) zu einer erheblichen Erhöhung der Betriebskosten des Bevollmächtigten, ist der Bevollmächtigte berechtigt, die Jahresgrundgebühr über die VPI-Veränderung hinaus angemessen anzupassen; die Anpassung ist dem Kunden unter Darlegung der erhöhten Kosten schriftlich zu begründen.
+(6) Der Bevollmächtigte ist berechtigt, die Jahresgrundgebühr einmal pro Kalenderjahr mit einer Frist von zwei Monaten anzupassen. Die Anpassung ist auf die Veränderung des Verbraucherpreisindex (VPI) für Deutschland beschränkt. Übersteigt die Anpassung 10 %, steht dem Kunden ein Sonderkündigungsrecht mit einer Frist von einem Monat zum Anpassungszeitpunkt zu. Führen wesentliche Änderungen der gesetzlichen Rahmenbedingungen (insbesondere VerpackG, PPWR, VerpackDG) zu einer erheblichen Erhöhung der Betriebskosten des Bevollmächtigten, ist der Bevollmächtigte berechtigt, die Jahresgrundgebühr über die VPI-Veränderung hinaus angemessen anzupassen; die Anpassung ist dem Kunden unter Darlegung der erhöhten Kosten schriftlich zu begründen.
 
-(6) **[GEÄNDERT / 已修改]** 授权代表有权每个日历年调整一次年度基本费用，提前两个月通知。调整幅度以德国消费者价格指数(VPI)变动为限。如调整超过10%，客户有权在调整生效时一个月内特别终止合同。如法律框架（特别是《包装法》、PPWR、《包装法实施法》）的重大变更导致授权代表运营成本显著增加，授权代表有权超出VPI变动幅度合理调整年度基本费用；调整应书面通知客户并说明成本增加的依据。
+(6) 授权代表有权每个日历年调整一次年度基本费用，提前两个月通知。调整幅度以德国消费者价格指数(VPI)变动为限。如调整超过10%，客户有权在调整生效时一个月内特别终止合同。如法律框架（特别是《包装法》、PPWR、《包装法实施法》）的重大变更导致授权代表运营成本显著增加，授权代表有权超出VPI变动幅度合理调整年度基本费用；调整应书面通知客户并说明成本增加的依据。
 
 (7) Bei Zahlungsverzug gelten die gesetzlichen Verzugszinsen gemäß § 288 BGB.
 
 (7) 逾期付款适用《德国民法典》第288条的法定延迟利息。
 
----
-
-## §7 Vollständigkeitserklärung / 完整性声明
+§7  Vollständigkeitserklärung    完整性声明
 
 (1) Die gesetzliche Pflicht zur Abgabe einer Vollständigkeitserklärung (§ 11 VerpackG) entsteht i. d. R. erst bei Überschreiten der Schwellenwerte von 40.000 kg systembeteiligungspflichtigen Verpackungen oder 120.000 kg Transport- und Gewerbeverpackungen pro Kalenderjahr. Der Bevollmächtigte informiert den Kunden, sofern diese Schwellenwerte erreicht werden.
 
@@ -247,13 +255,11 @@ Servicestufen (siehe Anlage C):
 
 (3) 客户承诺在收到要求后14天内向授权代表和审计师提供所需文件。
 
----
+§8  Haftung und Freistellung    责任与赔偿
 
-## §8 Haftung und Freistellung / 责任与赔偿
+(1) Der Kunde haftet uneingeschränkt für die Richtigkeit, Vollständigkeit und Rechtzeitigkeit der von ihm übermittelten Daten. Er stellt den Bevollmächtigten von sämtlichen Ansprüchen Dritter frei, die aus unrichtigen, unvollständigen oder verspäteten Angaben des Kunden entstehen. § 3 Abs. 6 gilt entsprechend.
 
-(1) **[GEÄNDERT / 已修改]** Der Kunde haftet uneingeschränkt für die Richtigkeit, Vollständigkeit und Rechtzeitigkeit der von ihm übermittelten Daten. Er stellt den Bevollmächtigten von sämtlichen Ansprüchen Dritter frei, die aus unrichtigen, unvollständigen oder verspäteten Angaben des Kunden entstehen. § 3 Abs. 6 Sätze 2 bis 5 gelten entsprechend.
-
-(1) **[GEÄNDERT / 已修改]** 客户对其所提供数据的正确性、完整性和及时性承担无限责任。客户应赔偿授权代表因客户数据错误、不完整或延迟而产生的所有第三方索赔。第3条第6款第2至第5句相应适用。
+(1) 客户对其所提供数据的正确性、完整性和及时性承担无限责任。客户应赔偿授权代表因客户数据错误、不完整或延迟而产生的所有第三方索赔。第3条第6款相应适用。
 
 (2) Die Haftung des Bevollmächtigten ist — außer bei Vorsatz, grober Fahrlässigkeit sowie bei der Verletzung von Leben, Körper oder Gesundheit — ausgeschlossen.
 
@@ -271,29 +277,35 @@ Servicestufen (siehe Anlage C):
 
 (5) 支付服务商FREDDY仅对其在支付处理中的故意或重大过失违约负责。FREDDY对LIVANTO服务的专业性不承担任何责任。
 
----
+§9  Laufzeit und Kündigung    期限与终止
 
-## §9 Laufzeit und Kündigung / 期限与终止
+(1) Der Vertrag beginnt am Ersten des auf den Zahlungseingang der ersten Jahresgrundgebühr folgenden Monats („Vertragsbeginn&quot;). Die erste Jahresgrundgebühr wird nach Vertragsunterzeichnung in Rechnung gestellt. Auf Wunsch des Kunden kann der Bevollmächtigte eine sofortige Vertragsgeltung ab dem Tag des Zahlungseingangs bestätigen. Die anfängliche Laufzeit beträgt 12 Monate ab Vertragsbeginn.
 
-(1) **[GEÄNDERT / 已修改]** Der Vertrag beginnt am Ersten des auf den Zahlungseingang der ersten Jahresgrundgebühr folgenden Monats („Vertragsbeginn"). Die erste Jahresgrundgebühr wird nach Vertragsunterzeichnung in Rechnung gestellt. Auf Wunsch des Kunden kann der Bevollmächtigte eine sofortige Vertragsgeltung ab dem Tag des Zahlungseingangs bestätigen. Die anfängliche Laufzeit beträgt 12 Monate ab Vertragsbeginn.
+(1) 合同自首笔年度基本费用到账后次月首日起生效（&quot;合同开始&quot;）。首笔年度基本费用在合同签署后开具发票。应客户要求，授权代表可确认合同自付款到账之日起立即生效。初始期限为自合同开始起12个月。
 
-(1) **[GEÄNDERT / 已修改]** 合同自首笔年度基本费用到账后次月首日起生效（"合同开始"）。首笔年度基本费用在合同签署后开具发票。应客户要求，授权代表可确认合同自付款到账之日起立即生效。初始期限为自合同开始起12个月。
+(2) Der Vertrag verlängert sich automatisch um jeweils weitere 12 Monate, sofern er nicht mit einer Frist von 8 Wochen zum Ende der jeweiligen Vertragslaufzeit schriftlich gekündigt wird.
 
-(2) Der Vertrag verlängert sich automatisch um jeweils weitere 12 Monate, sofern er nicht mit einer Frist von 4 Wochen zum Ende der jeweiligen Vertragslaufzeit schriftlich gekündigt wird.
-
-(2) 合同自动续期12个月，除非任何一方在合同到期前4周书面通知终止。
+(2) 合同自动续期12个月，除非任何一方在合同到期前8周书面通知终止。
 
 (3) Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt unberührt.
 
 (3) 因重大事由特别终止合同的权利不受影响。
 
-(4) Ein wichtiger Grund für den Bevollmächtigten liegt insbesondere vor bei: (a) Zahlungsverzug von mehr als 30 Tagen, (b) wiederholter Nichtvorlage der geschuldeten Verpackungsdaten, (c) Entzug des LUCID-Zugangs durch den Kunden.
+Ein wichtiger Grund für den Bevollmächtigten liegt insbesondere vor bei:
 
-(4) 授权代表的重大终止事由特别包括：(a) 逾期付款超过30天，(b) 多次未提交应提交的包装数据，(c) 客户撤回LUCID访问权限。
+(a) Zahlungsverzug des Kunden von mehr als 30 Tagen,(b) wiederholte Nichtvorlage der geschuldeten Verpackungsdaten durch den Kunden,(c) Entzug des LUCID-Zugangs durch den Kunden.
 
-**[NEU / 新增] (4a) Bringt der Kunde nicht deklarierte Verpackungsarten ohne vorherige Mitteilung in Verkehr, steht dem Bevollmächtigten ein sofortiges außerordentliches Kündigungsrecht zu. Bereits geleistete Jahresgebühren werden in diesem Fall nicht erstattet. Der Kunde bleibt zur Zahlung etwaiger noch ausstehender dualer Systemgebühren verpflichtet. Die Freistellungspflicht des Kunden gemäß § 3 Abs. 6 bleibt unberührt.**
+(4) 授权代表的重大终止事由特别包括：
 
-**[NEU / 新增] (4a) 如客户未经事先通知投放未申报的包装种类，授权代表享有立即特别终止权。此情形下已支付的年费不予退还。客户仍有义务支付尚未结清的双元系统费用。客户根据第3条第6款的赔偿义务不受影响。**
+(a) 客户逾期付款超过30天，
+
+(b) 客户多次未提交应提交的包装数据，
+
+(c) 客户撤回LUCID访问权限
+
+(4a) Stellt der Kunde fest, dass er nicht deklarierte Verpackungsarten in Verkehr gebracht hat, hat er den Bevollmächtigten unverzüglich zu informieren. Bringt der Kunde nicht deklarierte Verpackungsarten ohne vorherige Mitteilung in Verkehr, steht dem Bevollmächtigten ein sofortiges außerordentliches Kündigungsrecht zu. Bereits geleistete Jahresgebühren werden in diesem Fall nicht erstattet. Der Kunde bleibt zur Zahlung etwaiger noch ausstehender dualer Systemgebühren verpflichtet. Die Freistellungspflicht des Kunden gemäß § 3 Abs. 6 bleibt unberührt.
+
+(4a) 如客户发现其投放了未申报的包装种类，应不迟延地通知授权代表。如客户未经事先通知投放未申报的包装种类，授权代表享有立即特别终止权。此情形下已支付的年费不予退还。客户仍有义务支付尚未结清的双元系统费用。客户根据第3条第6款的赔偿义务不受影响。
 
 (5) Nach Vertragsbeendigung ist der Kunde verpflichtet, die Bevollmächtigung unverzüglich im LUCID-Register zu beenden. Der Bevollmächtigte bestätigt die Beendigung ebenfalls in LUCID. Versäumt der Kunde die rechtzeitige Löschung, haftet er für alle daraus entstehenden Schäden.
 
@@ -303,25 +315,21 @@ Servicestufen (siehe Anlage C):
 
 (6) 最后一个日历年的数据申报和结算义务以及未清偿的付款义务在合同终止后继续有效。
 
----
-
-## §10 Datenschutz / 数据保护
+§10  Datenschutz    数据保护
 
 (1) Der Bevollmächtigte verarbeitet personenbezogene Daten des Kunden ausschließlich zur Vertragserfüllung und im Einklang mit der Datenschutz-Grundverordnung (DSGVO). Die vollständige Datenschutzerklärung ist unter [URL] abrufbar.
 
 (1) 授权代表仅在履行合同所需范围内并依据《通用数据保护条例》(GDPR)处理客户的个人数据。完整的数据保护声明可在[URL]查阅。
 
-(2) **[GEÄNDERT / 已修改]** Die Übermittlung zahlungsbezogener Daten an den Zahlungsdienstleister FREDDY mit Sitz in der Volksrepublik China erfolgt auf Grundlage der EU-Standardvertragsklauseln (SCC) gemäß Durchführungsbeschluss (EU) 2021/914 der Kommission sowie ergänzend auf Grundlage der ausdrücklichen Einwilligung des Kunden gemäß Art. 49 Abs. 1 lit. a DSGVO. Der Kunde wird hiermit über die möglichen Risiken einer Datenübermittlung in ein Drittland ohne Angemessenheitsbeschluss informiert. Die Einwilligung kann jederzeit mit schriftlicher Mitteilung widerrufen werden. Ein Widerruf führt zur Beendigung dieses Vertrages mit einer Frist von einem Monat zum Monatsende.
+(2) Die Übermittlung zahlungsbezogener Daten an den Zahlungsdienstleister FREDDY mit Sitz in der Volksrepublik China erfolgt auf Grundlage der EU-Standardvertragsklauseln (SCC) gemäß Durchführungsbeschluss (EU) 2021/914 der Kommission sowie ergänzend auf Grundlage der ausdrücklichen Einwilligung des Kunden gemäß Art. 49 Abs. 1 lit. a DSGVO. Der Kunde wird hiermit über die möglichen Risiken einer Datenübermittlung in ein Drittland ohne Angemessenheitsbeschluss informiert. Die Einwilligung kann jederzeit mit schriftlicher Mitteilung widerrufen werden. Ein Widerruf führt zur Beendigung dieses Vertrages mit einer Frist von einem Monat zum Monatsende.
 
-(2) **[GEÄNDERT / 已修改]** 向位于中华人民共和国的支付服务商FREDDY传输支付相关数据，基于欧盟委员会执行决定(EU) 2021/914项下的欧盟标准合同条款(SCC)，并补充基于客户根据GDPR第49条第1款(a)项的明确同意。客户特此被告知向未经充分性认定的第三国传输数据可能存在的风险。该同意可随时通过书面通知撤回。撤回将导致本合同在月底前一个月通知后终止。
+(2) 向位于中华人民共和国的支付服务商FREDDY传输支付相关数据，基于欧盟委员会执行决定(EU) 2021/914项下的欧盟标准合同条款(SCC)，并补充基于客户根据GDPR第49条第1款(a)项的明确同意。客户特此被告知向未经充分性认定的第三国传输数据可能存在的风险。该同意可随时通过书面通知撤回。撤回将导致本合同在月底前一个月通知后终止。
 
----
+§11  Online-Portal und Kommunikation    在线门户与通信
 
-## §11 Online-Portal und Kommunikation / 在线门户与通信
+(1) Vertragsschluss, Datenmeldungen und die Verwaltung der Stammdaten erfolgen über das Online-Portal des Bevollmächtigten. Bei nachweislichem technischen Ausfall des Portals kann der Bevollmächtigte die Einreichung per E-Mail gestatten. Die Zulässigkeit der E-Mail-Einreichung ist vom Bevollmächtigten vorab schriftlich zu bestätigen.
 
-(1) **[GEÄNDERT / 已修改]** Vertragsschluss, Datenmeldungen und die Verwaltung der Stammdaten erfolgen über das Online-Portal des Bevollmächtigten. Bei nachweislichem technischen Ausfall des Portals kann der Bevollmächtigte die Einreichung per E-Mail gestatten. Die Zulässigkeit der E-Mail-Einreichung ist vom Bevollmächtigten vorab schriftlich zu bestätigen. **[„ausschließlich" gestrichen, Ausweichklausel hinzugefügt]**
-
-(1) **[GEÄNDERT / 已修改]** 合同的签订、数据申报和基本数据管理通过授权代表的在线门户进行。如门户出现可证明的技术故障，授权代表可允许通过电子邮件提交。电子邮件提交的有效性需由授权代表事先书面确认。**[已删除"仅可"，新增故障例外条款]**
+(1) 合同的签订、数据申报和基本数据管理通过授权代表的在线门户进行。如门户出现可证明的技术故障，授权代表可允许通过电子邮件提交。电子邮件提交的有效性需由授权代表事先书面确认。
 
 (2) Mitteilungen an die vom Kunden registrierte E-Mail-Adresse gelten als wirksam zugestellt. Der Kunde ist verpflichtet, seine Kontaktdaten im Portal stets aktuell zu halten.
 
@@ -331,9 +339,7 @@ Servicestufen (siehe Anlage C):
 
 (3) 客户对其登录凭证的安全负责，有义务在发现未经授权的账户访问时立即报告。
 
----
-
-## §12 Schlussbestimmungen / 最终条款
+§12  Schlussbestimmungen    最终条款
 
 (1) Änderungen und Ergänzungen dieses Vertrages bedürfen der Schriftform (§ 126 BGB). Dies gilt auch für die Aufhebung des Schriftformerfordernisses. Die elektronische Form (§ 126a BGB) ist der Schriftform gleichgestellt, sofern eine qualifizierte elektronische Signatur (QES) verwendet wird.
 
@@ -355,15 +361,11 @@ Servicestufen (siehe Anlage C):
 
 (5) 本合同以德文和中文两种语言起草。如语言版本之间存在解释疑问或矛盾，以德文版本为准。中文翻译仅供参考。
 
----
+Anlage A: Zahlungsabwicklung über FREDDY    附件A：FREDDY支付处理
 
-## Anlage A: Zahlungsabwicklung über FREDDY / 附件A：FREDDY支付处理
+FREDDY (Shanghai) Information Consulting Ltd., Niederlassung Huainan (nachfolgend „FREDDY&quot;), unterstützt LIVANTO bei der Zahlungsabwicklung, Markterschließung und Kundenkommunikation im chinesischsprachigen Raum. Die Parteien vereinbaren folgende Zahlungsabwicklung:
 
-**[GEÄNDERT / 已修改 — 新增角色定位 + 兜底条款]**
-
-FREDDY (Shanghai) Information Consulting Ltd., Niederlassung Huainan (nachfolgend „FREDDY"), unterstützt LIVANTO bei der Zahlungsabwicklung, Markterschließung und Kundenkommunikation im chinesischsprachigen Raum. Die Parteien vereinbaren folgende Zahlungsabwicklung:
-
-福瑞笛（上海）信息咨询有限公司淮南分公司（以下称"FREDDY"）在中文地区为LIVANTO提供支付处理、市场拓展和客户沟通支持。双方约定如下支付处理方式：
+福瑞笛（上海）信息咨询有限公司淮南分公司（以下称&quot;FREDDY&quot;）在中文地区为LIVANTO提供支付处理、市场拓展和客户沟通支持。双方约定如下支付处理方式：
 
 (1) FREDDY wird als Zahlungsdienstleister eingeschaltet. Die Zahlung an FREDDY gilt als wirksame und schuldbefreiende Zahlung des Kunden an LIVANTO.
 
@@ -385,83 +387,123 @@ FREDDY (Shanghai) Information Consulting Ltd., Niederlassung Huainan (nachfolgen
 
 (5) FREDDY仅对其在支付处理中的故意或重大过失违约负责。
 
-**[NEU / 新增] (6) FREDDY handelt ausschließlich als Zahlungsdienstleister und Marktkooperationspartner von LIVANTO. Diese Anlage A begründet keine eigenen Rechte von FREDDY auf Kündigung, Vertragsänderung oder Befreiung von Vertragspflichten der Parteien. FREDDY ist nicht Vertragspartei des Hauptvertrages.**
+(6) FREDDY handelt ausschließlich als Zahlungsdienstleister und Marktkooperationspartner von LIVANTO. Diese Anlage A begründet keine eigenen Rechte von FREDDY auf Kündigung, Vertragsänderung oder Befreiung von Vertragspflichten der Parteien. FREDDY ist nicht Vertragspartei des Hauptvertrages.
 
-**[NEU / 新增] (6) FREDDY仅作为LIVANTO的支付服务商和市场合作方行事。本附件A不赋予FREDDY任何合同解除权、合同修改权或合同义务豁免权。FREDDY不是主合同的合同当事人。**
+(6) FREDDY仅作为LIVANTO的支付服务商和市场合作方行事。本附件A不赋予FREDDY任何合同解除权、合同修改权或合同义务豁免权。FREDDY不是主合同的合同当事人。
 
-**[UMNUMMERIERT / 重新编号] (7) Im Falle eines Widerspruchs zwischen dieser Anlage A und dem Hauptvertrag gehen die Regelungen dieser Anlage A vor.**
+(7) Im Falle eines Widerspruchs zwischen dieser Anlage A und dem Hauptvertrag gehen die Regelungen dieser Anlage A vor.
 
-**[UMNUMMERIERT / 重新编号] (7) 如本附件A与主合同有冲突，以本附件A的规定为准。**
+(7) 如本附件A与主合同有冲突，以本附件A的规定为准。
 
----
-
-## Anlage B: Verpackungsdeklaration des Kunden / 附件B：客户包装申报表
+Anlage B: Verpackungsdeklaration des Kunden    附件B：客户包装申报表
 
 Der Kunde erklärt bei Vertragsschluss nach bestem Wissen folgende Verpackungsarten und -mengen im Sinne des Verpackungsgesetzes. Diese Angaben dienen als Grundlage für den Abschluss des dualen Systemvertrages.
 
 客户在合同签订时据其所知声明以下《包装法》意义上的包装种类和数量。该声明作为签订双元系统合同的依据。
 
-| Materialfraktion / 材料类别 | Kategorie / 类别 | Geschätzte Menge (kg/Jahr) / 预估年量(公斤) | Produktbeispiel / 产品举例 |
-|---|---|---|---|
-| Glas / 玻璃 | | | |
-| Papier/Pappe/Karton / 纸/纸板/纸箱 | | | |
-| Eisenmetalle / 黑色金属 | | | |
-| Aluminium / 铝 | | | |
-| Kunststoffe / 塑料 | | | |
-| Verbunde / 复合材料 | | | |
-| Getränkekarton / 饮料纸盒 | | | |
-| Sonstige / 其他 | | | |
+Materialfraktion / 材料类别
+
+Kategorie / 类别
+
+Geschätzte Menge (kg/Jahr) / 预估年量(公斤)
+
+Produktbeispiel / 产品举例
+
+Glas / 玻璃
+
+Papier/Pappe/Karton / 纸/纸板/纸箱
+
+Eisenmetalle / 黑色金属
+
+Aluminium / 铝
+
+Kunststoffe / 塑料
+
+Verbunde / 复合材料
+
+Getränkekarton / 饮料纸盒
+
+Sonstige / 其他
 
 Der Kunde bestätigt die Richtigkeit der vorstehenden Angaben nach bestem Wissen und Gewissen.
 
 客户据其所知确认上述信息真实准确。
 
----
-
-## Anlage C: Gebührenordnung / 附件C：费用表
+Anlage C: Gebührenordnung    附件C：费用表
 
 Gültig ab Vertragsbeginn. Alle Beträge verstehen sich netto zuzüglich der gesetzlichen Mehrwertsteuer.
 
 自合同开始生效。所有金额为净价，另加法定增值税。
 
-| Servicestufe / 服务等级 | Jahresgrundgebühr / 年度基本费 | Leistungsumfang / 服务范围 |
-|---|---|---|
-| **Basis / 基础** | EUR 89,00 | Kern-AR-Dienstleistungen: Systembeteiligung, LUCID-Datenmeldung, Behördenkorrespondenz, gesetzliche Informationspflichten / 核心AR服务：系统参与、LUCID数据申报、官方通信、法定信息义务 |
-| **Standard / 标准** | EUR 159,00 | Basis + prioritäre Reaktionszeit (48 h) + erweiterte Klassifizierungsberatung + jährlicher Compliance-Kurzbericht / 基础+优先响应时间(48小时)+扩展分类咨询+年度合规简报 |
-| **Premium / 高级** | EUR 249,00 | Standard + Vollständigkeitserklärungs-Koordination + persönlicher Ansprechpartner + 24h-Reaktionszeit / 标准+完整性声明协调+专属客户经理+24小时响应时间 |
+Servicestufe / 服务等级
 
-**Zusätzliche Leistungen / 附加服务：**
+Jahresgrundgebühr / 年度基本费
 
-- ZSVR-Klassifizierungsantrag: EUR 150,00 / ZSVR分类申请：150.00欧元
-- Vollständigkeitserklärung (Prüfer + Bearbeitung): Prüferkosten + EUR 50,00 / 完整性声明（审计+手续费）：审计费用 + 50.00欧元
-- Mahnung bei Zahlungsverzug: EUR 15,00 / 逾期催款：15.00欧元
-- Duale Systemgebühren: Weitergabe zu Selbstkosten (ohne Aufschlag) / 双元系统费用：按成本价过账（不加价）
+Leistungsumfang / 服务范围
 
----
+Basis / 基础
 
-## Unterschriften / 签署
+EUR 89,00
 
-| Der Kunde / 客户 | LIVANTO GmbH / Der Bevollmächtigte / 授权代表 | FREDDY (Shanghai) / Zahlungsdienstleister / 支付服务商 |
-|---|---|---|
-| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |
-| Ort, Datum / 地点, 日期 | Ort, Datum / 地点, 日期 | |
-| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |
-| Unterschrift / 签名 | Unterschrift / 签名 | |
-| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |
-| Name in Druckbuchstaben / 正楷姓名 | Name in Druckbuchstaben / 正楷姓名 | |
+Kern-AR-Dienstleistungen: Systembeteiligung, LUCID-Datenmeldung, Behördenkorrespondenz, gesetzliche Informationspflichten / 核心AR服务：系统参与、LUCID数据申报、官方通信、法定信息义务
 
----
+Standard / 标准
 
-## Änderungsübersicht V2 → V3 / 修改对照表
+EUR 159,00
 
-| # | 条款 | 修改内容 |
-|---|------|----------|
-| 1 | Anlage A 引言 + (6) neu | 新增FREDDY角色定位（支付服务商+市场拓展+客户沟通）+ 兜底条款（不授予合同解除权/修改权/豁免权），原(6)重新编号为(7) |
-| 2 | §9 Abs. 1 | 合同生效改为"首笔年费到账后次月首日"，增加客户可申请立即生效的选项 |
-| 3 | §3 Abs. 4 | 增加未通知后果："如客户因过错未履行通知义务...承担额外费用、罚款或其他损失" |
-| 4 | §3 Abs. 6 + §8 Abs. 1 | 删除"auf erstes Anfordern"，增加30天缓冲期 + 不付款则特别终止权 + 不退款；§8(1)交叉引用§3(6) |
-| 5 | §6 Abs. 6 | 保留VPI基准，增加监管重大变更导致的额外调整权（需书面说明成本依据） |
-| 6 | §10 Abs. 2 | 增加SCC作为数据传输法律依据（EU 2021/914），保留同意为补充依据，增加风险告知义务 |
-| 7 | §9 Abs. 4 + (4a) neu | 将未申报包装从§9(4)(d)提升为独立的§9(4a)，增加立即终止权+不退款+双元费继续支付+赔偿义务不受影响 |
-| 8 | §12 Abs. 4 | 不采纳，维持原条款 |
-| 9 | §11 Abs. 1 + §5 Abs. 2 + §5 Abs. 5 + §6 Abs. 5 | 删除"ausschließlich"，增加门户技术故障时的邮件备用通道（需授权代表事先书面确认） |
+Basis + prioritäre Reaktionszeit (48 h) + erweiterte Klassifizierungsberatung + jährlicher Compliance-Kurzbericht / 基础+优先响应时间(48小时)+扩展分类咨询+年度合规简报
+
+Premium / 高级
+
+EUR 249,00
+
+Standard + Vollständigkeitserklärungs-Koordination + persönlicher Ansprechpartner + 24h-Reaktionszeit / 标准+完整性声明协调+专属客户经理+24小时响应时间
+
+Zusätzliche Leistungen:
+
+附加服务：
+
+• ZSVR-Klassifizierungsantrag: EUR 150,00
+
+• ZSVR分类申请：150.00欧元
+
+• Vollständigkeitserklärung (Prüfer + Bearbeitung): Prüferkosten + EUR 50,00
+
+• 完整性声明（审计+手续费）：审计费用 + 50.00欧元
+
+• Mahnung bei Zahlungsverzug: EUR 15,00
+
+• 逾期催款：15.00欧元
+
+• Duale Systemgebühren: Weitergabe zu Selbstkosten (ohne Aufschlag)
+
+• 双元系统费用：按成本价过账（不加价）
+
+Unterschriften  |  签署
+
+Der Kunde / 客户
+
+_________________________________
+
+_________________________________
+
+Ort, Datum / 地点, 日期
+
+Ort, Datum / 地点, 日期
+
+_________________________________
+
+_________________________________
+
+Unterschrift / 签名
+
+Unterschrift / 签名
+
+_________________________________
+
+_________________________________
+
+Name in Druckbuchstaben / 正楷姓名
+
+Name in Druckbuchstaben / 正楷姓名
+
