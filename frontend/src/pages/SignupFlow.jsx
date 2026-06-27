@@ -22,7 +22,7 @@ const WEEE_CATEGORIES = [
 ]
 
 const SVC = {
-  packaging: { label: '德国包装法 · 本土授权代表', steps: ['委托方信息', '包装申报', '套餐选择', '预览签署'], ctLabel: '授权代表合同' },
+  packaging: { label: '德国包装法 · 本土授权代表', steps: ['委托方信息', '包装申报', '预览签署'], ctLabel: '授权代表合同' },
   weee: { label: 'WEEE 电子电气法', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (WEEE)' },
   battery: { label: '电池法 BattG', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (电池法)' },
 }
@@ -39,6 +39,7 @@ export default function SignupFlow() {
   const isPkg = serviceType === 'packaging'; const isWeee = serviceType === 'weee'
 
   const [searchParams, setSearchParams] = useSearchParams()
+  const urlTier = searchParams.get('tier') || 'basic'
   const [step, setStep] = useState(() => parseInt(searchParams.get('step')) || 0)
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
@@ -50,7 +51,7 @@ export default function SignupFlow() {
   const [form, setForm] = useState({
     company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '', legal_representative_en: '',
     contact_person: '', contact_person_en: '', contact_phone: '', wechat_id: '', contact_email: '',
-    password: '', password_confirm: '', packaging_items: [], tier: 'standard',
+    password: '', password_confirm: '', packaging_items: [], tier: urlTier,
     device_categories: [], brand_count: '1', year_type: 'first',
     signer_name: '', agreed: false,
   })
@@ -75,7 +76,7 @@ export default function SignupFlow() {
       if (!form.password || form.password.length < 6) e.password = '请设置登录密码（至少6位）'
       if (form.password !== form.password_confirm) e.password_confirm = '两次密码输入不一致'
     }
-    if (s === 3) {
+    if (s === STEPS.length - 1) {
       if (!form.agreed) e.agreed = '请阅读并同意合同条款'
       if (!form.signer_name.trim()) e.signer_name = '请输入签署人姓名'
     }
@@ -97,7 +98,7 @@ export default function SignupFlow() {
   const toggleCat = (k) => { const c = form.device_categories; update('device_categories', c.includes(k) ? c.filter(x => x !== k) : [...c, k]) }
 
   const handleSubmit = async () => {
-    if (!validate(3)) return
+    if (!validate(STEPS.length - 1)) return
     setSubmitting(true)
     try {
       const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: form.legal_representative_en.trim(), contact_person: form.contact_person.trim(), contact_person_en: form.contact_person_en.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
@@ -373,27 +374,6 @@ export default function SignupFlow() {
         </div>
       )}
 
-      {/* Step 2a: Packaging Tier */}
-      {step === 2 && isPkg && (
-        <div className="space-y-4">
-          <h2 className="font-bold text-lg text-center">选择服务套餐</h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            {AR_TIERS_LIST.map(t => (
-              <button key={t.key} onClick={() => update('tier', t.key)} className={`bg-white rounded-lg p-5 text-left border-2 transition-all ${form.tier === t.key ? 'border-primary' : 'border-gray-100 hover:border-gray-200'} ${t.featured ? 'relative' : ''}`}>
-                {t.featured && <span className="absolute -top-2 right-2 bg-primary text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">推荐</span>}
-                <h3 className="font-bold mb-1">{t.name.split(' ')[0]}</h3>
-                <p className="text-2xl font-extrabold text-primary mb-2">€{t.price}<span className="text-sm text-gray-400 font-normal">/年</span></p>
-                <p className="text-xs text-gray-500">{t.desc}</p>
-              </button>
-            ))}
-          </div>
-          <div className="flex justify-between">
-            <button onClick={() => goStep(1)} className={btnGhostCls}>← 上一步</button>
-            <button onClick={() => goStep(3)} className={btnCls}>下一步 →</button>
-          </div>
-        </div>
-      )}
-
       {/* Step 2b: WEEE/Battery Fee Summary */}
       {step === 2 && !isPkg && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
@@ -416,8 +396,8 @@ export default function SignupFlow() {
         </div>
       )}
 
-      {/* Step 3: Review & Sign */}
-      {step === 3 && (
+      {/* Step (last): Review & Sign */}
+      {step === STEPS.length - 1 && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           <h2 className="font-bold text-lg">确认并签署</h2>
           <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
@@ -446,7 +426,7 @@ export default function SignupFlow() {
           {fe('agreed')}
           <div><label className="block text-sm font-medium mb-1 text-gray-600">签署人姓名</label><input value={form.signer_name} onChange={e => update('signer_name', e.target.value)} className={`${inputCls} ${errCls('signer_name', errors)}`} placeholder="您的姓名（电子签名）" />{fe('signer_name')}</div>
           <div className="flex justify-between pt-2">
-            <button onClick={() => goStep(2)} className={btnGhostCls}>← 上一步</button>
+            <button onClick={() => goStep(step - 1)} className={btnGhostCls}>← 上一步</button>
             <button onClick={handleSubmit} disabled={!form.agreed || !form.signer_name || submitting} className={btnCls}>{submitting ? '提交中...' : '签署并进入支付 →'}</button>
           </div>
         </div>
