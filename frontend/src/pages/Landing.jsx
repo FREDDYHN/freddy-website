@@ -36,21 +36,32 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Process */}
-      <section className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold text-gray-800 mb-12">三步完成德国合规</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            { step: '①', title: '在线填写信息', desc: '公司信息 + 包装/产品数据，全程中文引导' },
-            { step: '②', title: '系统生成合同', desc: '自动生成双语授权代表合同，在线签署' },
-            { step: '③', title: '提交审批', desc: 'LUCID/EAR注册提交，获取合规编号' },
-          ].map((s, i) => (
-            <div key={i} className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold">{s.step}</div>
-              <h3 className="font-bold text-gray-700">{s.title}</h3>
-              <p className="text-sm text-gray-500">{s.desc}</p>
-            </div>
-          ))}
+      {/* Progress Flow */}
+      <section className="max-w-4xl mx-auto px-4 py-20">
+        <h2 className="text-2xl font-bold text-gray-800 text-center mb-12">四步完成合规，授权代表全程护航</h2>
+        <div className="relative">
+          {/* Progress bar line */}
+          <div className="hidden md:block absolute top-5 left-[12.5%] right-[12.5%] h-0.5 bg-gray-200" />
+          <div className="hidden md:block absolute top-5 left-[12.5%] w-[75%] h-0.5 bg-primary/30" />
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-4">
+            {[
+              { step: '01', icon: '📦', title: '选择产品', desc: '确定需要合规的产品类型：包装法、WEEE电子电气法、电池法 BattG' },
+              { step: '02', icon: '📝', title: '填写信息', desc: '在线提交公司及商品信息，全程中文引导，约5分钟完成' },
+              { step: '03', icon: '📄', title: '签订合同', desc: '系统自动生成授权代表合同，在线签署，即时生效' },
+              { step: '04', icon: '🤝', title: '授权代表接手', desc: 'LIVANTO接管LUCID注册、双元系统对接、年度申报等全部合规工作' },
+            ].map((s, i) => (
+              <div key={i} className="relative text-center">
+                {/* Step circle */}
+                <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold mx-auto mb-4 relative z-10">
+                  {s.step}
+                </div>
+                <div className="text-3xl mb-2">{s.icon}</div>
+                <h3 className="font-bold text-gray-800 mb-2">{s.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
