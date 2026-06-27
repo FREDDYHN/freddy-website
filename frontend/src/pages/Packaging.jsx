@@ -18,15 +18,6 @@ export default function Packaging() {
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-3 gap-4 mb-10">
-          {[{ t: '生产商/制造商', d: '在德国以自身名称/品牌销售包装产品' }, { t: '进口商', d: '将包装产品首次进口到德国市场' }, { t: '跨境电商卖家', d: '通过 Amazon/Temu 等平台向德国消费者发货' }].map((c, i) => (
-            <div key={i} className="bg-white border border-gray-100 rounded-lg p-5 text-center">
-              <h3 className="font-bold text-primary mb-1">{c.t}</h3>
-              <p className="text-sm text-gray-500">{c.d}</p>
-            </div>
-          ))}
-        </div>
-
         <h2 className="text-xl font-bold text-center mb-8">三步完成包装法合规</h2>
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {[{ s: '1', t: 'LUCID 注册', d: '在 ZSVR 官网自行注册获取 LUCID 号，我们提供中文指南' }, { s: '2', t: '签约授权代表', d: '在线填写公司+包装信息，签署授权代表合同，支付年费' }, { s: '3', t: 'LIVANTO 处理合规', d: '确认授权→签订双元系统合同→提交年度数据申报' }].map((s, i) => (
