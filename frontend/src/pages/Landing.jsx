@@ -12,17 +12,20 @@ export default function Landing() {
     <div>
       <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #3d5a48 0%, #527a60 50%, #3d5a48 100%)' }}>
         <h1 className="text-5xl md:text-6xl font-extrabold mb-10 tracking-tight">德国跨境合规 · 一站式解决方案</h1>
-        {/* Flow diagram — 标签链 */}
-        <div className="flex items-center justify-center gap-2 max-w-2xl mx-auto">
-          {['选择产品','信息填写','合同签订','授权代表全面接手'].map((label, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span className="text-xs md:text-sm text-white/80 font-medium px-3 py-1.5 rounded-full" style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-              }}>{label}</span>
-              {i < 3 && <span className="text-white/25 text-xs">→</span>}
-            </div>
-          ))}
+        {/* Flow diagram — 贯穿线+标签 */}
+        <div className="max-w-2xl mx-auto relative">
+          <div className="absolute top-3 left-[12%] right-[12%] h-px" style={{background:'rgba(255,255,255,0.15)'}}></div>
+          <div className="flex justify-between relative">
+            {['选择产品','信息填写','合同签订','授权代表全面接手'].map((label, i) => (
+              <div key={i} className="flex flex-col items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full" style={{background:'rgba(255,255,255,0.4)'}}></div>
+                <span className="text-xs md:text-sm text-white/80 font-medium px-3 py-1.5 rounded-full" style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                }}>{label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
