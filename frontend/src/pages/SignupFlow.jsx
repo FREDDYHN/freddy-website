@@ -223,7 +223,7 @@ export default function SignupFlow() {
             </div>
             <div>
               <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 / 中文 *</label>
-              <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="公司注册地址" />
+              <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="中国上海市浦东新区陆家嘴环路88号金茂大厦58层5808室" />
               {fe('registered_address')}
             </div>
           </div>
