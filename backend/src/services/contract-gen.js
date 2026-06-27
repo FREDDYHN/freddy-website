@@ -70,6 +70,7 @@ export async function generateContract({ type, clientLocation, data }) {
     contact_name: data.contact_name || data.contact || '',
     contact_email: data.contact_email || data.email || '',
     contact_phone: data.contact_phone || data.phone || '',
+    wechat_id: data.wechat_id || '',
     // Contract info
     contract_number: data.contract_number || '',
     contract_date: data.contract_date || new Date().toISOString().slice(0, 10),
