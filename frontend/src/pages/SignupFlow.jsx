@@ -198,6 +198,18 @@ export default function SignupFlow() {
             <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={inputCls} placeholder="选填" />
           </div>
 
+          {/* gesetzl. Vertreter / 法定代表人 — bilingual */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人（英或德）</label>
+              <input value={form.legal_representative_en || ''} onChange={e => update('legal_representative_en', e.target.value)} className={inputCls} placeholder="Legal representative (EN)" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人</label>
+              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="法定代表人姓名" />
+            </div>
+          </div>
+
           <div className="border-t border-gray-100"></div>
 
           {/* E-Mail — universal */}
@@ -219,18 +231,6 @@ export default function SignupFlow() {
             <label className="block text-xs font-medium mb-1 text-gray-500">WeChat / 微信 *</label>
             <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="微信号" />
             {fe('wechat_id')}
-          </div>
-
-          {/* gesetzl. Vertreter / 法定代表人 — bilingual */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人（英或德）</label>
-              <input value={form.legal_representative_en || ''} onChange={e => update('legal_representative_en', e.target.value)} className={inputCls} placeholder="Legal representative (EN)" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人</label>
-              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="法定代表人姓名" />
-            </div>
           </div>
 
           <div className="border-t border-gray-100"></div>
