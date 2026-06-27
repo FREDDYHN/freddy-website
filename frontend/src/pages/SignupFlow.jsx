@@ -107,7 +107,7 @@ export default function SignupFlow() {
       const data = await res.json(); if (!res.ok) throw new Error(data.error || '创建合同失败')
       const sRes = await fetch(`/api/contracts/${data.contract_id}/sign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signer_name: form.signer_name.trim() }) })
       const sData = await sRes.json(); if (!sRes.ok) throw new Error(sData.error || '签名失败')
-      setResult(data); setStep(4)
+      setResult(data); goStep(4)
     } catch (e) { alert('提交失败: ' + e.message) }
     setSubmitting(false)
   }
@@ -224,7 +224,7 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold mb-1 text-gray-500">注册地址 / 英文或拼音 *</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">注册地址 / 英文或拼音</label>
               <input value={form.registered_address_en || ''} onChange={e => update('registered_address_en', e.target.value)} className={inputCls} placeholder="Room 5808, 58th Floor, Jin Mao Tower, 88 Lujiazui Ring Road, Shanghai, China" />
             </div>
             <div>
@@ -304,7 +304,7 @@ export default function SignupFlow() {
           <div className="grid grid-cols-2 gap-3">
             <div>
             <label className="block text-xs font-semibold mb-1 text-gray-500">Passwort / 确认密码 *</label>
-            <input type="password" value={form.password_confirm} onChange={e => { update('password_confirm', e.target.value); if (e.target.value && form.password !== e.target.value) setErrors(prev => ({...prev, password_confirm: '两次密码输入不一致'})) }} className={`${inputCls} ${errCls('password_confirm', errors)}`} placeholder="请再次输入密码" />
+            <input type="password" value={form.password_confirm} onChange={e => { const v = e.target.value; update('password_confirm', v); if (v && form.password !== v) setErrors(prev => ({...prev, password_confirm: '两次密码输入不一致'})); else if (form.password === v) setErrors(prev => { const n = {...prev}; delete n.password_confirm; return n }) }} className={`${inputCls} ${errCls('password_confirm', errors)}`} placeholder="请再次输入密码" />
             {fe('password_confirm')}
             </div>
             <div></div>
@@ -424,9 +424,11 @@ export default function SignupFlow() {
             <div className="flex justify-between"><span className="text-gray-400">服务</span><span className="font-medium">{cfg.label}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">公司（英文）</span><span className="font-medium text-xs">{form.company_name_en}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">公司（中文）</span><span className="font-medium">{form.company_name}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">地址</span><span className="font-medium text-xs">{form.registered_address}</span></div>
+            {form.registered_address_en && <div className="flex justify-between"><span className="text-gray-400">地址（英文）</span><span className="font-medium text-xs">{form.registered_address_en}</span></div>}
+            <div className="flex justify-between"><span className="text-gray-400">地址（中文）</span><span className="font-medium text-xs">{form.registered_address}</span></div>
             {form.uscc && <div className="flex justify-between"><span className="text-gray-400">信用代码</span><span className="font-medium text-xs">{form.uscc}</span></div>}
-            {form.legal_representative && <div className="flex justify-between"><span className="text-gray-400">法定代表人 / 中文</span><span className="font-medium">{form.legal_representative}</span></div>}
+            {form.legal_representative_en && <div className="flex justify-between"><span className="text-gray-400">法定代表人（英文）</span><span className="font-medium text-xs">{form.legal_representative_en}</span></div>}
+            <div className="flex justify-between"><span className="text-gray-400">法定代表人（中文）</span><span className="font-medium">{form.legal_representative}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">联系人（英文）</span><span className="font-medium text-xs">{form.contact_person_en}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">联系人（中文）</span><span className="font-medium">{form.contact_person}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>

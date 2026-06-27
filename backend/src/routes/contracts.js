@@ -72,13 +72,13 @@ router.post('/', async (req, res) => {
   const db = await getDb()
   await db.run('BEGIN IMMEDIATE')
   try {
-    const { service_type, company_name, company_name_en, registered_address, uscc, legal_representative,
-            contact_name, contact_email, contact_phone, wechat_id,
+    const { service_type, company_name, company_name_en, registered_address, registered_address_en, uscc, legal_representative, legal_representative_en,
+            contact_person, contact_person_en, contact_email, contact_phone, wechat_id,
             packaging_items, tier, password, device_categories, brand_count, year_type } = req.body
 
-    if (!company_name || !contact_name || !contact_email || !registered_address || !contact_phone || !wechat_id) {
+    if (!company_name || !contact_person || !contact_email || !registered_address || !contact_phone || !wechat_id) {
       await db.run('ROLLBACK')
-      return res.status(400).json({ error: 'Missing required fields: company_name, registered_address, contact_name, contact_email, contact_phone, wechat_id' })
+      return res.status(400).json({ error: 'Missing required fields: company_name, registered_address, contact_person, contact_email, contact_phone, wechat_id' })
     }
 
     const svcType = service_type || 'packaging'
@@ -109,12 +109,12 @@ router.post('/', async (req, res) => {
       // Update existing client with latest info
       await db.run(
         'UPDATE clients SET company_name=?, company_name_en=?, registered_address=?, uscc=?, legal_representative=?, contact_name=?, contact_phone=?, wechat_id=? WHERE id=?',
-        company_name, company_name_en || '', registered_address || '', uscc || '', legal_representative || '', contact_name, contact_phone || '', wechat_id || '', clientId
+        company_name, company_name_en || '', registered_address || '', uscc || '', legal_representative || '', contact_person || '', contact_phone || '', wechat_id || '', clientId
       )
     } else {
       const clientResult = await db.run(
         'INSERT INTO clients (company_name, company_name_en, registered_address, uscc, legal_representative, contact_name, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        company_name, company_name_en || '', registered_address || '', uscc || '', legal_representative || '', contact_name, contact_email, contact_phone || '', wechat_id || ''
+        company_name, company_name_en || '', registered_address || '', uscc || '', legal_representative || '', contact_person || '', contact_email, contact_phone || '', wechat_id || ''
       )
       clientId = clientResult.lastID
     }
