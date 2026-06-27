@@ -47,7 +47,7 @@ export default function SignupFlow() {
   useEffect(() => { fetch('/api/bank-info').then(r => r.json()).then(setBankInfo).catch(() => {}) }, [])
 
   const [form, setForm] = useState({
-    company_name: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '',
+    company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '',
     contact_person: '', contact_phone: '', wechat_id: '', contact_email: '',
     password: '', packaging_items: [], tier: 'standard',
     device_categories: [], brand_count: '1', year_type: 'first',
@@ -60,7 +60,8 @@ export default function SignupFlow() {
   const validate = (s) => {
     const e = {}
     if (s === 0) {
-      if (!form.company_name.trim()) e.company_name = '请输入公司名称'
+      if (!form.company_name.trim()) e.company_name = '请输入公司名称（中文）'
+      if (!form.company_name_en.trim()) e.company_name_en = '请输入公司名称（英/德）'
       if (!form.registered_address.trim()) e.registered_address = '请输入注册地址'
       if (!form.contact_person.trim()) e.contact_person = '请输入联系人'
       if (!form.contact_phone.trim()) e.contact_phone = '请输入手机号'
@@ -93,7 +94,7 @@ export default function SignupFlow() {
     if (!validate(3)) return
     setSubmitting(true)
     try {
-      const body = { service_type: serviceType, company_name: form.company_name.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), contact_person: form.contact_person.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
+      const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), contact_person: form.contact_person.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
       if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material, category: p.category, estimated_kg: p.kg }))
       else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
       const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -206,7 +207,8 @@ export default function SignupFlow() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1 text-gray-500">公司名称 / 英文 *</label>
-              <input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="FREDDY (SHANGHAI) INFORMATION CONSULTING LTD." />
+              <input value={form.company_name_en} onChange={e => update('company_name_en', e.target.value)} className={`${inputCls} ${errCls('company_name_en', errors)}`} placeholder="FREDDY (SHANGHAI) INFORMATION CONSULTING LTD." />
+              {fe('company_name_en')}
             </div>
             <div>
               <label className="block text-xs font-medium mb-1 text-gray-500">公司名称 / 中文 *</label>
@@ -288,7 +290,7 @@ export default function SignupFlow() {
           </div>
 
           <div className="flex justify-end pt-2">
-            <button onClick={() => next(1)} disabled={!form.company_name || !form.registered_address || !form.contact_person || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password} className={btnCls}>下一步 →</button>
+            <button onClick={() => next(1)} disabled={!form.company_name || !form.company_name_en || !form.registered_address || !form.contact_person || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
@@ -398,8 +400,8 @@ export default function SignupFlow() {
           <h2 className="font-bold text-lg">确认并签署</h2>
           <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
             <div className="flex justify-between"><span className="text-gray-400">服务</span><span className="font-medium">{cfg.label}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">公司</span><span className="font-medium">{form.company_name}</span></div>
-            {form.company_name_en && <div className="flex justify-between"><span className="text-gray-400">公司(EN)</span><span className="font-medium text-xs">{form.company_name_en}</span></div>}
+            <div className="flex justify-between"><span className="text-gray-400">公司（英文）</span><span className="font-medium text-xs">{form.company_name_en}</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">公司（中文）</span><span className="font-medium">{form.company_name}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">地址</span><span className="font-medium text-xs">{form.registered_address}</span></div>
             {form.uscc && <div className="flex justify-between"><span className="text-gray-400">信用代码</span><span className="font-medium text-xs">{form.uscc}</span></div>}
             {form.legal_representative && <div className="flex justify-between"><span className="text-gray-400">法定代表人 / 中文</span><span className="font-medium">{form.legal_representative}</span></div>}
