@@ -241,12 +241,12 @@ export default function SignupFlow() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 英文 *</label>
-              <input value={form.legal_representative_en} onChange={e => update('legal_representative_en', e.target.value)} className={`${inputCls} ${errCls('legal_representative_en', errors)}`} placeholder="Andy Lau" />
+              <input value={form.legal_representative_en} onChange={e => update('legal_representative_en', e.target.value)} className={`${inputCls} ${errCls('legal_representative_en', errors)}`} placeholder="Gong Feng" />
               {fe('legal_representative_en')}
             </div>
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 中文 *</label>
-              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={`${inputCls} ${errCls('legal_representative', errors)}`} placeholder="刘德华" />
+              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={`${inputCls} ${errCls('legal_representative', errors)}`} placeholder="冯巩" />
               {fe('legal_representative')}
             </div>
           </div>
