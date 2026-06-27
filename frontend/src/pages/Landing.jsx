@@ -17,7 +17,7 @@ export default function Landing() {
           {['选择产品','信息填写','合同签订','授权代表全面接手'].map((label, i) => (
             <div key={i} className="flex items-center gap-2">
               <span className="text-xs md:text-sm text-white/80 font-medium px-3 py-1.5 rounded-full" style={{
-                background: i === 0 ? 'rgba(255,255,255,0.15)' : 'transparent',
+                background: 'rgba(255,255,255,0.1)',
                 border: '1px solid rgba(255,255,255,0.2)',
               }}>{label}</span>
               {i < 3 && <span className="text-white/25 text-xs">→</span>}
