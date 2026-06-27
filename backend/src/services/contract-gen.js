@@ -85,8 +85,13 @@ export async function generateContract({ type, clientLocation, data }) {
     brand_count: data.brand_count || '',
     device_categories: data.device_categories || '',
     packaging_items: Array.isArray(data.packaging_items)
-      ? 'Nr.\tMaterialfraktion / 材料类别\tKategorie / 类别\tMenge (kg)\tProduktbeispiel / 产品举例\n' +
-        data.packaging_items.map((p,i) => `${i+1}\t${p.material_type||p.material||''}\t${p.category||''}\t${p.estimated_kg||p.kg||''}\t${p.example||''}`).join('\n')
+      ? (() => {
+          const hdr = 'Nr.\t\tMaterialfraktion / 材料类别\t\tKategorie / 类别\t\tMenge (kg)\t\tProduktbeispiel / 产品举例'
+          const rows = data.packaging_items.map((p,i) =>
+            `${i+1}\t\t${p.material_type||p.material||''}\t\t${p.category||''}\t\t${p.estimated_kg||p.kg||''}\t\t${p.example||''}`
+          )
+          return hdr + '\n' + rows.join('\n')
+        })()
       : (data.packaging_items || ''),
     // Signature
     signer_name: data.signer_name || '',
