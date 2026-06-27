@@ -7,7 +7,6 @@ const links = [
   { to: '/battery', label: '电池法' },
   { to: '/calculator', label: '费用计算器' },
   { to: '/faq', label: '常见问题' },
-  { to: '/downloads', label: '下载中心' },
 ]
 
 function useAuth() {
@@ -28,6 +27,7 @@ export default function NavBar() {
           <img src="/freddy-logo.png" alt="FREDDY 福瑞笛" className="h-7 w-auto" />
         </Link>
 
+        <div className="flex items-center gap-3">
         <nav className="hidden md:flex items-center gap-0.5">
           {links.map(l => (
             <Link key={l.to} to={l.to} className={`px-3 py-1.5 text-[13px] font-medium rounded-md transition-colors ${
@@ -35,8 +35,6 @@ export default function NavBar() {
             }`}>{l.label}</Link>
           ))}
         </nav>
-
-        <div className="flex items-center gap-2">
           {user ? (
             <>
               <Link to="/dashboard" className="hidden md:block text-[13px] text-gray-500 hover:text-primary px-2">面板</Link>
