@@ -291,15 +291,21 @@ export default function SignupFlow() {
             <div></div>
           </div>
 
-          <div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
             <label className="block text-xs font-semibold mb-1 text-gray-500">Passwort / 登录密码 *</label>
             <input type="password" value={form.password} onChange={e => update('password', e.target.value)} className={`${inputCls} ${errCls('password', errors)}`} placeholder="至少6位字母数字组合" />
             {fe('password')}
+            </div>
+            <div></div>
           </div>
-          <div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
             <label className="block text-xs font-semibold mb-1 text-gray-500">Passwort / 确认密码 *</label>
             <input type="password" value={form.password_confirm} onChange={e => update('password_confirm', e.target.value)} className={`${inputCls} ${errCls('password_confirm', errors)}`} placeholder="请再次输入密码" />
             {fe('password_confirm')}
+            </div>
+            <div></div>
           </div>
 
           <div className="flex justify-end pt-2">
