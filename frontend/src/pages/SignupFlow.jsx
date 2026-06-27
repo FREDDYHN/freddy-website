@@ -22,9 +22,9 @@ const WEEE_CATEGORIES = [
 ]
 
 const SVC = {
-  packaging: { label: '包装法授权代表', steps: ['公司信息', '包装申报', '套餐选择', '预览签署'], ctLabel: '授权代表合同' },
-  weee: { label: 'WEEE 电子电气法', steps: ['公司信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (WEEE)' },
-  battery: { label: '电池法 BattG', steps: ['公司信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (电池法)' },
+  packaging: { label: '包装法授权代表', steps: ['委托方信息', '包装申报', '套餐选择', '预览签署'], ctLabel: '授权代表合同' },
+  weee: { label: 'WEEE 电子电气法', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (WEEE)' },
+  battery: { label: '电池法 BattG', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (电池法)' },
 }
 
 const inputCls = 'w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-primary'
@@ -161,7 +161,7 @@ export default function SignupFlow() {
       {/* Step 0: Company Info */}
       {step === 0 && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
-          <h2 className="font-bold text-lg">公司信息</h2>
+          <h2 className="font-bold text-lg">委托方信息</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="md:col-span-2"><label className="block text-sm font-medium mb-1 text-gray-600">公司名称（中文）*</label><input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="公司全称" />{fe('company_name')}</div>
             <div className="md:col-span-2"><label className="block text-sm font-medium mb-1 text-gray-600">公司名称（英文）</label><input value={form.company_name_en} onChange={e => update('company_name_en', e.target.value)} className={inputCls} placeholder="Company name (用于德国合同)" /></div>
