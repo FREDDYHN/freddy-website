@@ -148,31 +148,25 @@ export default function SignupFlow() {
   })()
 
   if (result) return (
-    <div className="max-w-xl mx-auto px-4 py-16 text-center">
+    <div className="max-w-lg mx-auto px-4 py-16 text-center">
       <div className="text-5xl mb-4">✅</div>
-      <h1 className="text-2xl font-extrabold mb-4">签约成功</h1>
-      <div className="bg-white border border-gray-100 rounded-lg p-5 text-left space-y-2 mb-6 text-sm">
-        <div className="flex justify-between"><span className="text-gray-400">服务</span><span className="font-medium">{cfg.label}</span></div>
-        <div className="flex justify-between"><span className="text-gray-400">合同编号</span><span className="font-mono font-medium">{result.contract_number}</span></div>
-        <div className="flex justify-between"><span className="text-gray-400">年费</span><span className="font-bold">€{result.annual_fee_eur}</span></div>
-        <div className="flex justify-between"><span className="text-gray-400">起始日期</span><span>{result.start_date}</span></div>
-        <div className="flex justify-between"><span className="text-gray-400">支付金额</span><span className="font-bold">¥{result.payment?.cnyAmount}</span></div>
+      <h1 className="text-2xl font-extrabold mb-2">合同签署成功</h1>
+      <p className="text-sm text-gray-500 mb-6">请登录您的账户下载合同并完成后续流程</p>
+      <div className="bg-white border border-gray-100 rounded-lg p-5 text-left space-y-3 mb-6 text-sm">
+        <div className="flex justify-between"><span className="text-gray-400">合同编号</span><span className="font-mono font-medium">{result.contract_number || previewId}</span></div>
+        <div className="flex justify-between"><span className="text-gray-400">登录邮箱</span><span className="font-medium">{form.contact_email}</span></div>
       </div>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-        <p className="font-semibold text-blue-800 text-sm">🔑 账号已创建</p>
-        <p className="text-xs text-blue-700 mt-1">登录邮箱：{form.contact_email}</p>
-        <Link to="/login" className="inline-block mt-3 px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">前往登录 →</Link>
+      <Link to={`/login?email=${encodeURIComponent(form.contact_email)}`} className="inline-block px-6 py-3 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary-light">前往登录 →</Link>
+      <div className="mt-8 text-left bg-gray-50 border border-gray-100 rounded-lg p-5 text-sm">
+        <h3 className="font-bold mb-3">📋 后续流程</h3>
+        <ol className="space-y-2 text-gray-600 list-decimal list-inside">
+          <li>登录 Dashboard</li>
+          <li>下载合同并打印</li>
+          <li>签字盖章后上传扫描件</li>
+          <li>收到发票后完成银行转账</li>
+          <li>管理员盖章回传，合同生效</li>
+        </ol>
       </div>
-      {bankInfo && (
-        <div className="bg-gray-50 border border-gray-100 rounded-lg p-5 text-left text-sm">
-          <h3 className="font-bold mb-2">💳 银行转账付款</h3>
-          <div className="space-y-1 text-gray-600">
-            <p>银行：{bankInfo.bank_name}</p><p>账户名：{bankInfo.account_name}</p>
-            <p>账号：{bankInfo.account_number}</p><p>附言：{bankInfo.reference_prefix}{result.contract_number}</p>
-          </div>
-          <p className="text-xs text-gray-400 mt-2">{bankInfo.note}</p>
-        </div>
-      )}
     </div>
   )
 
