@@ -67,7 +67,7 @@ export async function generateContract({ type, clientLocation, data }) {
     company_address: data.company_address || data.address || '',
     uscc: data.uscc || '',
     legal_representative: data.legal_representative || data.legal_rep || '',
-    contact_name: data.contact_name || data.contact || '',
+    contact_person: data.contact_person || data.contact_name || data.contact || '',
     contact_email: data.contact_email || data.email || '',
     contact_phone: data.contact_phone || data.phone || '',
     wechat_id: data.wechat_id || '',

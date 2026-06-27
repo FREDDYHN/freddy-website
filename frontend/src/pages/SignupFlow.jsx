@@ -47,8 +47,8 @@ export default function SignupFlow() {
   useEffect(() => { fetch('/api/bank-info').then(r => r.json()).then(setBankInfo).catch(() => {}) }, [])
 
   const [form, setForm] = useState({
-    company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '', legal_representative_en: '',
-    contact_name: '', contact_email: '', contact_phone: '', wechat_id: '',
+    company_name: '', registered_address: '', uscc: '', legal_representative: '',
+    contact_person: '', contact_phone: '', wechat_id: '', contact_email: '',
     password: '', packaging_items: [], tier: 'standard',
     device_categories: [], brand_count: '1', year_type: 'first',
     signer_name: '', agreed: false,
@@ -60,10 +60,9 @@ export default function SignupFlow() {
   const validate = (s) => {
     const e = {}
     if (s === 0) {
-      if (!form.company_name.trim()) e.company_name = '请输入公司名称（中文）'
-      if (!form.company_name_en.trim()) e.company_name_en = '请输入 Firmenname'
+      if (!form.company_name.trim()) e.company_name = '请输入公司名称'
       if (!form.registered_address.trim()) e.registered_address = '请输入注册地址'
-      if (!form.contact_name.trim()) e.contact_name = '请输入联系人姓名'
+      if (!form.contact_person.trim()) e.contact_person = '请输入联系人'
       if (!form.contact_phone.trim()) e.contact_phone = '请输入手机号'
       if (!form.wechat_id.trim()) e.wechat_id = '请输入微信号'
       if (!form.contact_email.trim()) e.contact_email = '请输入邮箱'
@@ -94,7 +93,7 @@ export default function SignupFlow() {
     if (!validate(3)) return
     setSubmitting(true)
     try {
-      const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: (form.legal_representative_en || '').trim(), contact_name: form.contact_name.trim(), contact_email: form.contact_email.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), password: form.password, tier: form.tier }
+      const body = { service_type: serviceType, company_name: form.company_name.trim(), registered_address: form.registered_address.trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), contact_person: form.contact_person.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
       if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material, category: p.category, estimated_kg: p.kg }))
       else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
       const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -159,18 +158,16 @@ export default function SignupFlow() {
         ))}
       </div>
 
-      {/* Step 0: 委托方信息 (Auftraggeber) */}
+      {/* Step 0: §1 Vertragsparteien — Auftraggeber / Kunde */}
       {step === 0 && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           <h2 className="font-bold text-lg">委托方信息</h2>
-          <p className="text-xs text-gray-400 -mt-2">对应合同 §1 Vertragsparteien — Auftraggeber / Kunde</p>
+          <p className="text-xs text-gray-400 -mt-2">§1 Vertragsparteien — Auftraggeber / Kunde</p>
 
-          {/* Firmenname / 公司名称 — bilingual */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">公司名称（英或德）*</label>
-              <input value={form.company_name_en} onChange={e => update('company_name_en', e.target.value)} className={`${inputCls} ${errCls('company_name_en', errors)}`} placeholder="Company name (DE/EN)" />
-              {fe('company_name_en')}
+              <label className="block text-xs font-medium mb-1 text-gray-500">Firmenname *</label>
+              <input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="Company name (DE/EN)" />
             </div>
             <div>
               <label className="block text-xs font-medium mb-1 text-gray-500">公司名称 *</label>
@@ -179,70 +176,75 @@ export default function SignupFlow() {
             </div>
           </div>
 
-          {/* Anschrift / 地址 — bilingual */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">注册地址（英或德）</label>
-              <input value={form.registered_address_en || ''} onChange={e => update('registered_address_en', e.target.value)} className={inputCls} placeholder="Registered address (EN)" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 *</label>
-              <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="公司注册地址" />
-              {fe('registered_address')}
-            </div>
+          <div>
+            <label className="block text-xs font-medium mb-1 text-gray-500">Anschrift / 注册地址 *</label>
+            <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="Registered address / 公司注册地址" />
+            {fe('registered_address')}
           </div>
 
-          {/* USt-ID / 信用代码 — universal */}
           <div>
             <label className="block text-xs font-medium mb-1 text-gray-500">USt-ID / VAT / 统一社会信用代码</label>
-            <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={inputCls} placeholder="选填" />
+            <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={inputCls} placeholder="[falls vorhanden / 如有]" />
           </div>
 
-          {/* gesetzl. Vertreter / 法定代表人 — bilingual */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人（英或德）</label>
-              <input value={form.legal_representative_en || ''} onChange={e => update('legal_representative_en', e.target.value)} className={inputCls} placeholder="Legal representative (EN)" />
+              <label className="block text-xs font-medium mb-1 text-gray-500">gesetzl. Vertreter</label>
+              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="Legal representative" />
             </div>
             <div>
               <label className="block text-xs font-medium mb-1 text-gray-500">法定代表人</label>
               <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="法定代表人姓名" />
+              {fe('legal_representative')}
             </div>
           </div>
 
           <div className="border-t border-gray-100"></div>
 
-          {/* E-Mail — universal */}
-          <div>
-            <label className="block text-xs font-medium mb-1 text-gray-500">E-Mail / 电子邮箱 *</label>
-            <input type="email" value={form.contact_email} onChange={e => update('contact_email', e.target.value)} className={`${inputCls} ${errCls('contact_email', errors)}`} placeholder="your@email.com" />
-            {fe('contact_email')}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">Kontaktperson *</label>
+              <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="Contact person" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 *</label>
+              <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="联系人姓名" />
+              {fe('contact_person')}
+            </div>
           </div>
 
-          {/* Telefon — universal */}
-          <div>
-            <label className="block text-xs font-medium mb-1 text-gray-500">Telefon / 电话 *</label>
-            <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="+86 138xxxx" />
-            {fe('contact_phone')}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">Handynummer *</label>
+              <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="+86 138xxxx" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">手机号 *</label>
+              <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="手机号码" />
+              {fe('contact_phone')}
+            </div>
           </div>
 
-          {/* WeChat — universal */}
-          <div>
-            <label className="block text-xs font-medium mb-1 text-gray-500">WeChat / 微信 *</label>
-            <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="微信号" />
-            {fe('wechat_id')}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">WeChat-ID *</label>
+              <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="WeChat ID" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-500">微信号 *</label>
+              <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="微信号" />
+              {fe('wechat_id')}
+            </div>
           </div>
 
           <div className="border-t border-gray-100"></div>
 
-          {/* Contact person */}
           <div>
-            <label className="block text-xs font-medium mb-1 text-gray-500">Ansprechpartner / 联系人 *</label>
-            <input value={form.contact_name} onChange={e => update('contact_name', e.target.value)} className={`${inputCls} ${errCls('contact_name', errors)}`} placeholder="姓名" />
-            {fe('contact_name')}
+            <label className="block text-xs font-medium mb-1 text-gray-500">E-Mail / 电子邮箱（用于登录）*</label>
+            <input type="email" value={form.contact_email} onChange={e => update('contact_email', e.target.value)} className={`${inputCls} ${errCls('contact_email', errors)}`} placeholder="your@email.com" />
+            {fe('contact_email')}
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-xs font-medium mb-1 text-gray-500">Passwort / 登录密码 *</label>
             <input type="password" value={form.password} onChange={e => update('password', e.target.value)} className={`${inputCls} ${errCls('password', errors)}`} placeholder="至少6位，用于登录Dashboard" />
@@ -250,7 +252,7 @@ export default function SignupFlow() {
           </div>
 
           <div className="flex justify-end pt-2">
-            <button onClick={() => next(1)} disabled={!form.company_name || !form.company_name_en || !form.registered_address || !form.contact_name || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password} className={btnCls}>下一步 →</button>
+            <button onClick={() => next(1)} disabled={!form.company_name || !form.registered_address || !form.contact_person || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
@@ -365,7 +367,7 @@ export default function SignupFlow() {
             <div className="flex justify-between"><span className="text-gray-400">地址</span><span className="font-medium text-xs">{form.registered_address}</span></div>
             {form.uscc && <div className="flex justify-between"><span className="text-gray-400">信用代码</span><span className="font-medium text-xs">{form.uscc}</span></div>}
             {form.legal_representative && <div className="flex justify-between"><span className="text-gray-400">法定代表人</span><span className="font-medium">{form.legal_representative}</span></div>}
-            <div className="flex justify-between"><span className="text-gray-400">联系人</span><span className="font-medium">{form.contact_name}</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">联系人</span><span className="font-medium">{form.contact_person}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">手机</span><span className="font-medium">{form.contact_phone}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">微信</span><span className="font-medium">{form.wechat_id}</span></div>
