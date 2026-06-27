@@ -272,7 +272,7 @@ export default function SignupFlow() {
             </div>
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">微信号 *</label>
-              <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="WeChat ID" />
+              <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="freddy_epr" />
               {fe('wechat_id')}
             </div>
           </div>
