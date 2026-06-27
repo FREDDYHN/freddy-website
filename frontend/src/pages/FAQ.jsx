@@ -23,18 +23,18 @@ export default function FAQ() {
       <div className="flex flex-wrap justify-center gap-2 mb-8">
         {cats.map(c => (
           <button key={c} onClick={() => setFilter(c)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === c ? 'bg-cyan text-white' : 'bg-border/15 text-text2 hover:bg-border'}`}>
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === c ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
             {c}
           </button>
         ))}
       </div>
       <div className="space-y-3">
         {filtered.map((f, i) => (
-          <details key={i} className="bg-card rounded-lg p-4 shadow-sm border border-card group">
-            <summary className="font-medium text-heading cursor-pointer">
-              <span className="text-xs text-cyan mr-2">[{f.cat}]</span> {f.q}
+          <details key={i} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 group">
+            <summary className="font-medium text-gray-800 cursor-pointer">
+              <span className="text-xs text-primary mr-2">[{f.cat}]</span> {f.q}
             </summary>
-            <p className="mt-3 text-sm text-text2 leading-relaxed pl-8">{f.a}</p>
+            <p className="mt-3 text-sm text-gray-600 leading-relaxed pl-8">{f.a}</p>
           </details>
         ))}
       </div>

@@ -10,18 +10,18 @@ export default function Downloads() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold text-center mb-4">下载中心</h1>
-      <p className="text-center text-text2 mb-12">法律文件、注册模板、指南文档</p>
+      <p className="text-center text-gray-500 mb-12">法律文件、注册模板、指南文档</p>
       <div className="space-y-4">
         {files.map((f, i) => (
-          <div key={i} className="bg-card rounded-lg p-4 shadow-sm border border-card flex items-center justify-between">
+          <div key={i} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 flex items-center justify-between">
             <div>
-              <h3 className="font-medium text-heading">{f.name} {f.soon && <span className="text-xs bg-border/15 text-muted px-2 py-0.5 rounded ml-2">即将上线</span>}</h3>
-              <p className="text-sm text-text2">{f.desc}</p>
+              <h3 className="font-medium text-gray-800">{f.name} {f.soon && <span className="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded ml-2">即将上线</span>}</h3>
+              <p className="text-sm text-gray-500">{f.desc}</p>
             </div>
             {f.soon ? (
-              <span className="text-sm text-muted">Coming Soon</span>
+              <span className="text-sm text-gray-400">Coming Soon</span>
             ) : (
-              <a href={f.path} download className="px-4 py-2 bg-cyan text-white text-sm rounded-lg hover:bg-cyan-light transition-colors">下载</a>
+              <a href={f.path} download className="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary-light transition-colors">下载</a>
             )}
           </div>
         ))}

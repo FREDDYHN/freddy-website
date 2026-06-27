@@ -54,24 +54,24 @@ export default function Login() {
   return (
     <div className="max-w-md mx-auto px-4 py-16">
       <h1 className="text-2xl font-bold text-center mb-8">登录</h1>
-      <form onSubmit={handleSubmit} className="bg-card rounded-xl p-6 shadow-sm border border-card space-y-4">
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-4">
         {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
         <div>
-          <label className="block text-sm font-medium text-text2 mb-1">邮箱</label>
+          <label className="block text-sm font-medium text-gray-600 mb-1">邮箱</label>
           <input type="email" value={email} onChange={e => setEmail(e.target.value)}
             className="w-full border rounded-lg p-2.5 text-sm" placeholder="your@email.com" autoFocus />
         </div>
         <div>
-          <label className="block text-sm font-medium text-text2 mb-1">密码</label>
+          <label className="block text-sm font-medium text-gray-600 mb-1">密码</label>
           <input type="password" value={password} onChange={e => setPassword(e.target.value)}
             className="w-full border rounded-lg p-2.5 text-sm" placeholder="••••••" />
         </div>
         <button type="submit" disabled={loading}
-          className="w-full py-3 bg-cyan text-white rounded-lg font-semibold hover:bg-cyan-light transition-colors disabled:opacity-50">
+          className="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-light transition-colors disabled:opacity-50">
           {loading ? '登录中...' : '登录'}
         </button>
-        <p className="text-center text-sm text-text2">
-          还没有账号？<Link to="/signup" className="text-cyan underline">在线签约</Link> 自动创建
+        <p className="text-center text-sm text-gray-500">
+          还没有账号？<Link to="/signup" className="text-primary underline">在线签约</Link> 自动创建
         </p>
       </form>
     </div>
