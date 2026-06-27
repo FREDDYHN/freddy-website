@@ -399,7 +399,7 @@ export default function SignupFlow() {
       {/* Step (last): Review & Sign */}
       {step === STEPS.length - 1 && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
-          <h2 className="font-bold text-lg">确认并签署</h2>
+          <h2 className="font-bold text-lg">预览合同</h2>
           <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
             <div className="flex justify-between"><span className="text-gray-400">服务</span><span className="font-medium">{cfg.label}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">公司（英文）</span><span className="font-medium text-xs">{form.company_name_en}</span></div>
