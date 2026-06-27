@@ -189,7 +189,7 @@ export default function SignupFlow() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium mb-1 text-gray-500">统一社会信用代码 / 英文+中文</label>
+            <label className="block text-xs font-medium mb-1 text-gray-500">统一社会信用代码 / 税号</label>
             <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={inputCls} placeholder="[falls vorhanden / 如有]" />
           </div>
 
