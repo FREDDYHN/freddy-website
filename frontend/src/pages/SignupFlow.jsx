@@ -409,7 +409,8 @@ export default function SignupFlow() {
             <div className="flex justify-between"><span className="text-gray-400">地址</span><span className="font-medium text-xs">{form.registered_address}</span></div>
             {form.uscc && <div className="flex justify-between"><span className="text-gray-400">信用代码</span><span className="font-medium text-xs">{form.uscc}</span></div>}
             {form.legal_representative && <div className="flex justify-between"><span className="text-gray-400">法定代表人 / 中文</span><span className="font-medium">{form.legal_representative}</span></div>}
-            <div className="flex justify-between"><span className="text-gray-400">联系人</span><span className="font-medium">{form.contact_person}</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">联系人（英文）</span><span className="font-medium text-xs">{form.contact_person_en}</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">联系人（中文）</span><span className="font-medium">{form.contact_person}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">手机</span><span className="font-medium">{form.contact_phone}</span></div>
             <div className="flex justify-between"><span className="text-gray-400">微信</span><span className="font-medium">{form.wechat_id}</span></div>
