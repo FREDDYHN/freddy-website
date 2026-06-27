@@ -302,7 +302,7 @@ export default function SignupFlow() {
           </div>
           <label className="flex items-start gap-2 text-sm cursor-pointer">
             <input type="checkbox" checked={form.agreed} onChange={e => update('agreed', e.target.checked)} className="mt-0.5 shrink-0" />
-            <span>我已阅读并同意 <a href={isPkg ? "/projects/LIVANTO/Bevollmächtigungsvertrag_03.docx" : `/projects/中国主体合同/非德国主体_${isWeee ? 'WEEE' : 'WEEE&电池法'}合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_${isWeee ? 'WEEE' : 'WEEE & Batterien'}.docx`} target="_blank" className="text-primary underline font-medium">{cfg.ctLabel}</a>。德文版具有法律约束力。</span>
+            <span>我已阅读并同意 <a href={isPkg ? "/projects/LIVANTO/VerpackG_Bevollmächtigungsvertrag.docx" : `/projects/中国主体合同/非德国主体_${isWeee ? 'WEEE' : 'WEEE&电池法'}合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_${isWeee ? 'WEEE' : 'WEEE & Batterien'}.docx`} target="_blank" className="text-primary underline font-medium">{cfg.ctLabel}</a>。德文版具有法律约束力。</span>
           </label>
           {fe('agreed')}
           <div><label className="block text-sm font-medium mb-1 text-gray-600">签署人姓名</label><input value={form.signer_name} onChange={e => update('signer_name', e.target.value)} className={`${inputCls} ${errCls('signer_name', errors)}`} placeholder="您的姓名（电子签名）" />{fe('signer_name')}</div>
