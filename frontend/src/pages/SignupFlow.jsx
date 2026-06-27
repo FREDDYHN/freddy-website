@@ -113,7 +113,8 @@ export default function SignupFlow() {
       if (!loginRes.ok) throw new Error(loginData.error || '自动登录失败')
 
       // 3. Store token and redirect to Dashboard
-      localStorage.setItem('token', loginData.token)
+      sessionStorage.setItem('token', loginData.token)
+      sessionStorage.setItem('user', JSON.stringify(loginData.user))
       navigate('/dashboard')
     } catch (e) { alert('创建失败: ' + e.message); setSubmitting(false) }
   }
