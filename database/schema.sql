@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS payments (
     pay_url TEXT,
     status TEXT DEFAULT 'pending',
     paid_at TIMESTAMP,
+    client_notified_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

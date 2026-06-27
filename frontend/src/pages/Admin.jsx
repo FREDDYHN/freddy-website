@@ -59,6 +59,7 @@ export default function Admin() {
         // Map client search results to contract-like shape for unified table display
         setContracts(d.data.map(cl => ({
           id: cl.id,
+          client_id: cl.id,
           company_name: cl.company_name,
           contact_email: cl.contact_email,
           contact_name: cl.contact_name,

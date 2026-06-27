@@ -15,6 +15,7 @@ import uploadsRoutes from './routes/uploads.js'
 import { authMiddleware, adminMiddleware } from './auth.js'
 import { checkReminders } from './services/reminders.js'
 import { generateContract } from './services/contract-gen.js'
+import { markPaid } from './payment.js'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -324,7 +325,8 @@ app.post('/api/payments/notify', authMiddleware, async (req, res) => {
     if (req.user.client_id !== contract.client_id) return res.status(403).json({ error: 'Access denied' })
     if (contract.status !== 'pending_payment') return res.status(400).json({ error: 'Contract is not awaiting payment' })
 
-    // Log the notification — admin will verify bank transfer and confirm via Admin panel
+    // Persist notification in DB for audit trail
+    await db.run("UPDATE payments SET client_notified_at = datetime('now') WHERE contract_id = ? AND status = 'pending'", contract_id)
     console.log(`[server] Client ${req.user.email} reported payment for contract ${contract.contract_number} (id=${contract_id})`)
     res.json({ success: true, message: '已通知管理员，核对到账后将激活合同。' })
   } catch (e) {
@@ -352,26 +354,13 @@ app.post('/api/admin/payments/confirm', authMiddleware, adminMiddleware, async (
 
     if (!payment) return res.status(404).json({ error: 'Payment not found or already processed' })
 
-    await db.run('BEGIN IMMEDIATE')
     try {
-      await db.run("UPDATE payments SET status='paid', paid_at=datetime('now') WHERE id=?", payment.id)
-      if (payment.contract_id) {
-        await db.run("UPDATE contracts SET status='active' WHERE id=? AND status='pending_payment'", payment.contract_id)
-      }
-      // Auto-create invoice if not exists
-      const existingInv = await db.get('SELECT id FROM invoices WHERE payment_id = ?', payment.id)
-      if (!existingInv) {
-        const crypto = await import('crypto')
-        const invNo = 'INV-' + Date.now().toString(36).toUpperCase() + '-' + crypto.randomBytes(2).toString('hex').toUpperCase()
-        await db.run("INSERT INTO invoices (client_id,contract_id,payment_id,invoice_number,amount_eur,status) VALUES (?,?,?,?,?,'issued')",
-          payment.client_id, payment.contract_id, payment.id, invNo, payment.amount_eur)
-      }
-      await db.run('COMMIT')
+      await markPaid(payment.out_trade_no)
       console.log(`[server] Admin confirmed payment: ${payment.out_trade_no}, contract ${payment.contract_id} activated`)
       res.json({ success: true, payment_id: payment.id, contract_activated: true })
     } catch (e) {
-      await db.run('ROLLBACK')
-      throw e
+      console.error('[server] admin payment confirm error:', e)
+      res.status(500).json({ error: e.message })
     }
   } catch (e) {
     console.error('[server] admin payment confirm error:', e)

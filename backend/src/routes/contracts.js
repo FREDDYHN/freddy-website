@@ -141,7 +141,7 @@ router.post('/', async (req, res) => {
     }
 
     // 4. Create payment
-    const payment = await createPayment({ clientId, contractId, tier: contractTier, method: 'wechat' })
+    const payment = await createPayment({ clientId, contractId, tier: contractTier, method: 'wechat', amountEur: annualFee })
 
     // 5. Create user account if password provided (so client can log into Dashboard)
     if (password) {

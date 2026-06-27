@@ -417,7 +417,7 @@ export default function SignupFlow() {
           </div>
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" checked={form.agreed} onChange={e => update('agreed', e.target.checked)} className="mt-0.5" />
-            <span>我已阅读并同意 {cfg.contractLabel}（德文版本具有法律约束力，中文版本仅供参考）。付款后合同生效，授权代表开始履行法定职责。</span>
+            <span>我已阅读并同意 <a href={isPackaging ? "/projects/LIVANTO/Bevollmächtigungsvertrag_03.docx" : isWeee ? "/projects/中国主体合同/非德国主体_WEEE合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_WEEE.docx" : "/projects/中国主体合同/非德国主体_WEEE&电池法合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_WEEE & Batterien.docx"} target="_blank" className="text-primary underline">{cfg.contractLabel}</a>（德文版本具有法律约束力，中文版本仅供参考）。付款后合同生效，授权代表开始履行法定职责。</span>
           </label>
           {fieldError('agreed')}
           <div>
