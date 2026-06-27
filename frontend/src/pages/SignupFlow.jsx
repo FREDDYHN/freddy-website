@@ -84,12 +84,12 @@ export default function SignupFlow() {
   const next = (n) => { if (validate(step)) setStep(n) }
 
   // Packaging
-  const [ni, setNi] = useState({ material: 'plastics', category: 'B2C', kg: '' })
+  const [ni, setNi] = useState({ material: 'plastics', category: 'B2C', kg: '', example: '' })
   const addItem = () => {
     if (!ni.kg || parseFloat(ni.kg) <= 0) { setErrors({ kg: '请输入有效的重量' }); return }
     setErrors({})
-    setForm(f => ({ ...f, packaging_items: [...f.packaging_items, { material: MATERIALS.find(m => m.key === ni.material)?.label || ni.material, material_key: ni.material, category: ni.category, kg: parseFloat(ni.kg) }] }))
-    setNi({ material: 'plastics', category: 'B2C', kg: '' })
+    setForm(f => ({ ...f, packaging_items: [...f.packaging_items, { material: MATERIALS.find(m => m.key === ni.material)?.label || ni.material, material_key: ni.material, category: ni.category, kg: parseFloat(ni.kg), example: ni.example.trim() }] }))
+    setNi({ material: 'plastics', category: 'B2C', kg: '', example: '' })
   }
   const rmItem = (i) => update('packaging_items', form.packaging_items.filter((_, j) => j !== i))
   const toggleCat = (k) => { const c = form.device_categories; update('device_categories', c.includes(k) ? c.filter(x => x !== k) : [...c, k]) }
@@ -99,7 +99,7 @@ export default function SignupFlow() {
     setSubmitting(true)
     try {
       const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: form.legal_representative_en.trim(), contact_person: form.contact_person.trim(), contact_person_en: form.contact_person_en.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
-      if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material, category: p.category, estimated_kg: p.kg }))
+      if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material, category: p.category, estimated_kg: p.kg, example: p.example || '' }))
       else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
       const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const data = await res.json(); if (!res.ok) throw new Error(data.error || '创建合同失败')
@@ -320,9 +320,10 @@ export default function SignupFlow() {
           <h2 className="font-bold text-lg">包装申报</h2>
           <p className="text-sm text-gray-500">添加您在德国市场使用的包装类型，授权代表据此完成双元系统对接。</p>
           <div className="flex flex-wrap gap-2">
-            <select value={ni.material} onChange={e => setNi(n => ({ ...n, material: e.target.value }))} className="border border-gray-200 rounded-md px-3 py-2 text-sm flex-1 min-w-[160px]">{MATERIALS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}</select>
+            <select value={ni.material} onChange={e => setNi(n => ({ ...n, material: e.target.value }))} className="border border-gray-200 rounded-md px-3 py-2 text-sm flex-1 min-w-[140px]">{MATERIALS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}</select>
             <select value={ni.category} onChange={e => setNi(n => ({ ...n, category: e.target.value }))} className="border border-gray-200 rounded-md px-3 py-2 text-sm w-20"><option value="B2C">B2C</option><option value="B2B">B2B</option></select>
-            <input type="number" value={ni.kg} onChange={e => setNi(n => ({ ...n, kg: e.target.value }))} placeholder="kg/年" className={`border border-gray-200 rounded-md px-3 py-2 text-sm w-24 ${errors.kg ? 'border-red-400' : ''}`} />
+            <input type="number" value={ni.kg} onChange={e => setNi(n => ({ ...n, kg: e.target.value }))} placeholder="kg/年" className={`border border-gray-200 rounded-md px-3 py-2 text-sm w-20 ${errors.kg ? 'border-red-400' : ''}`} />
+            <input value={ni.example} onChange={e => setNi(n => ({ ...n, example: e.target.value }))} placeholder="产品举例" className="border border-gray-200 rounded-md px-3 py-2 text-sm w-32" />
             <button onClick={addItem} className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-light">+ 添加</button>
           </div>
           {errors.kg && <p className="text-red-500 text-xs">{errors.kg}</p>}
@@ -330,7 +331,7 @@ export default function SignupFlow() {
             <div className="space-y-2">
               {form.packaging_items.map((item, i) => (
                 <div key={i} className="flex justify-between items-center bg-gray-50 rounded-md px-4 py-2.5 text-sm">
-                  <span>{item.material}</span><span className="text-gray-400 text-xs">{item.category}</span><span className="font-medium">{item.kg} kg</span>
+                  <span>{item.material}</span><span className="text-gray-400 text-xs">{item.category}</span><span className="font-medium">{item.kg} kg</span>{item.example && <span className="text-gray-400 text-xs truncate max-w-[120px]">{item.example}</span>}
                   <button onClick={() => rmItem(i)} className="text-red-400 text-xs hover:text-red-600">删除</button>
                 </div>
               ))}
