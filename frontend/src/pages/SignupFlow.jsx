@@ -235,26 +235,26 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold mb-1 text-gray-500">公司名称 / 英文或拼音 *</label>
-              <input value={form.company_name_en} onChange={e => update('company_name_en', e.target.value)} className={`${inputCls} ${errCls('company_name_en', errors)}`} placeholder="FREDDY (SHANGHAI) INFORMATION CONSULTING LTD." />
-              {fe('company_name_en')}
-            </div>
-            <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">公司名称 / 中文 *</label>
               <input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="福瑞笛（上海）信息咨询有限公司" />
               {fe('company_name')}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">公司名称 / 英文或拼音 *</label>
+              <input value={form.company_name_en} onChange={e => update('company_name_en', e.target.value)} className={`${inputCls} ${errCls('company_name_en', errors)}`} placeholder="FREDDY (SHANGHAI) INFORMATION CONSULTING LTD." />
+              {fe('company_name_en')}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold mb-1 text-gray-500">注册地址 / 英文或拼音</label>
-              <input value={form.registered_address_en || ''} onChange={e => update('registered_address_en', e.target.value)} className={inputCls} placeholder="Room 5808, 58th Floor, Jin Mao Tower, 88 Lujiazui Ring Road, Shanghai, China" />
-            </div>
-            <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">注册地址 / 中文 *</label>
               <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="中国上海市浦东新区陆家嘴环路88号金茂大厦58层5808室" />
               {fe('registered_address')}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">注册地址 / 英文或拼音</label>
+              <input value={form.registered_address_en || ''} onChange={e => update('registered_address_en', e.target.value)} className={inputCls} placeholder="Room 5808, 58th Floor, Jin Mao Tower, 88 Lujiazui Ring Road, Shanghai, China" />
             </div>
           </div>
 
@@ -267,14 +267,14 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 英文 *</label>
-              <input value={form.legal_representative_en} onChange={e => update('legal_representative_en', e.target.value)} className={`${inputCls} ${errCls('legal_representative_en', errors)}`} placeholder="Gong Feng" />
-              {fe('legal_representative_en')}
-            </div>
-            <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 中文 *</label>
               <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={`${inputCls} ${errCls('legal_representative', errors)}`} placeholder="冯巩" />
               {fe('legal_representative')}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 英文 *</label>
+              <input value={form.legal_representative_en} onChange={e => update('legal_representative_en', e.target.value)} className={`${inputCls} ${errCls('legal_representative_en', errors)}`} placeholder="Gong Feng" />
+              {fe('legal_representative_en')}
             </div>
           </div>
 
@@ -282,14 +282,14 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 英文 *</label>
-              <input value={form.contact_person_en} onChange={e => update('contact_person_en', e.target.value)} className={`${inputCls} ${errCls('contact_person_en', errors)}`} placeholder="Changjiang Pan" />
-              {fe('contact_person_en')}
-            </div>
-            <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 中文 *</label>
               <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="潘长江" />
               {fe('contact_person')}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 英文 *</label>
+              <input value={form.contact_person_en} onChange={e => update('contact_person_en', e.target.value)} className={`${inputCls} ${errCls('contact_person_en', errors)}`} placeholder="Changjiang Pan" />
+              {fe('contact_person_en')}
             </div>
           </div>
 
