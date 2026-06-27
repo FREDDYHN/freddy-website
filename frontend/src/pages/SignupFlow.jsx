@@ -218,7 +218,7 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 / 英文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 / 英文或拼音 *</label>
               <input value={form.registered_address_en || ''} onChange={e => update('registered_address_en', e.target.value)} className={inputCls} placeholder="Registered address (EN)" />
             </div>
             <div>
