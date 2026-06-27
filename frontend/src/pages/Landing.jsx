@@ -12,7 +12,25 @@ export default function Landing() {
     <div>
       <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #3d5a48 0%, #527a60 50%, #3d5a48 100%)' }}>
         <h1 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">德国跨境合规 · 一站式解决方案</h1>
-        <p className="text-sm md:text-base max-w-xl mx-auto text-white/70">选择产品，信息填写，合同签订，授权代表全面接手</p>
+        <p className="text-sm md:text-base max-w-xl mx-auto text-white/70 mb-10">选择产品，信息填写，合同签订，授权代表全面接手</p>
+        {/* Flow diagram */}
+        <div className="flex items-center justify-center gap-2 md:gap-4 max-w-2xl mx-auto">
+          {[
+            { icon:'📦', label:'选择产品' },
+            { icon:'📝', label:'信息填写' },
+            { icon:'📄', label:'合同签订' },
+            { icon:'🤝', label:'授权代表全面接手' },
+          ].map((step, i) => (
+            <div key={i} className="flex items-center gap-2 md:gap-4">
+              <div className="flex flex-col items-center gap-1.5">
+                <span className="text-xl md:text-2xl">{step.icon}</span>
+                <div className="w-2 h-2 rounded-full bg-white/60"></div>
+                <span className="text-xs md:text-sm text-white/80 font-medium whitespace-nowrap">{step.label}</span>
+              </div>
+              {i < 3 && <span className="text-white/30 text-lg mb-6">→</span>}
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="py-10 px-4" style={{background:'#f4f2ef'}}>
