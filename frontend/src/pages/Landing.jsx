@@ -18,26 +18,8 @@ export default function Landing() {
         </p>
       </section>
 
-      {/* Service Cards */}
-      <section className="max-w-6xl mx-auto px-4 -mt-8 relative z-10">
-        <div className="grid md:grid-cols-3 gap-6">
-          {services.map(s => (
-            <Link key={s.to} to={s.to} className="block bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
-              <div className={`bg-gradient-to-r ${s.gradient} p-4 text-white`}>
-                <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-lg">{s.title}</h3>
-                  {s.tag && <span className="text-xs bg-white/20 px-2 py-0.5 rounded">{s.tag}</span>}
-                </div>
-                <p className="text-2xl font-bold mt-2">{s.price}</p>
-              </div>
-              <div className="p-4 text-sm text-gray-600 group-hover:text-gray-800">{s.desc}</div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       {/* Progress Flow */}
-      <section className="max-w-4xl mx-auto px-4 py-20">
+      <section className="max-w-4xl mx-auto px-4 pt-20 pb-12">
         <h2 className="text-2xl font-bold text-gray-800 text-center mb-12">四步完成合规，授权代表全程护航</h2>
         <div className="relative">
           {/* Progress bar line */}
@@ -62,6 +44,24 @@ export default function Landing() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Service Cards */}
+      <section className="max-w-6xl mx-auto px-4 pb-20">
+        <div className="grid md:grid-cols-3 gap-6">
+          {services.map(s => (
+            <Link key={s.to} to={s.to} className="block bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
+              <div className={`bg-gradient-to-r ${s.gradient} p-4 text-white`}>
+                <div className="flex justify-between items-start">
+                  <h3 className="font-bold text-lg">{s.title}</h3>
+                  {s.tag && <span className="text-xs bg-white/20 px-2 py-0.5 rounded">{s.tag}</span>}
+                </div>
+                <p className="text-2xl font-bold mt-2">{s.price}</p>
+              </div>
+              <div className="p-4 text-sm text-gray-600 group-hover:text-gray-800">{s.desc}</div>
+            </Link>
+          ))}
         </div>
       </section>
 
