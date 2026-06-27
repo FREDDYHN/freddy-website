@@ -42,6 +42,9 @@ export default function SignupFlow() {
   const urlTier = searchParams.get('tier') || 'basic'
   const [step, setStep] = useState(() => Math.max(1, parseInt(searchParams.get('step')) || 1) - 1)
   const [submitting, setSubmitting] = useState(false)
+  const [previewId, setPreviewId] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState(null)
+  const [previewing, setPreviewing] = useState(false)
   const [result, setResult] = useState(null)
   const [errors, setErrors] = useState({})
   const [bankInfo, setBankInfo] = useState(null)
@@ -97,18 +100,43 @@ export default function SignupFlow() {
   const rmItem = (i) => update('packaging_items', form.packaging_items.filter((_, j) => j !== i))
   const toggleCat = (k) => { const c = form.device_categories; update('device_categories', c.includes(k) ? c.filter(x => x !== k) : [...c, k]) }
 
+  const buildBody = () => {
+    const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: form.legal_representative_en.trim(), contact_person: form.contact_person.trim(), contact_person_en: form.contact_person_en.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
+    if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material, category: p.category, estimated_kg: p.kg, example: p.example || '' }))
+    else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
+    return body
+  }
+
+  const handlePreview = async () => {
+    setPreviewing(true)
+    try {
+      const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildBody()) })
+      const data = await res.json(); if (!res.ok) throw new Error(data.error || '创建合同失败')
+      setPreviewId(data.contract_id)
+      const genRes = await fetch(`/api/contracts/${data.contract_id}/generate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'ar', client_location: 'cn' }) })
+      const genData = await genRes.json(); if (!genRes.ok) throw new Error(genData.error || '生成失败')
+      setPreviewUrl(genData.download_url)
+      window.open(genData.download_url, '_blank')
+    } catch (e) { alert('预览生成失败: ' + e.message) }
+    setPreviewing(false)
+  }
+
   const handleSubmit = async () => {
     if (!validate(STEPS.length - 1)) return
     setSubmitting(true)
     try {
-      const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: form.legal_representative_en.trim(), contact_person: form.contact_person.trim(), contact_person_en: form.contact_person_en.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
-      if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material, category: p.category, estimated_kg: p.kg, example: p.example || '' }))
-      else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
-      const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      const data = await res.json(); if (!res.ok) throw new Error(data.error || '创建合同失败')
-      const sRes = await fetch(`/api/contracts/${data.contract_id}/sign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signer_name: form.signer_name.trim() }) })
+      let contractId = previewId
+      if (!contractId) {
+        const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildBody()) })
+        const data = await res.json(); if (!res.ok) throw new Error(data.error || '创建合同失败')
+        contractId = data.contract_id
+        setResult(data)
+      } else {
+        setResult({ contract_id: contractId })
+      }
+      const sRes = await fetch(`/api/contracts/${contractId}/sign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signer_name: form.signer_name.trim() }) })
       const sData = await sRes.json(); if (!sRes.ok) throw new Error(sData.error || '签名失败')
-      setResult(data); goStep(4)
+      goStep(4)
     } catch (e) { alert('提交失败: ' + e.message) }
     setSubmitting(false)
   }
@@ -419,9 +447,16 @@ export default function SignupFlow() {
             {!isPkg && <div className="flex justify-between"><span className="text-gray-400">品牌数</span><span className="font-medium">{form.brand_count}</span></div>}
             <div className="border-t pt-2 mt-2 flex justify-between font-bold"><span>预估年费</span><span className="text-primary">€{reviewFee}</span></div>
           </div>
+          <div className="flex items-center gap-3 pt-2">
+            <button onClick={handlePreview} disabled={previewing} className="px-4 py-2 border-2 border-primary text-primary rounded-md text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
+              {previewing ? '生成中...' : '📄 生成预览合同'}
+            </button>
+            {previewUrl && <span className="text-xs text-green-600">✅ 预览已生成</span>}
+          </div>
+
           <label className="flex items-start gap-2 text-sm cursor-pointer">
             <input type="checkbox" checked={form.agreed} onChange={e => update('agreed', e.target.checked)} className="mt-0.5 shrink-0" />
-            <span>我已阅读并同意 <a href={isPkg ? "/projects/LIVANTO/VerpackG_Bevollmächtigungsvertrag.docx" : `/projects/中国主体合同/非德国主体_${isWeee ? 'WEEE' : 'WEEE&电池法'}合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_${isWeee ? 'WEEE' : 'WEEE & Batterien'}.docx`} target="_blank" className="text-primary underline font-medium">{cfg.ctLabel}</a>。德文版具有法律约束力。</span>
+            <span>我已阅读并同意预览合同内容。德文版具有法律约束力。</span>
           </label>
           {fe('agreed')}
           <div><label className="block text-sm font-medium mb-1 text-gray-600">签署人姓名</label><input value={form.signer_name} onChange={e => update('signer_name', e.target.value)} className={`${inputCls} ${errCls('signer_name', errors)}`} placeholder="您的姓名（电子签名）" />{fe('signer_name')}</div>
