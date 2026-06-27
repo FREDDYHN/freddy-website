@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useSearchParams, Link } from 'react-router-dom'
 import { PACKAGING_MATERIALS, AR_TIERS, WEEE_PRICES, BATTERY_PRICES, EMAIL_RE, WEEE_STARTING_PRICE, BATTERY_STARTING_PRICE } from '@shared/constants.js'
 
 const MATERIALS = PACKAGING_MATERIALS
@@ -38,7 +38,8 @@ export default function SignupFlow() {
   const cfg = SVC[serviceType]; const STEPS = cfg.steps
   const isPkg = serviceType === 'packaging'; const isWeee = serviceType === 'weee'
 
-  const [step, setStep] = useState(0)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [step, setStep] = useState(() => parseInt(searchParams.get('step')) || 0)
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
   const [errors, setErrors] = useState({})
@@ -81,7 +82,8 @@ export default function SignupFlow() {
     setErrors(e); return Object.keys(e).length === 0
   }
 
-  const next = (n) => { if (validate(step)) setStep(n) }
+  const goStep = (n) => { setStep(n); setSearchParams({ step: String(n) }, { replace: true }) }
+  const next = (n) => { if (validate(step)) goStep(n) }
 
   // Packaging
   const [ni, setNi] = useState({ material: 'plastics', category: 'B2C', kg: '', example: '' })
@@ -338,8 +340,8 @@ export default function SignupFlow() {
             </div>
           )}
           <div className="flex justify-between pt-2">
-            <button onClick={() => setStep(0)} className={btnGhostCls}>← 上一步</button>
-            <button onClick={() => setStep(2)} className={btnCls}>下一步 →</button>
+            <button onClick={() => goStep(0)} className={btnGhostCls}>← 上一步</button>
+            <button onClick={() => goStep(2)} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
@@ -365,8 +367,8 @@ export default function SignupFlow() {
             <div><label className="block text-sm font-medium mb-1 text-gray-600">年份类型</label><select value={form.year_type} onChange={e => update('year_type', e.target.value)} className={inputCls}><option value="first">首年（含一次性费用）</option><option value="renewal">续年</option></select></div>
           </div>
           <div className="flex justify-between pt-2">
-            <button onClick={() => setStep(0)} className={btnGhostCls}>← 上一步</button>
-            <button onClick={() => setStep(2)} disabled={isWeee && form.device_categories.length === 0} className={btnCls}>下一步 →</button>
+            <button onClick={() => goStep(0)} className={btnGhostCls}>← 上一步</button>
+            <button onClick={() => goStep(2)} disabled={isWeee && form.device_categories.length === 0} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
@@ -386,8 +388,8 @@ export default function SignupFlow() {
             ))}
           </div>
           <div className="flex justify-between">
-            <button onClick={() => setStep(1)} className={btnGhostCls}>← 上一步</button>
-            <button onClick={() => setStep(3)} className={btnCls}>下一步 →</button>
+            <button onClick={() => goStep(1)} className={btnGhostCls}>← 上一步</button>
+            <button onClick={() => goStep(3)} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
@@ -408,8 +410,8 @@ export default function SignupFlow() {
           </div>
           <p className="text-xs text-gray-400">* 最终费用以合同为准</p>
           <div className="flex justify-between">
-            <button onClick={() => setStep(1)} className={btnGhostCls}>← 上一步</button>
-            <button onClick={() => setStep(3)} className={btnCls}>下一步 →</button>
+            <button onClick={() => goStep(1)} className={btnGhostCls}>← 上一步</button>
+            <button onClick={() => goStep(3)} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
@@ -442,7 +444,7 @@ export default function SignupFlow() {
           {fe('agreed')}
           <div><label className="block text-sm font-medium mb-1 text-gray-600">签署人姓名</label><input value={form.signer_name} onChange={e => update('signer_name', e.target.value)} className={`${inputCls} ${errCls('signer_name', errors)}`} placeholder="您的姓名（电子签名）" />{fe('signer_name')}</div>
           <div className="flex justify-between pt-2">
-            <button onClick={() => setStep(2)} className={btnGhostCls}>← 上一步</button>
+            <button onClick={() => goStep(2)} className={btnGhostCls}>← 上一步</button>
             <button onClick={handleSubmit} disabled={!form.agreed || !form.signer_name || submitting} className={btnCls}>{submitting ? '提交中...' : '签署并进入支付 →'}</button>
           </div>
         </div>
