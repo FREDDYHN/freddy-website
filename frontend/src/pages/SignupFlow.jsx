@@ -209,11 +209,11 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 / 英文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 *</label>
               <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="Contact person" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 / 中文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 *</label>
               <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="联系人姓名" />
               {fe('contact_person')}
             </div>
@@ -221,11 +221,11 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">手机号 / 英文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">手机号 *</label>
               <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="+86 138xxxx" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">手机号 / 中文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">手机号 *</label>
               <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="手机号码" />
               {fe('contact_phone')}
             </div>
@@ -233,11 +233,11 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">微信号 / 英文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">微信号 *</label>
               <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="WeChat ID" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">微信号 / 中文 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">微信号 *</label>
               <input value={form.wechat_id} onChange={e => update('wechat_id', e.target.value)} className={`${inputCls} ${errCls('wechat_id', errors)}`} placeholder="微信号" />
               {fe('wechat_id')}
             </div>
