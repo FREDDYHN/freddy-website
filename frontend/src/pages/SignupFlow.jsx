@@ -40,7 +40,7 @@ export default function SignupFlow() {
 
   const [searchParams, setSearchParams] = useSearchParams()
   const urlTier = searchParams.get('tier') || 'basic'
-  const [step, setStep] = useState(() => parseInt(searchParams.get('step')) || 0)
+  const [step, setStep] = useState(() => Math.max(1, parseInt(searchParams.get('step')) || 1) - 1)
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
   const [errors, setErrors] = useState({})
@@ -83,7 +83,7 @@ export default function SignupFlow() {
     setErrors(e); return Object.keys(e).length === 0
   }
 
-  const goStep = (n) => { setStep(n); setSearchParams({ step: String(n) }, { replace: true }) }
+  const goStep = (n) => { setStep(n); setSearchParams({ step: String(n + 1) }, { replace: true }) }
   const next = (n) => { if (validate(step)) goStep(n) }
 
   // Packaging
