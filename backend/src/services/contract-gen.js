@@ -113,7 +113,56 @@ export async function generateContract({ type, clientLocation, data }) {
 
   const outName = `${key}_${data.contract_number || Date.now().toString(36)}.docx`
   const outPath = join(outputDir, outName)
-  await writeFile(outPath, doc.getZip().generate({ type: 'nodebuffer' }))
+  const outBuf = doc.getZip().generate({ type: 'nodebuffer' })
+
+  // Post-process: insert packaging data into Anlage B table
+  if (data.packaging_items && Array.isArray(data.packaging_items) && data.packaging_items.length > 0) {
+    const outZip = new PizZip(outBuf)
+    let outXml = outZip.files['word/document.xml'].asText()
+    const items = data.packaging_items.map(p => ({
+      material: p.material_type||p.material||'',
+      category: p.category||'',
+      kg: String(p.estimated_kg||p.kg||''),
+      example: p.example||''
+    }))
+
+    // Find the row that contains the replaced packaging text
+    // docxtemplater replaced {packaging_items} with formatted text — find it
+    const searchText = items[0].material || items[0].material_type || ''
+    const phIdx = outXml.indexOf(searchText)
+    if (phIdx > 0) {
+      // Find the first row BEFORE this text
+      const trStart = outXml.lastIndexOf('<w:tr', phIdx)
+      // Find the END of the last row containing packaging data
+      const lastItem = items[items.length-1]
+      const lastSearch = lastItem.example || lastItem.material || ''
+      const lastIdx = outXml.lastIndexOf(lastSearch)
+      const trEnd = outXml.indexOf('</w:tr>', lastIdx) + '</w:tr>'.length
+
+      // Extract the template cell structure from the first row
+      const firstTrEnd = outXml.indexOf('</w:tr>', phIdx) + '</w:tr>'.length
+      const tplRow = outXml.substring(trStart, firstTrEnd)
+
+      // Build rows: clone the template row for each item, replacing text
+      const rows = items.map(item => {
+        let r = tplRow
+        // Replace first 4 w:t texts with item data
+        let count = 0
+        r = r.replace(/<w:t[^>]*>[^<]*<\/w:t>/g, (match) => {
+          const data = [item.material, item.category, item.kg, item.example]
+          return count < 4 ? '<w:t xml:space=\"preserve\">' + data[count++] + '</w:t>' : match
+        })
+        return r
+      }).join('')
+
+      outXml = outXml.substring(0, trStart) + rows + outXml.substring(trEnd)
+      outZip.file('word/document.xml', outXml)
+    }
+    const finalBuf = outZip.generate({ type: 'nodebuffer', compression: 'DEFLATE' })
+    await writeFile(outPath, finalBuf)
+  } else {
+    await writeFile(outPath, outBuf)
+  }
   console.log(`[contract-gen] Generated: ${outPath}`)
   return outPath
 }
