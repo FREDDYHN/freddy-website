@@ -137,6 +137,9 @@ export async function generateContract({ type, clientLocation, data }) {
         // Header cells: all cells BEFORE dataCellIdx that have blue fill (1A237E)
         const headerCells = cells.slice(0, dataCellIdx).filter(c => c.includes('1A237E'))
 
+        // Confirmation cells: cells AFTER the 4 data cells (dataCellIdx..dataCellIdx+3)
+        const confirmCells = cells.slice(dataCellIdx + 4)
+
         // Extract cell template parts from the data cell
         const dataCellTpl = cells[dataCellIdx]
         const tcPr = (dataCellTpl.match(/<w:tcPr>[\s\S]*?<\/w:tcPr>/) || [''])[0]
@@ -164,10 +167,15 @@ export async function generateContract({ type, clientLocation, data }) {
           return '<w:tr>' + vals.map((v, i) => buildCell(v, colWidths[i])).join('') + '</w:tr>'
         }).join('')
 
-        outXml = outXml.substring(0, trS) + headerRow + dataRows + outXml.substring(trE)
+        // Confirmation row (preserve original "Der Kunde bestätigt..." cells)
+        const confirmRow = confirmCells.length > 0
+          ? '<w:tr>' + confirmCells.join('') + '</w:tr>'
+          : ''
+
+        outXml = outXml.substring(0, trS) + headerRow + dataRows + confirmRow + outXml.substring(trE)
         outZip.file('word/document.xml', outXml)
 
-        console.log(`[contract-gen] Post-processed ${pkgItems.length} Anlage B rows (header preserved)`)
+        console.log(`[contract-gen] Post-processed ${pkgItems.length} Anlage B rows (header + confirm preserved)`)
       }
     }
     await writeFile(outPath, outZip.generate({ type: 'nodebuffer', compression: 'DEFLATE' }))
