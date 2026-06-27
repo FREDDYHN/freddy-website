@@ -255,11 +255,11 @@ export default function SignupFlow() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 英文 *</label>
-              <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="Contact person" />
+              <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="Jeff Chang" />
             </div>
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 中文 *</label>
-              <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="联系人姓名" />
+              <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="张信哲" />
               {fe('contact_person')}
             </div>
           </div>
