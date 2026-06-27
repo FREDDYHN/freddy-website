@@ -12,7 +12,7 @@ export default function Landing() {
     <div>
       <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #3d5a48 0%, #527a60 50%, #3d5a48 100%)' }}>
         <h1 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">德国跨境合规 · 一站式解决方案</h1>
-        <p className="text-sm md:text-base max-w-lg mx-auto text-white/70">包装法 · WEEE 电子电气法 · 电池法 BattG — 德国本土授权代表，从签约到申报全闭环</p>
+        <p className="text-sm md:text-base max-w-xl mx-auto text-white/70">选择产品 → 在线填写信息 → 签订授权代表合同 → 德国授权代表全面接管合规申报</p>
       </section>
 
       <section className="py-10 px-4" style={{background:'#f4f2ef'}}>
