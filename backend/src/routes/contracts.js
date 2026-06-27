@@ -1,16 +1,36 @@
 import { Router } from 'express'
+import bcryptjs from 'bcryptjs'
 import { getDb } from '../db.js'
 import { authMiddleware } from '../auth.js'
 import { createPayment } from '../payment.js'
-import { AR_TIER_FEES_EUR } from '../../../shared/constants.js'
+import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES } from '../../../shared/constants.js'
 
 const router = Router()
 
-// Generate next contract number — uses MAX(id) to avoid COUNT(*) race condition
-async function nextContractNumber(db) {
+// Generate next contract number with service-type prefix
+async function nextContractNumber(db, type) {
   const row = await db.get('SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM contracts')
   const n = String(row.next_id).padStart(4, '0')
-  return 'LTO-AR-' + new Date().getFullYear() + '-' + n
+  const prefix = type === 'weee' ? 'LTO-WEEE-' : type === 'battery' ? 'LTO-BATT-' : 'LTO-AR-'
+  return prefix + new Date().getFullYear() + '-' + n
+}
+
+// Calculate WEEE fee
+function calcWeeeFee(deviceCategories, brandCount, yearType) {
+  const cats = deviceCategories?.length || 1
+  let fee = (WEEE_PRICES.baseFee || 129)
+  if (cats > 1) fee += (cats - 1) * (WEEE_PRICES.extraCategory || 99)
+  if (brandCount > 1) fee += (brandCount - 1) * (WEEE_PRICES.extraBrand || 79.95)
+  if (yearType === 'first') fee += (WEEE_PRICES.authFirstYear || 50.76)
+  return fee
+}
+
+// Calculate Battery fee
+function calcBatteryFee(brandCount, yearType) {
+  let fee = (BATTERY_PRICES.baseFee || 129)
+  if (brandCount > 1) fee += (brandCount - 1) * (BATTERY_PRICES.extraBrand || 49)
+  if (yearType === 'first') fee += (BATTERY_PRICES.authFirstYear || 50.76)
+  return fee
 }
 
 /**
@@ -52,15 +72,33 @@ router.post('/', async (req, res) => {
   const db = await getDb()
   await db.run('BEGIN IMMEDIATE')
   try {
-    const { company_name, contact_name, contact_email, contact_phone, wechat_id,
-            packaging_items, tier } = req.body
+    const { service_type, company_name, contact_name, contact_email, contact_phone, wechat_id,
+            packaging_items, tier, password, device_categories, brand_count, year_type } = req.body
 
     if (!company_name || !contact_name || !contact_email) {
       await db.run('ROLLBACK')
       return res.status(400).json({ error: 'Missing required fields: company_name, contact_name, contact_email' })
     }
 
-    const annualFee = AR_TIER_FEES_EUR[tier] || AR_TIER_FEES_EUR.basic
+    const svcType = service_type || 'packaging'
+    const isPackaging = svcType === 'packaging'
+
+    // Calculate fee based on service type
+    let annualFee
+    let contractTier
+    if (isPackaging) {
+      annualFee = AR_TIER_FEES_EUR[tier] || AR_TIER_FEES_EUR.basic
+      contractTier = tier || 'standard'
+    } else if (svcType === 'weee') {
+      annualFee = calcWeeeFee(device_categories, parseInt(brand_count) || 1, year_type)
+      contractTier = 'weee'
+    } else if (svcType === 'battery') {
+      annualFee = calcBatteryFee(parseInt(brand_count) || 1, year_type)
+      contractTier = 'battery'
+    } else {
+      annualFee = AR_TIER_FEES_EUR.basic
+      contractTier = 'standard'
+    }
 
     // 1. Create or reuse client (by email)
     let clientId
@@ -76,17 +114,17 @@ router.post('/', async (req, res) => {
     }
 
     // 2. Create contract
-    const contractNumber = await nextContractNumber(db)
+    const contractNumber = await nextContractNumber(db, svcType)
     const { startDate, endDate } = contractPeriod()
 
     const contractResult = await db.run(
       'INSERT INTO contracts (client_id, contract_number, tier, annual_fee_eur, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      clientId, contractNumber, tier, annualFee, startDate, endDate, 'pending_payment'
+      clientId, contractNumber, contractTier, annualFee, startDate, endDate, 'pending_payment'
     )
     const contractId = contractResult.lastID
 
-    // 3. Store packaging data
-    if (packaging_items && packaging_items.length > 0) {
+    // 3. Store service-specific data
+    if (isPackaging && packaging_items && packaging_items.length > 0) {
       for (const item of packaging_items) {
         await db.run(
           'INSERT INTO packaging_data (contract_id, declaration_year, material_type, packaging_category, estimated_quantity_kg) VALUES (?, ?, ?, ?, ?)',
@@ -94,9 +132,28 @@ router.post('/', async (req, res) => {
         )
       }
     }
+    // For WEEE/Battery, store as application record for reference
+    if (!isPackaging) {
+      await db.run(
+        "INSERT INTO applications (client_id, type, data_json, status) VALUES (?, ?, ?, 'pending')",
+        clientId, svcType, JSON.stringify({ device_categories, brand_count, year_type, contract_id: contractId })
+      )
+    }
 
     // 4. Create payment
-    const payment = await createPayment({ clientId, contractId, tier, method: 'wechat' })
+    const payment = await createPayment({ clientId, contractId, tier: contractTier, method: 'wechat' })
+
+    // 5. Create user account if password provided (so client can log into Dashboard)
+    if (password) {
+      const existingUser = await db.get('SELECT id FROM users WHERE email = ?', contact_email)
+      if (!existingUser) {
+        const hash = await bcryptjs.hash(password, 10)
+        await db.run(
+          'INSERT INTO users (email, password_hash, role, client_id) VALUES (?, ?, ?, ?)',
+          contact_email, hash, 'client', clientId
+        )
+      }
+    }
 
     await db.run('COMMIT')
 

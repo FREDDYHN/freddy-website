@@ -99,6 +99,42 @@ export default function Admin() {
     } catch (e) { alert('导出失败: ' + e.message) }
   }
 
+  const handleConfirmPayment = async (contractId) => {
+    if (!confirm('确认该客户已完成银行转账付款？合同将自动激活。')) return
+    try {
+      const res = await fetch('/api/admin/payments/confirm', {
+        method: 'POST',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contract_id: contractId }),
+      })
+      const d = await res.json()
+      if (!res.ok) throw new Error(d.error)
+      alert('✅ 付款已确认，合同已激活')
+      loadData(page)
+    } catch (e) { alert('❌ 操作失败: ' + e.message) }
+  }
+
+  const handleAdminUpload = async (contractId, clientId, e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('client_id', clientId)
+      fd.append('contract_id', contractId)
+      fd.append('file_type', 'admin_stamped')
+      const res = await fetch('/api/admin/uploads', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` },
+        body: fd,
+      })
+      const d = await res.json()
+      if (!res.ok) throw new Error(d.error)
+      alert('✅ 盖章合同已上传')
+    } catch (e) { alert('❌ 上传失败: ' + e.message) }
+    e.target.value = ''
+  }
+
   if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
   if (error === 'login_required') return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-bold mb-4">需要管理员登录</h1></div>
   if (error) return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-xl font-bold mb-4 text-red-600">加载失败</h1><p className="text-gray-500 mb-4">{error}</p><button onClick={() => loadData(page)} className="px-4 py-2 border rounded-lg text-sm">重试</button></div>
@@ -159,6 +195,7 @@ export default function Admin() {
                   <th className="p-3 font-medium">套餐</th><th className="p-3 font-medium">年费</th>
                   <th className="p-3 font-medium">状态</th><th className="p-3 font-medium">LUCID</th>
                   <th className="p-3 font-medium">起始</th>
+                  <th className="p-3 font-medium w-40">操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -171,6 +208,28 @@ export default function Admin() {
                     <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded ${c.status === 'active' ? 'bg-green-100 text-green-700' : c.status === 'pending_payment' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'}`}>{c.status}</span></td>
                     <td className="p-3">{c.lucid_confirmed ? '✅' : '⚠️'}</td>
                     <td className="p-3 text-xs text-gray-500">{c.start_date}</td>
+                    <td className="p-3">
+                      <div className="flex flex-col gap-1">
+                        {c.status === 'pending_payment' && (
+                          <button onClick={() => handleConfirmPayment(c.id)}
+                            className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200">
+                            💰 确认收款
+                          </button>
+                        )}
+                        {c.status === 'signed' && (
+                          <button onClick={() => handleConfirmPayment(c.id)}
+                            className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                            ✅ 确认收款
+                          </button>
+                        )}
+                        <label className="text-xs px-2 py-1 border border-gray-300 text-gray-600 rounded cursor-pointer hover:bg-gray-100 text-center">
+                          📤 上传盖章
+                          <input type="file" accept=".pdf,.doc,.docx,.jpg,.png"
+                            onChange={(e) => handleAdminUpload(c.id, c.client_id, e)}
+                            className="hidden" />
+                        </label>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

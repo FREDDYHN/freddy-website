@@ -38,13 +38,15 @@ export default function Dashboard() {
   }, [])
 
   // Generate contract docx
-  const handleGenContract = async (contractId) => {
+  const handleGenContract = async (contractId, contractTier) => {
     setGenerating(contractId)
     setGenMsg('')
     try {
+      // Determine type from contract tier
+      const genType = contractTier === 'weee' ? 'weee' : contractTier === 'battery' ? 'battery' : 'ar'
       const res = await fetch(`/api/contracts/${contractId}/generate`, {
         method: 'POST', headers: { ...authHeaders, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'ar', client_location: 'cn' }),
+        body: JSON.stringify({ type: genType, client_location: 'cn' }),
       })
       const d = await res.json()
       if (!res.ok) throw new Error(d.error)
@@ -151,7 +153,7 @@ export default function Dashboard() {
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
         <h3 className="font-bold mb-4">📄 合同管理</h3>
         <div className="flex flex-wrap gap-3 mb-4">
-          <button onClick={() => handleGenContract(c.id)} disabled={generating === c.id}
+          <button onClick={() => handleGenContract(c.id, c.tier)} disabled={generating === c.id}
             className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium disabled:opacity-50">
             {generating === c.id ? '生成中...' : '📥 生成并下载合同'}
           </button>
@@ -178,6 +180,28 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* I've Paid button */}
+      {c.status === 'pending_payment' && (
+        <div className="bg-yellow-50 rounded-xl p-4 shadow-sm border border-yellow-200 mb-4 text-center">
+          <p className="text-sm text-yellow-700 mb-2">📌 请完成银行转账后点击下方按钮通知管理员确认。</p>
+          <button onClick={async () => {
+            if (!confirm('确认您已完成银行转账？管理员将核对到账后激活合同。')) return
+            try {
+              const res = await fetch('/api/payments/notify', {
+                method: 'POST', headers: { ...authHeaders, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contract_id: c.id }),
+              })
+              const d = await res.json()
+              if (!res.ok) throw new Error(d.error)
+              alert('✅ 已通知管理员，合同激活后将可下载盖章版。')
+              window.location.reload()
+            } catch(e) { alert('❌ 操作失败: ' + e.message) }
+          }} className="px-6 py-2 bg-yellow-500 text-white rounded-lg text-sm font-medium hover:bg-yellow-600">
+            💰 我已完成银行转账
+          </button>
+        </div>
+      )}
 
       {/* Bank Transfer Info */}
       {c.status === 'pending_payment' && bankInfo && (

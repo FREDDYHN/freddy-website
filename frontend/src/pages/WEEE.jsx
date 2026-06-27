@@ -17,8 +17,8 @@ export default function WEEE() {
         <p className="text-lg text-gray-300 mb-2">Elektro- und Elektronikgerätegesetz (ElektroG)</p>
         <p className="text-xl font-bold text-green-300">€{WEEE_STARTING_PRICE}/年起</p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <a href="/apply?type=weee" className="inline-block px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
-            在线申报 WEEE →
+          <a href="/signup?type=weee" className="inline-block px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
+            在线签约 WEEE →
           </a>
           <a href="/calculator" className="inline-block px-6 py-3 border border-white/30 text-white rounded-lg hover:bg-white/10 transition-colors">
             费用计算器 →

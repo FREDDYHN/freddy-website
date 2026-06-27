@@ -1,5 +1,10 @@
 import express from 'express'
 import cors from 'cors'
+import multer from 'multer'
+import { existsSync } from 'fs'
+import { rename } from 'fs/promises'
+import { fileURLToPath } from 'url'
+import { dirname, join as pathJoin } from 'path'
 import { getDb, seedAdmin, closeDb } from './db.js'
 import paymentRoutes from './payment.js'
 import authRoutes from './auth.js'
@@ -40,17 +45,14 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }))
 
 // Serve frontend static build
-import { existsSync } from 'fs'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const rootPath = join(__dirname, '..', '..')
-const distPath = join(rootPath, 'frontend', 'dist')
+const rootPath = pathJoin(__dirname, '..', '..')
+const distPath = pathJoin(rootPath, 'frontend', 'dist')
 app.use(express.static(distPath, { maxAge: '1y', immutable: true }))
 
 // Serve public contract templates + registration form templates
-app.use('/projects', express.static(join(rootPath, 'projects', 'contracts'), { maxAge: '7d' }))
-app.use('/templates', express.static(join(rootPath, 'templates'), { maxAge: '7d' }))
+app.use('/projects', express.static(pathJoin(rootPath, 'projects', 'contracts'), { maxAge: '7d' }))
+app.use('/templates', express.static(pathJoin(rootPath, 'templates'), { maxAge: '7d' }))
 
 // ══════════════════════════════════════════════
 //  API Routes
@@ -74,8 +76,8 @@ app.get('/api/contracts/:id/download', authMiddleware, async (req, res) => {
     if (req.user.role !== 'admin' && contract.client_id !== req.user.client_id) {
       return res.status(403).json({ error: 'Access denied' })
     }
-    const filePath = join(rootPath, 'projects', 'generated', req.query.file || '')
-    if (!filePath.startsWith(join(rootPath, 'projects', 'generated'))) {
+    const filePath = pathJoin(rootPath, 'projects', 'generated', req.query.file || '')
+    if (!filePath.startsWith(pathJoin(rootPath, 'projects', 'generated'))) {
       return res.status(403).json({ error: 'Invalid path' })
     }
     if (!existsSync(filePath)) return res.status(404).json({ error: 'File not found' })
@@ -310,6 +312,97 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
   }
 })
 
+// ── Client: Notify payment (client self-reports bank transfer) ──
+app.post('/api/payments/notify', authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const { contract_id } = req.body
+    if (!contract_id) return res.status(400).json({ error: 'contract_id required' })
+
+    const contract = await db.get('SELECT * FROM contracts WHERE id = ?', contract_id)
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    if (req.user.client_id !== contract.client_id) return res.status(403).json({ error: 'Access denied' })
+    if (contract.status !== 'pending_payment') return res.status(400).json({ error: 'Contract is not awaiting payment' })
+
+    // Log the notification — admin will verify bank transfer and confirm via Admin panel
+    console.log(`[server] Client ${req.user.email} reported payment for contract ${contract.contract_number} (id=${contract_id})`)
+    res.json({ success: true, message: '已通知管理员，核对到账后将激活合同。' })
+  } catch (e) {
+    console.error('[server] payment notify error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ── Admin: Confirm bank transfer payment ──
+app.post('/api/admin/payments/confirm', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const { out_trade_no, contract_id } = req.body
+
+    if (!out_trade_no && !contract_id) {
+      return res.status(400).json({ error: 'out_trade_no or contract_id required' })
+    }
+
+    let payment
+    if (out_trade_no) {
+      payment = await db.get("SELECT * FROM payments WHERE out_trade_no = ? AND status = 'pending'", out_trade_no)
+    } else {
+      payment = await db.get("SELECT * FROM payments WHERE contract_id = ? AND status = 'pending' ORDER BY id DESC LIMIT 1", contract_id)
+    }
+
+    if (!payment) return res.status(404).json({ error: 'Payment not found or already processed' })
+
+    await db.run('BEGIN IMMEDIATE')
+    try {
+      await db.run("UPDATE payments SET status='paid', paid_at=datetime('now') WHERE id=?", payment.id)
+      if (payment.contract_id) {
+        await db.run("UPDATE contracts SET status='active' WHERE id=? AND status='pending_payment'", payment.contract_id)
+      }
+      // Auto-create invoice if not exists
+      const existingInv = await db.get('SELECT id FROM invoices WHERE payment_id = ?', payment.id)
+      if (!existingInv) {
+        const crypto = await import('crypto')
+        const invNo = 'INV-' + Date.now().toString(36).toUpperCase() + '-' + crypto.randomBytes(2).toString('hex').toUpperCase()
+        await db.run("INSERT INTO invoices (client_id,contract_id,payment_id,invoice_number,amount_eur,status) VALUES (?,?,?,?,?,'issued')",
+          payment.client_id, payment.contract_id, payment.id, invNo, payment.amount_eur)
+      }
+      await db.run('COMMIT')
+      console.log(`[server] Admin confirmed payment: ${payment.out_trade_no}, contract ${payment.contract_id} activated`)
+      res.json({ success: true, payment_id: payment.id, contract_activated: true })
+    } catch (e) {
+      await db.run('ROLLBACK')
+      throw e
+    }
+  } catch (e) {
+    console.error('[server] admin payment confirm error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ── Admin: Upload stamped contract for a client ──
+const adminUpload = multer({ dest: pathJoin(rootPath, 'uploads'), limits: { fileSize: 20 * 1024 * 1024 } })
+app.post('/api/admin/uploads', authMiddleware, adminMiddleware, adminUpload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file provided' })
+    const db = await getDb()
+    const { client_id, contract_id, file_type } = req.body
+    if (!client_id) return res.status(400).json({ error: 'client_id required' })
+
+    const safeName = `${Date.now()}-admin-${req.file.originalname.replace(/[^a-zA-Z0-9._\-一-龥]/g, '_')}`
+    const newPath = pathJoin(rootPath, 'uploads', safeName)
+    await rename(req.file.path, newPath)
+
+    await db.run(
+      'INSERT INTO uploads (client_id, contract_id, file_type, original_name, stored_path, file_size, mime_type) VALUES (?,?,?,?,?,?,?)',
+      client_id, contract_id || null, file_type || 'admin_stamped', req.file.originalname, safeName, req.file.size, req.file.mimetype
+    )
+    res.status(201).json({ success: true, file: { original_name: req.file.originalname, stored_path: safeName } })
+  } catch (e) {
+    console.error('[server] admin upload error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // ── Bank Transfer Info (public) ──
 app.get('/api/bank-info', (_req, res) => {
   res.json({
@@ -337,7 +430,7 @@ app.use((err, req, res, _next) => {
 // ══════════════════════════════════════════════
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api/')) {
-    res.sendFile(join(distPath, 'index.html'))
+    res.sendFile(pathJoin(distPath, 'index.html'))
   } else {
     res.status(404).json({ error: 'Not found' })
   }
