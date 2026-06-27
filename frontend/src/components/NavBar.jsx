@@ -17,6 +17,12 @@ function useAuth() {
   } catch { return null }
 }
 
+const navBg = '#1c2a3a'
+const borderColor = '#2a3b50'
+const textColor = '#8899aa'
+const textActive = '#00b4d8'
+const textHover = '#e8edf2'
+
 export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
@@ -28,8 +34,13 @@ export default function NavBar() {
     return location.pathname.startsWith(path)
   }
 
+  const linkClass = (path) =>
+    `px-3 py-2 text-sm rounded-md transition-colors ${
+      isActive(path) ? 'font-medium' : ''
+    }`
+
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200">
+    <header className="sticky top-0 z-50" style={{ background: navBg, borderBottom: `1px solid ${borderColor}` }}>
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center no-underline">
           <img src="/freddy-logo.png" alt="FREDDY 福瑞笛" className="h-8 w-auto" />
@@ -41,29 +52,42 @@ export default function NavBar() {
             <Link
               key={l.to}
               to={l.to}
-              className={`px-3 py-2 text-sm rounded-md transition-colors ${
-                isActive(l.to)
-                  ? 'text-primary font-medium bg-primary/5'
-                  : 'text-gray-600 hover:text-primary hover:bg-gray-50'
-              }`}
+              className={linkClass(l.to)}
+              style={{
+                color: isActive(l.to) ? textActive : textColor,
+                background: isActive(l.to) ? 'rgba(0,180,216,0.1)' : 'transparent',
+              }}
+              onMouseEnter={e => { if (!isActive(l.to)) { e.target.style.color = textHover; e.target.style.background = 'rgba(0,180,216,0.06)' } }}
+              onMouseLeave={e => { e.target.style.color = isActive(l.to) ? textActive : textColor; e.target.style.background = isActive(l.to) ? 'rgba(0,180,216,0.1)' : 'transparent' }}
             >
               {l.label}
             </Link>
           ))}
           {isLoggedIn ? (
             <>
-              <Link to="/dashboard" className="px-3 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 rounded-md">📋 面板</Link>
-              <Link to="/profile" className="px-3 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 rounded-md">👤 账户</Link>
+              <Link to="/dashboard" className="px-3 py-2 text-sm rounded-md transition-colors"
+                style={{ color: textColor }}
+                onMouseEnter={e => { e.target.style.color = textHover }}
+                onMouseLeave={e => { e.target.style.color = textColor }}>
+                📋 面板
+              </Link>
               {user?.role === 'admin' && (
-                <Link to="/admin" className="px-3 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 rounded-md">⚙️ 管理</Link>
+                <Link to="/admin" className="px-3 py-2 text-sm rounded-md transition-colors"
+                  style={{ color: textColor }}
+                  onMouseEnter={e => { e.target.style.color = textHover }}
+                  onMouseLeave={e => { e.target.style.color = textColor }}>
+                  ⚙️ 管理
+                </Link>
               )}
               <Link to="/login" onClick={() => { sessionStorage.clear(); window.dispatchEvent(new Event('auth:expired')) }}
-                className="ml-2 px-4 py-2 text-sm font-medium text-gray-500 border rounded-lg hover:bg-gray-50 transition-colors">
+                className="ml-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+                style={{ color: textColor, border: `1px solid ${borderColor}` }}>
                 退出
               </Link>
             </>
           ) : (
-            <Link to="/login" className="px-3 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 rounded-md">
+            <Link to="/login" className="px-4 py-2 text-sm font-semibold rounded-lg transition-all"
+              style={{ background: textActive, color: '#fff' }}>
               登录
             </Link>
           )}
@@ -71,7 +95,8 @@ export default function NavBar() {
 
         {/* Mobile Hamburger */}
         <button
-          className="md:hidden p-2 text-gray-600"
+          className="md:hidden p-2"
+          style={{ color: textColor }}
           aria-label={menuOpen ? '关闭菜单' : '打开菜单'}
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(o => !o)}
@@ -88,32 +113,30 @@ export default function NavBar() {
 
       {/* Mobile Nav */}
       {menuOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 pb-4">
+        <div className="md:hidden px-4 pb-4" style={{ background: navBg, borderTop: `1px solid ${borderColor}` }}>
           {links.map(l => (
             <Link
               key={l.to}
               to={l.to}
-              className={`block py-2.5 text-sm ${
-                isActive(l.to) ? 'text-primary font-medium' : 'text-gray-600'
-              }`}
+              className="block py-2.5 text-sm"
+              style={{ color: isActive(l.to) ? textActive : textColor }}
               onClick={() => setMenuOpen(false)}
             >
               {l.label}
             </Link>
           ))}
-          <div className="border-t border-gray-100 mt-2 pt-2">
+          <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${borderColor}` }}>
             {isLoggedIn ? (
               <>
-                <Link to="/dashboard" className="block py-2.5 text-sm text-gray-600" onClick={() => setMenuOpen(false)}>📋 我的面板</Link>
-                <Link to="/profile" className="block py-2.5 text-sm text-gray-600" onClick={() => setMenuOpen(false)}>👤 账户管理</Link>
+                <Link to="/dashboard" className="block py-2.5 text-sm" style={{ color: textColor }} onClick={() => setMenuOpen(false)}>📋 我的面板</Link>
                 {user?.role === 'admin' && (
-                  <Link to="/admin" className="block py-2.5 text-sm text-gray-600" onClick={() => setMenuOpen(false)}>⚙️ 管理后台</Link>
+                  <Link to="/admin" className="block py-2.5 text-sm" style={{ color: textColor }} onClick={() => setMenuOpen(false)}>⚙️ 管理后台</Link>
                 )}
                 <Link to="/login" onClick={() => { setMenuOpen(false); sessionStorage.clear(); window.dispatchEvent(new Event('auth:expired')) }}
-                  className="block py-2.5 text-sm text-gray-500">退出登录</Link>
+                  className="block py-2.5 text-sm" style={{ color: textColor }}>退出登录</Link>
               </>
             ) : (
-              <Link to="/login" className="block py-2.5 text-sm text-gray-600" onClick={() => setMenuOpen(false)}>登录</Link>
+              <Link to="/login" className="block py-2.5 text-sm" style={{ color: textActive }} onClick={() => setMenuOpen(false)}>登录</Link>
             )}
           </div>
         </div>

@@ -29,23 +29,23 @@ export default function Calculator() {
       <h1 className="text-3xl font-bold text-center mb-12">费用计算器</h1>
 
       {/* WEEE Calculator */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
+      <div className="bg-card rounded-xl p-6 shadow-sm border border-card mb-8">
         <h2 className="text-xl font-bold mb-6 text-green-700">WEEE 电子电气法</h2>
         <div className="grid md:grid-cols-3 gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">设备类别数量</label>
+            <label className="block text-sm font-medium text-text2 mb-1">设备类别数量</label>
             <select value={weeeCats} onChange={e => setWeeeCats(+e.target.value)} className="w-full border rounded-lg p-2 text-sm">
               {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">品牌数量</label>
+            <label className="block text-sm font-medium text-text2 mb-1">品牌数量</label>
             <select value={weeeBrands} onChange={e => setWeeeBrands(+e.target.value)} className="w-full border rounded-lg p-2 text-sm">
               {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">年份类型</label>
+            <label className="block text-sm font-medium text-text2 mb-1">年份类型</label>
             <select value={weeeYear} onChange={e => setWeeeYear(e.target.value)} className="w-full border rounded-lg p-2 text-sm">
               <option value="first">首年</option>
               <option value="renewal">续年</option>
@@ -53,7 +53,7 @@ export default function Calculator() {
           </div>
         </div>
         <div className="bg-green-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 space-y-1">
+          <div className="text-sm text-text2 space-y-1">
             <div className="flex justify-between"><span>WEEE Return 基本费</span><span>€{Pw.baseFee.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>破产保障费</span><span>€{Pw.insolvencyFee.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>EAR 季度费</span><span>€{Pw.earQuarterly.toFixed(2)}</span></div>
@@ -67,17 +67,17 @@ export default function Calculator() {
       </div>
 
       {/* Battery Calculator */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
+      <div className="bg-card rounded-xl p-6 shadow-sm border border-card mb-8">
         <h2 className="text-xl font-bold mb-6 text-amber-700">电池法 BattG</h2>
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">品牌数量</label>
+            <label className="block text-sm font-medium text-text2 mb-1">品牌数量</label>
             <select value={batBrands} onChange={e => setBatBrands(+e.target.value)} className="w-full border rounded-lg p-2 text-sm">
               {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">年份类型</label>
+            <label className="block text-sm font-medium text-text2 mb-1">年份类型</label>
             <select value={batYear} onChange={e => setBatYear(e.target.value)} className="w-full border rounded-lg p-2 text-sm">
               <option value="first">首年</option>
               <option value="renewal">续年</option>
@@ -85,7 +85,7 @@ export default function Calculator() {
           </div>
         </div>
         <div className="bg-amber-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600 space-y-1">
+          <div className="text-sm text-text2 space-y-1">
             <div className="flex justify-between"><span>德国电池法 BattG 基本费</span><span>€{Pb.baseFee.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>回收系统费</span><span>€{Pb.takebackFee.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>EAR 会员费</span><span>€{Pb.earMembership.toFixed(2)}</span></div>
@@ -99,30 +99,30 @@ export default function Calculator() {
       </div>
 
       {/* Packaging AR */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
-        <h2 className="text-xl font-bold mb-6 text-primary">包装法 AR 授权代表</h2>
-        <p className="text-sm text-gray-500 mb-4">LIVANTO GmbH — 三档服务套餐</p>
+      <div className="bg-card rounded-xl p-6 shadow-sm border border-card mb-8">
+        <h2 className="text-xl font-bold mb-6 text-cyan">包装法 AR 授权代表</h2>
+        <p className="text-sm text-text2 mb-4">LIVANTO GmbH — 三档服务套餐</p>
         <div className="grid grid-cols-3 gap-3 mb-4">
           {Object.values(AR_TIERS).map(t => (
             <label key={t.key}
-              className={`flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-gray-50 ${arTier === t.key ? 'border-primary bg-primary/5' : ''}`}>
+              className={`flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-bg-light ${arTier === t.key ? 'border-cyan bg-cyan/5' : ''}`}>
               <input type="radio" name="arTier" value={t.key} checked={arTier === t.key}
-                onChange={e => setArTier(e.target.value)} className="text-primary" />
+                onChange={e => setArTier(e.target.value)} className="text-cyan" />
               <span className="text-sm">
                 <span className="font-medium">{t.name}</span><br />
-                <span className="text-gray-500">€{t.feeEur}/年</span>
+                <span className="text-text2">€{t.feeEur}/年</span>
               </span>
             </label>
           ))}
         </div>
-        <p className="text-xs text-gray-400">* 双元系统许可费另计，按实际用量过账</p>
+        <p className="text-xs text-muted">* 双元系统许可费另计，按实际用量过账</p>
       </div>
 
       {/* Combined Total */}
-      <div className="bg-primary text-white rounded-xl p-6 shadow-sm text-center">
+      <div className="bg-cyan text-white rounded-xl p-6 shadow-sm text-center">
         <p className="text-sm text-gray-300 mb-1">三项合计 (包装法AR{AR_TIERS[arTier]?.name?.split(' ')[0] || ''} + WEEE + 电池法)</p>
         <p className="text-3xl font-bold">约 €{(arFeeEur + weeeTotal + batTotal).toFixed(2)}/年</p>
-        <p className="text-xs text-gray-400 mt-2">* 包装法AR以所选套餐计，双元系统费另计</p>
+        <p className="text-xs text-muted mt-2">* 包装法AR以所选套餐计，双元系统费另计</p>
       </div>
     </div>
   )

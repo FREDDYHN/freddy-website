@@ -174,7 +174,7 @@ export default function SignupFlow() {
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
         <div className="text-5xl mb-4">✅</div>
         <h1 className="text-2xl font-bold mb-4">签约成功！</h1>
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-left space-y-3 mb-8">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-card text-left space-y-3 mb-8">
           <p><strong>服务类型：</strong>{cfg.label}</p>
           <p><strong>合同编号：</strong>{result.contract_number}</p>
           <p><strong>年费：</strong>€{result.annual_fee_eur}</p>
@@ -189,7 +189,7 @@ export default function SignupFlow() {
         {bankInfo && (
           <div className="bg-blue-50 rounded-xl p-6 text-left mt-6 border border-blue-200">
             <h3 className="font-bold mb-3">💳 付款方式：银行转账</h3>
-            <p className="text-sm text-gray-600 mb-2">请将年费转账至以下账户（支持对公转账）：</p>
+            <p className="text-sm text-text2 mb-2">请将年费转账至以下账户（支持对公转账）：</p>
             <div className="text-sm space-y-1 text-gray-700">
               <p><strong>银行：</strong>{bankInfo.bank_name}</p>
               <p><strong>账户名：</strong>{bankInfo.account_name}</p>
@@ -206,17 +206,17 @@ export default function SignupFlow() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
       <h1 className="text-2xl font-bold text-center mb-2">{cfg.signupCta || `在线签约 — ${cfg.label}`}</h1>
-      <p className="text-center text-gray-500 mb-8">{STEPS.length}步完成，约5分钟</p>
+      <p className="text-center text-text2 mb-8">{STEPS.length}步完成，约5分钟</p>
 
       {/* Stepper */}
       <div className="flex justify-center mb-10">
         {STEPS.map((s, i) => (
           <div key={i} className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${i <= step ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'}`}>{i + 1}</div>
-            <span className={`ml-2 text-sm ${i <= step ? 'text-primary font-medium' : 'text-gray-400'}`}>{s}</span>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${i <= step ? 'bg-cyan text-white' : 'bg-border text-muted'}`}>{i + 1}</div>
+            <span className={`ml-2 text-sm ${i <= step ? 'text-cyan font-medium' : 'text-muted'}`}>{s}</span>
             {i < STEPS.length - 1 && (
-              <div className="w-8 md:w-16 h-0.5 mx-2 bg-gray-200">
-                <div className={`h-full transition-all ${i < step ? 'bg-primary' : ''}`} />
+              <div className="w-8 md:w-16 h-0.5 mx-2 bg-border">
+                <div className={`h-full transition-all ${i < step ? 'bg-cyan' : ''}`} />
               </div>
             )}
           </div>
@@ -225,7 +225,7 @@ export default function SignupFlow() {
 
       {/* Step 0: Company Info (all services) */}
       {step === 0 && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-4">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-card space-y-4">
           <h2 className="text-lg font-bold">公司信息</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
@@ -255,7 +255,7 @@ export default function SignupFlow() {
               <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)}
                 className="w-full border rounded-lg p-2 text-sm" placeholder="签署合同的法定代表" />
             </div>
-            <div className="border-t border-gray-100 md:col-span-2"></div>
+            <div className="border-t border-card md:col-span-2"></div>
             <div>
               <label className="block text-sm font-medium mb-1">联系人 *</label>
               <input value={form.contact_name} onChange={e => update('contact_name', e.target.value)}
@@ -291,16 +291,16 @@ export default function SignupFlow() {
           <div className="flex justify-end pt-4">
             <button onClick={() => nextStep(1)}
               disabled={!form.company_name || !form.registered_address || !form.contact_name || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password}
-              className="px-6 py-2 bg-primary text-white rounded-lg font-medium disabled:opacity-50">下一步 →</button>
+              className="px-6 py-2 bg-cyan text-white rounded-lg font-medium disabled:opacity-50">下一步 →</button>
           </div>
         </div>
       )}
 
       {/* Step 1: Service-specific */}
       {step === 1 && isPackaging && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-4">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-card space-y-4">
           <h2 className="text-lg font-bold">包装申报</h2>
-          <p className="text-sm text-gray-500">请添加您在德国市场使用的所有包装类型。授权代表将据此完成双元系统对接。</p>
+          <p className="text-sm text-text2">请添加您在德国市场使用的所有包装类型。授权代表将据此完成双元系统对接。</p>
           <div className="flex flex-wrap gap-2">
             <select value={newItem.material} onChange={e => setNewItem(n => ({ ...n, material: e.target.value }))}
               className="border rounded-lg p-2 text-sm flex-1 min-w-[200px]">
@@ -312,14 +312,14 @@ export default function SignupFlow() {
             </select>
             <input type="number" value={newItem.kg} onChange={e => setNewItem(n => ({ ...n, kg: e.target.value }))}
               placeholder="公斤/年" className={`border rounded-lg p-2 text-sm w-28 ${errors.kg ? 'border-red-400' : ''}`} />
-            <button onClick={addItem} className="px-4 py-2 bg-primary text-white rounded-lg text-sm">+ 添加</button>
+            <button onClick={addItem} className="px-4 py-2 bg-cyan text-white rounded-lg text-sm">+ 添加</button>
           </div>
           {errors.kg && <p className="text-red-500 text-xs">{errors.kg}</p>}
           {form.packaging_items.length > 0 && (
             <div className="mt-4 space-y-2">
               {form.packaging_items.map((item, i) => (
-                <div key={i} className="flex justify-between items-center bg-gray-50 rounded-lg p-3 text-sm">
-                  <span>{item.material}</span><span className="text-gray-500">{item.category}</span>
+                <div key={i} className="flex justify-between items-center bg-bg-light rounded-lg p-3 text-sm">
+                  <span>{item.material}</span><span className="text-text2">{item.category}</span>
                   <span className="font-medium">{item.kg} kg</span>
                   <button onClick={() => removeItem(i)} className="text-red-500 text-xs">删除</button>
                 </div>
@@ -328,15 +328,15 @@ export default function SignupFlow() {
           )}
           <div className="flex justify-between pt-4">
             <button onClick={() => setStep(0)} className="px-4 py-2 border rounded-lg text-sm">← 上一步</button>
-            <button onClick={() => setStep(2)} className="px-6 py-2 bg-primary text-white rounded-lg font-medium">下一步 →</button>
+            <button onClick={() => setStep(2)} className="px-6 py-2 bg-cyan text-white rounded-lg font-medium">下一步 →</button>
           </div>
         </div>
       )}
 
       {step === 1 && (isWeee || serviceType === 'battery') && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-4">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-card space-y-4">
           <h2 className="text-lg font-bold">产品信息</h2>
-          <p className="text-sm text-gray-500">请提供您计划在德国市场销售的{isWeee ? '电子电气设备' : '电池及含电池产品'}信息。</p>
+          <p className="text-sm text-text2">请提供您计划在德国市场销售的{isWeee ? '电子电气设备' : '电池及含电池产品'}信息。</p>
 
           {isWeee && (
             <div>
@@ -344,12 +344,12 @@ export default function SignupFlow() {
               <div className="grid grid-cols-2 gap-2">
                 {WEEE_CATEGORIES.map(cat => (
                   <button key={cat.key} onClick={() => toggleDeviceCat(cat.key)}
-                    className={`text-left p-2 rounded-lg text-sm border transition-colors ${form.device_categories.includes(cat.key) ? 'border-primary bg-primary/5 text-primary font-medium' : 'border-gray-200 hover:border-gray-300'}`}>
+                    className={`text-left p-2 rounded-lg text-sm border transition-colors ${form.device_categories.includes(cat.key) ? 'border-cyan bg-cyan/5 text-cyan font-medium' : 'border-gray-200 hover:border-gray-300'}`}>
                     {cat.label}
                   </button>
                 ))}
               </div>
-              {form.device_categories.length === 0 && <p className="text-xs text-gray-400 mt-1">请至少选择一种设备类别</p>}
+              {form.device_categories.length === 0 && <p className="text-xs text-muted mt-1">请至少选择一种设备类别</p>}
             </div>
           )}
 
@@ -375,7 +375,7 @@ export default function SignupFlow() {
             <button onClick={() => setStep(0)} className="px-4 py-2 border rounded-lg text-sm">← 上一步</button>
             <button onClick={() => setStep(2)}
               disabled={isWeee && form.device_categories.length === 0}
-              className="px-6 py-2 bg-primary text-white rounded-lg font-medium disabled:opacity-50">下一步 →</button>
+              className="px-6 py-2 bg-cyan text-white rounded-lg font-medium disabled:opacity-50">下一步 →</button>
           </div>
         </div>
       )}
@@ -387,56 +387,56 @@ export default function SignupFlow() {
           <div className="grid md:grid-cols-3 gap-4">
             {AR_TIERS_LIST.map(t => (
               <button key={t.key} onClick={() => update('tier', t.key)}
-                className={`bg-white rounded-xl p-6 text-left border-2 transition-all ${form.tier === t.key ? 'border-primary ring-2 ring-primary/20' : t.color} ${t.featured ? 'relative' : ''}`}>
-                {t.featured && <span className="absolute -top-2 right-2 bg-primary text-white text-xs px-2 py-0.5 rounded-full">推荐</span>}
+                className={`bg-card rounded-xl p-6 text-left border-2 transition-all ${form.tier === t.key ? 'border-cyan ring-2 ring-primary/20' : t.color} ${t.featured ? 'relative' : ''}`}>
+                {t.featured && <span className="absolute -top-2 right-2 bg-cyan text-white text-xs px-2 py-0.5 rounded-full">推荐</span>}
                 <h3 className="font-bold text-lg mb-1">{t.name}</h3>
-                <p className="text-2xl font-bold text-primary mb-3">€{t.price}<span className="text-sm text-gray-400">/年</span></p>
-                <p className="text-xs text-gray-500">{t.desc}</p>
+                <p className="text-2xl font-bold text-cyan mb-3">€{t.price}<span className="text-sm text-muted">/年</span></p>
+                <p className="text-xs text-text2">{t.desc}</p>
               </button>
             ))}
           </div>
           <div className="flex justify-between pt-4">
             <button onClick={() => setStep(1)} className="px-4 py-2 border rounded-lg text-sm">← 上一步</button>
-            <button onClick={() => setStep(3)} className="px-6 py-2 bg-primary text-white rounded-lg font-medium">下一步 →</button>
+            <button onClick={() => setStep(3)} className="px-6 py-2 bg-cyan text-white rounded-lg font-medium">下一步 →</button>
           </div>
         </div>
       )}
 
       {step === 2 && !isPackaging && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-4">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-card space-y-4">
           <h2 className="text-lg font-bold text-center">费用确认</h2>
-          <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
+          <div className="bg-bg-light rounded-lg p-4 text-sm space-y-2">
             {isWeee && <div className="flex justify-between"><span>设备类别</span><span className="font-medium">{form.device_categories.length} 类</span></div>}
             <div className="flex justify-between"><span>品牌数量</span><span className="font-medium">{form.brand_count}</span></div>
             <div className="flex justify-between"><span>年份类型</span><span className="font-medium">{form.year_type === 'first' ? '首年' : '续年'}</span></div>
             <div className="border-t pt-2 mt-2 space-y-1">
               {isWeee && <>
-                <div className="flex justify-between text-xs text-gray-500"><span>基础服务费</span><span>€{WEEE_PRICES.baseFee}</span></div>
-                {form.device_categories.length > 1 && <div className="flex justify-between text-xs text-gray-500"><span>额外类别 (×{form.device_categories.length - 1})</span><span>€{Math.max(0, form.device_categories.length - 1) * (WEEE_PRICES.extraCategory || 99)}</span></div>}
-                {parseInt(form.brand_count) > 1 && <div className="flex justify-between text-xs text-gray-500"><span>额外品牌 (×{parseInt(form.brand_count) - 1})</span><span>€{Math.max(0, parseInt(form.brand_count) - 1) * (WEEE_PRICES.extraBrand || 79.95)}</span></div>}
-                {form.year_type === 'first' && <div className="flex justify-between text-xs text-gray-500"><span>首年授权费</span><span>€{WEEE_PRICES.authFirstYear || 50.76}</span></div>}
+                <div className="flex justify-between text-xs text-text2"><span>基础服务费</span><span>€{WEEE_PRICES.baseFee}</span></div>
+                {form.device_categories.length > 1 && <div className="flex justify-between text-xs text-text2"><span>额外类别 (×{form.device_categories.length - 1})</span><span>€{Math.max(0, form.device_categories.length - 1) * (WEEE_PRICES.extraCategory || 99)}</span></div>}
+                {parseInt(form.brand_count) > 1 && <div className="flex justify-between text-xs text-text2"><span>额外品牌 (×{parseInt(form.brand_count) - 1})</span><span>€{Math.max(0, parseInt(form.brand_count) - 1) * (WEEE_PRICES.extraBrand || 79.95)}</span></div>}
+                {form.year_type === 'first' && <div className="flex justify-between text-xs text-text2"><span>首年授权费</span><span>€{WEEE_PRICES.authFirstYear || 50.76}</span></div>}
               </>}
               {!isWeee && <>
-                <div className="flex justify-between text-xs text-gray-500"><span>基础服务费</span><span>€{BATTERY_PRICES.baseFee}</span></div>
-                {parseInt(form.brand_count) > 1 && <div className="flex justify-between text-xs text-gray-500"><span>额外品牌 (×{parseInt(form.brand_count) - 1})</span><span>€{Math.max(0, parseInt(form.brand_count) - 1) * (BATTERY_PRICES.extraBrand || 49)}</span></div>}
-                {form.year_type === 'first' && <div className="flex justify-between text-xs text-gray-500"><span>首年授权费</span><span>€{BATTERY_PRICES.authFirstYear || 50.76}</span></div>}
+                <div className="flex justify-between text-xs text-text2"><span>基础服务费</span><span>€{BATTERY_PRICES.baseFee}</span></div>
+                {parseInt(form.brand_count) > 1 && <div className="flex justify-between text-xs text-text2"><span>额外品牌 (×{parseInt(form.brand_count) - 1})</span><span>€{Math.max(0, parseInt(form.brand_count) - 1) * (BATTERY_PRICES.extraBrand || 49)}</span></div>}
+                {form.year_type === 'first' && <div className="flex justify-between text-xs text-text2"><span>首年授权费</span><span>€{BATTERY_PRICES.authFirstYear || 50.76}</span></div>}
               </>}
             </div>
-            <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg"><span>预估年费</span><span className="text-primary">€{reviewFee}</span></div>
+            <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg"><span>预估年费</span><span className="text-cyan">€{reviewFee}</span></div>
           </div>
-          <p className="text-xs text-gray-400">* 最终费用以生成的合同为准，包含所有法定费用和授权代表服务费。</p>
+          <p className="text-xs text-muted">* 最终费用以生成的合同为准，包含所有法定费用和授权代表服务费。</p>
           <div className="flex justify-between pt-4">
             <button onClick={() => setStep(1)} className="px-4 py-2 border rounded-lg text-sm">← 上一步</button>
-            <button onClick={() => setStep(3)} className="px-6 py-2 bg-primary text-white rounded-lg font-medium">下一步 →</button>
+            <button onClick={() => setStep(3)} className="px-6 py-2 bg-cyan text-white rounded-lg font-medium">下一步 →</button>
           </div>
         </div>
       )}
 
       {/* Step 3: Review & Sign */}
       {step === 3 && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-4">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-card space-y-4">
           <h2 className="text-lg font-bold">确认并签署</h2>
-          <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
+          <div className="bg-bg-light rounded-lg p-4 text-sm space-y-2">
             <div className="flex justify-between"><span>服务</span><span className="font-medium">{cfg.label}</span></div>
             <div className="flex justify-between"><span>公司（中文）</span><span className="font-medium">{form.company_name}</span></div>
             {form.company_name_en && <div className="flex justify-between"><span>公司（英文）</span><span className="font-medium">{form.company_name_en}</span></div>}
@@ -455,7 +455,7 @@ export default function SignupFlow() {
           </div>
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" checked={form.agreed} onChange={e => update('agreed', e.target.checked)} className="mt-0.5" />
-            <span>我已阅读并同意 <a href={isPackaging ? "/projects/LIVANTO/Bevollmächtigungsvertrag_03.docx" : isWeee ? "/projects/中国主体合同/非德国主体_WEEE合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_WEEE.docx" : "/projects/中国主体合同/非德国主体_WEEE&电池法合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_WEEE & Batterien.docx"} target="_blank" className="text-primary underline">{cfg.contractLabel}</a>（德文版本具有法律约束力，中文版本仅供参考）。付款后合同生效，授权代表开始履行法定职责。</span>
+            <span>我已阅读并同意 <a href={isPackaging ? "/projects/LIVANTO/Bevollmächtigungsvertrag_03.docx" : isWeee ? "/projects/中国主体合同/非德国主体_WEEE合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_WEEE.docx" : "/projects/中国主体合同/非德国主体_WEEE&电池法合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_WEEE & Batterien.docx"} target="_blank" className="text-cyan underline">{cfg.contractLabel}</a>（德文版本具有法律约束力，中文版本仅供参考）。付款后合同生效，授权代表开始履行法定职责。</span>
           </label>
           {fieldError('agreed')}
           <div>
@@ -469,7 +469,7 @@ export default function SignupFlow() {
             <button onClick={() => setStep(2)} className="px-4 py-2 border rounded-lg text-sm">← 上一步</button>
             <button onClick={handleSubmit}
               disabled={!form.agreed || !form.signer_name || submitting}
-              className="px-6 py-2 bg-primary text-white rounded-lg font-medium disabled:opacity-50">
+              className="px-6 py-2 bg-cyan text-white rounded-lg font-medium disabled:opacity-50">
               {submitting ? '提交中...' : '签署并进入支付 →'}
             </button>
           </div>

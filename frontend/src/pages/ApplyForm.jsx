@@ -55,8 +55,8 @@ export default function ApplyForm() {
       <div className="max-w-xl mx-auto px-4 py-16 text-center">
         <div className="text-5xl mb-4">📨</div>
         <h1 className="text-2xl font-bold mb-4">提交成功！</h1>
-        <p className="text-gray-600 mb-2">您的{type === 'weee' ? 'WEEE' : '电池法'}注册申请已收到。</p>
-        <p className="text-sm text-gray-500">我们将在48小时内与您联系，请留意邮箱 {form.contact_email}。</p>
+        <p className="text-text2 mb-2">您的{type === 'weee' ? 'WEEE' : '电池法'}注册申请已收到。</p>
+        <p className="text-sm text-text2">我们将在48小时内与您联系，请留意邮箱 {form.contact_email}。</p>
       </div>
     )
   }
@@ -66,13 +66,13 @@ export default function ApplyForm() {
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
       <h1 className="text-2xl font-bold text-center mb-2">在线申报 — {typeLabel}</h1>
-      <p className="text-center text-gray-500 mb-8">填写以下信息，我们将在48小时内处理您的注册申请</p>
+      <p className="text-center text-text2 mb-8">填写以下信息，我们将在48小时内处理您的注册申请</p>
 
       {/* Type Toggle */}
       <div className="flex justify-center gap-2 mb-8">
         {['weee', 'battery'].map(t => (
           <button key={t} onClick={() => setType(t)}
-            className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${type === t ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${type === t ? 'bg-cyan text-white' : 'bg-border/15 text-text2 hover:bg-border'}`}>
             {t === 'weee' ? 'WEEE 电子电气法' : '电池法 BattG'}
           </button>
         ))}
@@ -80,46 +80,46 @@ export default function ApplyForm() {
 
       {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-4 text-sm">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-4">
+      <form onSubmit={handleSubmit} className="bg-card rounded-xl p-6 shadow-sm border border-card space-y-4">
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">公司名称 *</label>
+            <label className="block text-sm font-medium text-text2 mb-1">公司名称 *</label>
             <input required value={form.company_name} onChange={e => update('company_name', e.target.value)}
               className={`w-full border rounded-lg p-2.5 text-sm ${fieldErrors.company_name ? 'border-red-400' : ''}`} placeholder="您的公司全称" />
             {fieldErrors.company_name && <p className="text-red-500 text-xs mt-0.5">{fieldErrors.company_name}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">联系人 *</label>
+            <label className="block text-sm font-medium text-text2 mb-1">联系人 *</label>
             <input required value={form.contact_name} onChange={e => update('contact_name', e.target.value)}
               className={`w-full border rounded-lg p-2.5 text-sm ${fieldErrors.contact_name ? 'border-red-400' : ''}`} placeholder="姓名" />
             {fieldErrors.contact_name && <p className="text-red-500 text-xs mt-0.5">{fieldErrors.contact_name}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">邮箱 *</label>
+            <label className="block text-sm font-medium text-text2 mb-1">邮箱 *</label>
             <input required type="email" value={form.contact_email} onChange={e => update('contact_email', e.target.value)}
               className={`w-full border rounded-lg p-2.5 text-sm ${fieldErrors.contact_email ? 'border-red-400' : ''}`} placeholder="your@email.com" />
             {fieldErrors.contact_email && <p className="text-red-500 text-xs mt-0.5">{fieldErrors.contact_email}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">电话</label>
+            <label className="block text-sm font-medium text-text2 mb-1">电话</label>
             <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className="w-full border rounded-lg p-2.5 text-sm" placeholder="选填" />
           </div>
           {type === 'weee' && (
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">设备类别数量</label>
+              <label className="block text-sm font-medium text-text2 mb-1">设备类别数量</label>
               <select value={form.device_count} onChange={e => update('device_count', e.target.value)} className="w-full border rounded-lg p-2.5 text-sm">
                 {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">品牌数量</label>
+            <label className="block text-sm font-medium text-text2 mb-1">品牌数量</label>
             <select value={form.brand_count} onChange={e => update('brand_count', e.target.value)} className="w-full border rounded-lg p-2.5 text-sm">
               {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">年份类型</label>
+            <label className="block text-sm font-medium text-text2 mb-1">年份类型</label>
             <select value={form.year_type} onChange={e => update('year_type', e.target.value)} className="w-full border rounded-lg p-2.5 text-sm">
               <option value="first">首年 (含一次性费用)</option>
               <option value="renewal">续年</option>
@@ -127,7 +127,7 @@ export default function ApplyForm() {
           </div>
         </div>
         <button type="submit" disabled={loading}
-          className="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-light transition-colors disabled:opacity-50">
+          className="w-full py-3 bg-cyan text-white rounded-lg font-semibold hover:bg-cyan-light transition-colors disabled:opacity-50">
           {loading ? '提交中...' : '提交申请'}
         </button>
       </form>

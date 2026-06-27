@@ -136,9 +136,9 @@ export default function Admin() {
     e.target.value = ''
   }
 
-  if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
+  if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-border rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-border/15 rounded" />)}</div></div></div>
   if (error === 'login_required') return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-bold mb-4">需要管理员登录</h1></div>
-  if (error) return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-xl font-bold mb-4 text-red-600">加载失败</h1><p className="text-gray-500 mb-4">{error}</p><button onClick={() => loadData(page)} className="px-4 py-2 border rounded-lg text-sm">重试</button></div>
+  if (error) return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-xl font-bold mb-4 text-red-600">加载失败</h1><p className="text-text2 mb-4">{error}</p><button onClick={() => loadData(page)} className="px-4 py-2 border rounded-lg text-sm">重试</button></div>
   if (!stats) return null
 
   return (
@@ -153,31 +153,31 @@ export default function Admin() {
           { label: '待付款', value: stats.pending_payments, warn: stats.pending_payments > 0 },
           { label: '年收入 (€)', value: '€' + (stats.annual_revenue_eur || 0) },
         ].map((s, i) => (
-          <div key={i} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <p className="text-xs text-gray-400 mb-1">{s.label}</p>
-            <p className={`text-2xl font-bold ${s.warn ? 'text-red-600' : 'text-primary'}`}>{s.value}</p>
+          <div key={i} className="bg-card rounded-xl p-5 shadow-sm border border-card">
+            <p className="text-xs text-muted mb-1">{s.label}</p>
+            <p className={`text-2xl font-bold ${s.warn ? 'text-red-600' : 'text-cyan'}`}>{s.value}</p>
           </div>
         ))}
       </div>
 
       {/* Search + Toolbar */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-10">
-        <div className="p-4 border-b border-gray-100">
+      <div className="bg-card rounded-xl shadow-sm border border-card overflow-hidden mb-10">
+        <div className="p-4 border-b border-card">
           <div className="flex flex-wrap gap-3 justify-between items-center">
             <div className="flex gap-2 flex-1 min-w-[300px]">
               <form onSubmit={handleSearch} className="flex gap-2 flex-1">
                 <input value={search} onChange={e => setSearch(e.target.value)}
                   placeholder="搜索客户：公司名 / 联系人 / 邮箱" className="flex-1 border rounded-lg p-2 text-sm" />
-                <button type="submit" className="px-3 py-2 bg-primary text-white rounded-lg text-sm">搜索</button>
+                <button type="submit" className="px-3 py-2 bg-cyan text-white rounded-lg text-sm">搜索</button>
               </form>
               <button onClick={() => { setSearch(''); loadData(1); setPage(1) }}
-                className="px-3 py-2 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">重置</button>
+                className="px-3 py-2 border rounded-lg text-sm text-text2 hover:bg-bg-light">重置</button>
             </div>
             <div className="flex gap-2">
               <button onClick={handleExport} className="px-3 py-2 border border-green-300 text-green-700 rounded-lg text-sm hover:bg-green-50">
                 📥 导出 CSV
               </button>
-              <button onClick={handleTriggerReminders} className="px-3 py-2 bg-primary text-white rounded-lg text-sm">
+              <button onClick={handleTriggerReminders} className="px-3 py-2 bg-cyan text-white rounded-lg text-sm">
                 触发提醒
               </button>
             </div>
@@ -187,10 +187,10 @@ export default function Admin() {
         {/* Contracts Table */}
         <div className="overflow-x-auto">
           {contracts.length === 0 ? (
-            <p className="p-8 text-center text-sm text-gray-400">暂无数据</p>
+            <p className="p-8 text-center text-sm text-muted">暂无数据</p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-left">
+              <thead className="bg-bg-light text-left">
                 <tr>
                   <th className="p-3 font-medium">合同编号</th><th className="p-3 font-medium">公司</th>
                   <th className="p-3 font-medium">套餐</th><th className="p-3 font-medium">年费</th>
@@ -201,14 +201,14 @@ export default function Admin() {
               </thead>
               <tbody>
                 {contracts.map(c => (
-                  <tr key={c.id} className="border-t border-gray-50 hover:bg-gray-50">
+                  <tr key={c.id} className="border-t border-gray-50 hover:bg-bg-light">
                     <td className="p-3 font-mono text-xs">{c.contract_number}</td>
-                    <td className="p-3">{c.company_name}<br /><span className="text-xs text-gray-400">{c.contact_email}</span></td>
-                    <td className="p-3"><span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{c.tier?.toUpperCase()}</span></td>
+                    <td className="p-3">{c.company_name}<br /><span className="text-xs text-muted">{c.contact_email}</span></td>
+                    <td className="p-3"><span className="text-xs bg-border/15 px-2 py-0.5 rounded">{c.tier?.toUpperCase()}</span></td>
                     <td className="p-3">€{c.annual_fee_eur}</td>
-                    <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded ${c.status === 'active' ? 'bg-green-100 text-green-700' : c.status === 'pending_payment' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'}`}>{c.status}</span></td>
+                    <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded ${c.status === 'active' ? 'bg-green-100 text-green-700' : c.status === 'pending_payment' ? 'bg-yellow-100 text-yellow-700' : 'bg-border/15 text-text2'}`}>{c.status}</span></td>
                     <td className="p-3">{c.lucid_confirmed ? '✅' : '⚠️'}</td>
-                    <td className="p-3 text-xs text-gray-500">{c.start_date}</td>
+                    <td className="p-3 text-xs text-text2">{c.start_date}</td>
                     <td className="p-3">
                       <div className="flex flex-col gap-1">
                         {c.status === 'pending_payment' && (
@@ -223,7 +223,7 @@ export default function Admin() {
                             ✅ 确认收款
                           </button>
                         )}
-                        <label className="text-xs px-2 py-1 border border-gray-300 text-gray-600 rounded cursor-pointer hover:bg-gray-100 text-center">
+                        <label className="text-xs px-2 py-1 border border-gray-300 text-text2 rounded cursor-pointer hover:bg-border/15 text-center">
                           📤 上传盖章
                           <input type="file" accept=".pdf,.doc,.docx,.jpg,.png"
                             onChange={(e) => handleAdminUpload(c.id, c.client_id, e)}
@@ -240,8 +240,8 @@ export default function Admin() {
 
         {/* Pagination */}
         {pagination && pagination.totalPages > 1 && (
-          <div className="p-4 border-t border-gray-100 flex justify-between items-center text-sm">
-            <span className="text-gray-500">
+          <div className="p-4 border-t border-card flex justify-between items-center text-sm">
+            <span className="text-text2">
               共 {pagination.total} 条，第 {pagination.page}/{pagination.totalPages} 页
             </span>
             <div className="flex gap-1">
@@ -251,7 +251,7 @@ export default function Admin() {
                 if (p > pagination.totalPages) return null
                 return (
                   <button key={p} onClick={() => { setPage(p); loadData(p) }}
-                    className={`w-8 h-8 rounded text-xs font-medium ${p === pagination.page ? 'bg-primary text-white' : 'border hover:bg-gray-50'}`}>
+                    className={`w-8 h-8 rounded text-xs font-medium ${p === pagination.page ? 'bg-cyan text-white' : 'border hover:bg-bg-light'}`}>
                     {p}
                   </button>
                 )
@@ -262,19 +262,19 @@ export default function Admin() {
       </div>
 
       {/* Reminders */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 border-b border-gray-100"><h2 className="font-bold">已发提醒 ({reminders.length})</h2></div>
+      <div className="bg-card rounded-xl shadow-sm border border-card overflow-hidden">
+        <div className="p-4 border-b border-card"><h2 className="font-bold">已发提醒 ({reminders.length})</h2></div>
         <div className="overflow-x-auto">
-          {reminders.length === 0 ? <p className="p-8 text-center text-sm text-gray-400">暂无提醒记录</p> : (
+          {reminders.length === 0 ? <p className="p-8 text-center text-sm text-muted">暂无提醒记录</p> : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-left"><tr><th className="p-3">合同</th><th className="p-3">类型</th><th className="p-3">截止日期</th><th className="p-3">状态</th></tr></thead>
+              <thead className="bg-bg-light text-left"><tr><th className="p-3">合同</th><th className="p-3">类型</th><th className="p-3">截止日期</th><th className="p-3">状态</th></tr></thead>
               <tbody>
                 {reminders.map(r => (
                   <tr key={r.id} className="border-t border-gray-50">
                     <td className="p-3 font-mono text-xs">{r.contract_number}</td>
                     <td className="p-3">{r.reminder_type === 'reporting' ? '数据申报' : '合同续期'}</td>
                     <td className="p-3">{r.due_date}</td>
-                    <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded ${r.status === 'sent' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{r.status === 'sent' ? '已发送' : r.status}</span></td>
+                    <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded ${r.status === 'sent' ? 'bg-green-100 text-green-700' : 'bg-border/15 text-text2'}`}>{r.status === 'sent' ? '已发送' : r.status}</span></td>
                   </tr>
                 ))}
               </tbody>
