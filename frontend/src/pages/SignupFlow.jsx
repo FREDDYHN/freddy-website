@@ -424,22 +424,22 @@ export default function SignupFlow() {
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           <h2 className="font-bold text-lg">信息确认</h2>
           <div className="bg-gray-50 rounded-lg p-4 text-sm">
-            <div><span className="inline-block w-32 text-gray-400">服务</span><span className="font-medium">{cfg.label}</span></div>
-            <div><span className="inline-block w-32 text-gray-400">公司（英文）</span><span className="font-medium text-xs">{form.company_name_en}</span></div>
-            <div><span className="inline-block w-32 text-gray-400">公司（中文）</span><span className="font-medium">{form.company_name}</span></div>
-            {form.registered_address_en && <div><span className="inline-block w-32 text-gray-400">地址（英文）</span><span className="font-medium text-xs">{form.registered_address_en}</span></div>}
-            <div><span className="inline-block w-32 text-gray-400">地址（中文）</span><span className="font-medium text-xs">{form.registered_address}</span></div>
-            {form.uscc && <div><span className="inline-block w-32 text-gray-400">信用代码</span><span className="font-medium text-xs">{form.uscc}</span></div>}
-            {form.legal_representative_en && <div><span className="inline-block w-32 text-gray-400">法定代表人（拼音）</span><span className="font-medium text-xs">{form.legal_representative_en}</span></div>}
-            <div><span className="inline-block w-32 text-gray-400">法定代表人（中文）</span><span className="font-medium">{form.legal_representative}</span></div>
-            <div><span className="inline-block w-32 text-gray-400">联系人（拼音）</span><span className="font-medium text-xs">{form.contact_person_en}</span></div>
-            <div><span className="inline-block w-32 text-gray-400">联系人（中文）</span><span className="font-medium">{form.contact_person}</span></div>
-            <div><span className="inline-block w-32 text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>
-            <div><span className="inline-block w-32 text-gray-400">手机</span><span className="font-medium">{form.contact_phone}</span></div>
-            <div><span className="inline-block w-32 text-gray-400">微信</span><span className="font-medium">{form.wechat_id}</span></div>
-            {isPkg && <><div><span className="inline-block w-32 text-gray-400">套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div><div><span className="inline-block w-32 text-gray-400">包装类型</span><span className="font-medium">{form.packaging_items.length} 种</span></div></>}
-            {isWeee && <div><span className="inline-block w-32 text-gray-400">设备类别</span><span className="font-medium">{form.device_categories.length} 类</span></div>}
-            {!isPkg && <div><span className="inline-block w-32 text-gray-400">品牌数</span><span className="font-medium">{form.brand_count}</span></div>}
+            <div><span className="inline-block w-40 text-gray-400">服务</span><span className="font-medium">{cfg.label}</span></div>
+            <div><span className="inline-block w-40 text-gray-400">公司（英文）</span><span className="font-medium text-xs">{form.company_name_en}</span></div>
+            <div><span className="inline-block w-40 text-gray-400">公司（中文）</span><span className="font-medium">{form.company_name}</span></div>
+            {form.registered_address_en && <div><span className="inline-block w-40 text-gray-400">地址（英文）</span><span className="font-medium text-xs">{form.registered_address_en}</span></div>}
+            <div><span className="inline-block w-40 text-gray-400">地址（中文）</span><span className="font-medium text-xs">{form.registered_address}</span></div>
+            {form.uscc && <div><span className="inline-block w-40 text-gray-400">信用代码</span><span className="font-medium text-xs">{form.uscc}</span></div>}
+            {form.legal_representative_en && <div><span className="inline-block w-40 text-gray-400">法定代表人（拼音）</span><span className="font-medium text-xs">{form.legal_representative_en}</span></div>}
+            <div><span className="inline-block w-40 text-gray-400">法定代表人（中文）</span><span className="font-medium">{form.legal_representative}</span></div>
+            <div><span className="inline-block w-40 text-gray-400">联系人（拼音）</span><span className="font-medium text-xs">{form.contact_person_en}</span></div>
+            <div><span className="inline-block w-40 text-gray-400">联系人（中文）</span><span className="font-medium">{form.contact_person}</span></div>
+            <div><span className="inline-block w-40 text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>
+            <div><span className="inline-block w-40 text-gray-400">手机</span><span className="font-medium">{form.contact_phone}</span></div>
+            <div><span className="inline-block w-40 text-gray-400">微信</span><span className="font-medium">{form.wechat_id}</span></div>
+            {isPkg && <><div><span className="inline-block w-40 text-gray-400">套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div><div><span className="inline-block w-40 text-gray-400">包装类型</span><span className="font-medium">{form.packaging_items.length} 种</span></div></>}
+            {isWeee && <div><span className="inline-block w-40 text-gray-400">设备类别</span><span className="font-medium">{form.device_categories.length} 类</span></div>}
+            {!isPkg && <div><span className="inline-block w-40 text-gray-400">品牌数</span><span className="font-medium">{form.brand_count}</span></div>}
             <div className="border-t pt-2 mt-2 font-bold"><span>预估年费：</span><span className="text-primary">€{reviewFee}</span></div>
           </div>
           <div className="flex items-center gap-3 pt-2">
