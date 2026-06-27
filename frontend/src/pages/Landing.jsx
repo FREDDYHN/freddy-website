@@ -14,12 +14,13 @@ export default function Landing() {
       <section className="hero-gradient text-white py-20 px-4 text-center">
         <h1 className="text-3xl md:text-5xl font-bold mb-4">德国跨境合规 · 一站式解决方案</h1>
         <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-          LIVANTO GMBH &nbsp;·&nbsp; EKO-PUNKT &nbsp;·&nbsp; WEEE RETURN
+          LIVANTO GMBH &nbsp;·&nbsp; EKO-PUNKT &nbsp;·&nbsp; WEEE RETURN GmbH
         </p>
       </section>
 
       {/* Service Cards */}
       <section className="max-w-6xl mx-auto px-4 -mt-8 relative z-10 pb-4">
+        <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">三大产品</h2>
         <div className="grid md:grid-cols-3 gap-6">
           {services.map(s => (
             <Link key={s.to} to={s.to} className="block bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
@@ -38,7 +39,7 @@ export default function Landing() {
 
       {/* Progress Flow */}
       <section className="max-w-4xl mx-auto px-4 pt-16 pb-20">
-        <h2 className="text-2xl font-bold text-gray-800 text-center mb-12">四步完成合规，授权代表全程护航</h2>
+        <h2 className="text-2xl font-bold text-gray-800 text-center mb-12">四步完成合规，授权全程代表护航</h2>
         <div className="relative">
           {/* Progress bar line */}
           <div className="hidden md:block absolute top-5 left-[12.5%] right-[12.5%] h-0.5 bg-gray-200" />
