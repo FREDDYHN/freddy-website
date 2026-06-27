@@ -209,11 +209,11 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 / 英文 *</label>
               <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="Contact person" />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 *</label>
+              <label className="block text-xs font-medium mb-1 text-gray-500">联系人 / 中文 *</label>
               <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="联系人姓名" />
               {fe('contact_person')}
             </div>
