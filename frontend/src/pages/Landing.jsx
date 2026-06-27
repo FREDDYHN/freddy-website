@@ -14,8 +14,7 @@ export default function Landing() {
       <section className="hero-gradient text-white py-20 px-4 text-center">
         <h1 className="text-3xl md:text-5xl font-bold mb-4">德国跨境合规 · 一站式解决方案</h1>
         <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-          包装法授权代表 · WEEE电子电气法 · 电池法 BattG<br />
-          德国本土授权代表 | LUCID注册 | 双元系统对接 | 中文全程服务
+          LIVANTO GMBH &nbsp;·&nbsp; EKO-PUNKT &nbsp;·&nbsp; WEEE RETURN
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link to="/signup" className="px-6 py-3 bg-accent text-white font-semibold rounded-lg hover:bg-accent-light transition-colors">
