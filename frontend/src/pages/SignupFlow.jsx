@@ -162,8 +162,8 @@ export default function SignupFlow() {
                                 current ? '#ffffff' : '#f4f2ef',
                     border: current ? '2px solid #5a9470' :
                             done ? 'none' : '1px solid #d4cfc8',
-                    boxShadow: done ? '0 0 10px rgba(90,148,112,0.2)' :
-                               current ? '0 0 0 4px rgba(90,148,112,0.08)' : 'none',
+                    boxShadow: done ? '0 0 10px rgba(45,138,78,0.2)' :
+                               current ? '0 0 0 4px rgba(45,138,78,0.08)' : 'none',
                     display:'flex', alignItems:'center', justifyContent:'center',
                     transition:'all 0.4s ease',
                     overflow:'hidden', position:'relative',
@@ -171,13 +171,13 @@ export default function SignupFlow() {
                     {current && (
                       <div style={{
                         position:'absolute', top:0, bottom:0, width:24,
-                        background:'linear-gradient(90deg, transparent 0%, rgba(90,148,112,0.06) 40%, rgba(90,148,112,0.12) 50%, rgba(90,148,112,0.06) 60%, transparent 100%)',
+                        background:'linear-gradient(90deg, transparent 0%, rgba(45,138,78,0.06) 40%, rgba(45,138,78,0.12) 50%, rgba(45,138,78,0.06) 60%, transparent 100%)',
                         animation:'scan 2s ease-in-out infinite',
                       }}/>
                     )}
                     <span style={{
                       fontSize:13, fontWeight:700,
-                      color: #3d5a48' : '#a09a92',
+                      color: done ? '#e8f5e9' : current ? '#3d5a48' : '#a09a92',
                       zIndex:1, transition:'color 0.4s ease',
                     }}>
                       {done ? '✓' : i + 1}
@@ -185,7 +185,7 @@ export default function SignupFlow() {
                   </div>
                   <div style={{
                     marginTop:6, fontSize:12, fontWeight:current ? 600 : 400,
-                    color: #5a9470' : '#a09a92',
+                    color: current ? '#3d5a48' : done ? '#5a9470' : '#a09a92',
                     textAlign:'center', whiteSpace:'nowrap', transition:'color 0.4s ease',
                   }}>
                     {s}
