@@ -16,7 +16,7 @@ export default function Landing() {
           <div className="relative">
             {/* Progress bar line */}
             <div className="hidden md:block absolute top-5 left-[8%] right-[8%] h-0.5 bg-gray-200" />
-            <div className="hidden md:block absolute top-5 left-[8%] h-0.5 bg-primary" style={{ width: '62%' }} />
+            <div className="hidden md:block absolute top-5 left-[8%] right-[8%] h-0.5 bg-gradient-to-r from-primary to-primary/40" />
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-4">
               {[
