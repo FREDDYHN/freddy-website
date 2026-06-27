@@ -47,7 +47,7 @@ export default function SignupFlow() {
   useEffect(() => { fetch('/api/bank-info').then(r => r.json()).then(setBankInfo).catch(() => {}) }, [])
 
   const [form, setForm] = useState({
-    company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '',
+    company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '', legal_representative_en: '',
     contact_person: '', contact_phone: '', wechat_id: '', contact_email: '',
     password: '', packaging_items: [], tier: 'standard',
     device_categories: [], brand_count: '1', year_type: 'first',
@@ -63,6 +63,8 @@ export default function SignupFlow() {
       if (!form.company_name.trim()) e.company_name = '请输入公司名称（中文）'
       if (!form.company_name_en.trim()) e.company_name_en = '请输入公司名称（英/德）'
       if (!form.registered_address.trim()) e.registered_address = '请输入注册地址'
+      if (!form.legal_representative.trim()) e.legal_representative = '请输入法定代表人（中文）'
+      if (!form.legal_representative_en.trim()) e.legal_representative_en = '请输入法定代表人（英文）'
       if (!form.contact_person.trim()) e.contact_person = '请输入联系人'
       if (!form.contact_phone.trim()) e.contact_phone = '请输入手机号'
       if (!form.wechat_id.trim()) e.wechat_id = '请输入微信号'
@@ -94,7 +96,7 @@ export default function SignupFlow() {
     if (!validate(3)) return
     setSubmitting(true)
     try {
-      const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), contact_person: form.contact_person.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
+      const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: form.legal_representative_en.trim(), contact_person: form.contact_person.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
       if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material, category: p.category, estimated_kg: p.kg }))
       else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
       const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -237,12 +239,13 @@ export default function SignupFlow() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 英文</label>
-              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="Legal representative" />
+              <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 英文 *</label>
+              <input value={form.legal_representative_en} onChange={e => update('legal_representative_en', e.target.value)} className={`${inputCls} ${errCls('legal_representative_en', errors)}`} placeholder="Legal representative" />
+              {fe('legal_representative_en')}
             </div>
             <div>
-              <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 中文</label>
-              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={inputCls} placeholder="法定代表人姓名" />
+              <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 中文 *</label>
+              <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={`${inputCls} ${errCls('legal_representative', errors)}`} placeholder="法定代表人姓名" />
               {fe('legal_representative')}
             </div>
           </div>
