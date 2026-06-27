@@ -32,7 +32,6 @@ tar czf "$DEPLOY_TAR" \
   backend/package.json backend/package-lock.json backend/src/ \
   frontend/dist/ \
   database/ \
-  docgen/ \
   templates/ \
   shared/ \
   ecosystem.config.js \
