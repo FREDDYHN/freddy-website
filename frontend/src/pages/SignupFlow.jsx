@@ -206,7 +206,7 @@ export default function SignupFlow() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1 text-gray-500">公司名称 / 英文 *</label>
-              <input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="Company name (DE/EN)" />
+              <input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="FREDDY (SHANGHAI) INFORMATION CONSULTING LTD." />
             </div>
             <div>
               <label className="block text-xs font-medium mb-1 text-gray-500">公司名称 / 中文 *</label>
