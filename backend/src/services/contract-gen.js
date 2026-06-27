@@ -84,7 +84,9 @@ export async function generateContract({ type, clientLocation, data }) {
     device_count: data.device_count || '',
     brand_count: data.brand_count || '',
     device_categories: data.device_categories || '',
-    packaging_items: data.packaging_items || '',
+    packaging_items: Array.isArray(data.packaging_items)
+      ? data.packaging_items.map(p => ({ material: p.material_type || p.material || '', category: p.category || '', kg: p.estimated_kg || p.kg || '', example: p.example || '' }))
+      : (data.packaging_items || ''),
     // Signature
     signer_name: data.signer_name || '',
     signer_title: data.signer_title || '',
