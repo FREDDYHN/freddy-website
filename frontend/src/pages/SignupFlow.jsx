@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useParams, useSearchParams, Link } from 'react-router-dom'
+import { useState } from 'react'
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { PACKAGING_MATERIALS, AR_TIERS, WEEE_PRICES, BATTERY_PRICES, EMAIL_RE, WEEE_STARTING_PRICE, BATTERY_STARTING_PRICE } from '@shared/constants.js'
 
 const MATERIALS = PACKAGING_MATERIALS
@@ -42,21 +42,14 @@ export default function SignupFlow() {
   const urlTier = searchParams.get('tier') || 'basic'
   const [step, setStep] = useState(() => Math.max(1, parseInt(searchParams.get('step')) || 1) - 1)
   const [submitting, setSubmitting] = useState(false)
-  const [previewData, setPreviewData] = useState(null)
-  const [previewUrl, setPreviewUrl] = useState(null)
-  const [previewing, setPreviewing] = useState(false)
-  const [result, setResult] = useState(null)
+  const navigate = useNavigate()
   const [errors, setErrors] = useState({})
-  const [bankInfo, setBankInfo] = useState(null)
-
-  useEffect(() => { fetch('/api/bank-info').then(r => r.json()).then(setBankInfo).catch(() => {}) }, [])
 
   const [form, setForm] = useState({
     company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '', legal_representative_en: '',
     contact_person: '', contact_person_en: '', contact_phone: '', wechat_id: '', contact_email: '',
     password: '', password_confirm: '', packaging_items: [], tier: urlTier,
     device_categories: [], brand_count: '1', year_type: 'first',
-    signer_name: '', agreed: false,
   })
 
   const update = (k, v) => { setForm(f => ({ ...f, [k]: v })); if (errors[k]) setErrors(e => { const n = {...e}; delete n[k]; return n }) }
@@ -78,10 +71,6 @@ export default function SignupFlow() {
       else if (!EMAIL_RE.test(form.contact_email)) e.contact_email = '邮箱格式不正确'
       if (!form.password || form.password.length < 6) e.password = '请设置登录密码（至少6位）'
       if (form.password !== form.password_confirm) e.password_confirm = '两次密码输入不一致'
-    }
-    if (s === STEPS.length - 1) {
-      if (!form.agreed) e.agreed = '请阅读并同意合同条款'
-      if (!form.signer_name.trim()) e.signer_name = '请输入签署人姓名'
     }
     setErrors(e); return Object.keys(e).length === 0
   }
@@ -107,39 +96,15 @@ export default function SignupFlow() {
     return body
   }
 
-  const handlePreview = async () => {
-    setPreviewing(true)
-    try {
-      const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildBody()) })
-      const data = await res.json(); if (!res.ok) throw new Error(data.error || '创建合同失败')
-      setPreviewData(data)
-      if (data.download_url) {
-        setPreviewUrl(data.download_url)
-        window.open(data.download_url, '_blank')
-      }
-    } catch (e) { alert('预览生成失败: ' + e.message) }
-    setPreviewing(false)
-  }
-
-  const handleSubmit = async () => {
+  const handleCreate = async () => {
     if (!validate(STEPS.length - 1)) return
     setSubmitting(true)
     try {
-      let contractId
-      if (previewData) {
-        contractId = previewData.contract_id
-      } else {
-        const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildBody()) })
-        const data = await res.json(); if (!res.ok) throw new Error(data.error || '创建合同失败')
-        contractId = data.contract_id
-        setPreviewData(data)
-      }
-      const sRes = await fetch(`/api/contracts/${contractId}/sign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signer_name: form.signer_name.trim() }) })
-      const sData = await sRes.json(); if (!sRes.ok) throw new Error(sData.error || '签名失败')
-      setResult(previewData || { contract_id: contractId })
-      goStep(4)
-    } catch (e) { alert('提交失败: ' + e.message) }
-    setSubmitting(false)
+      const res = await fetch('/api/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildBody()) })
+      const data = await res.json(); if (!res.ok) throw new Error(data.error || '创建合同失败')
+      // Redirect to login — client completes download/sign/upload in Dashboard
+      navigate(`/login?email=${encodeURIComponent(form.contact_email)}&contract=${data.contract_number || ''}`)
+    } catch (e) { alert('创建失败: ' + e.message); setSubmitting(false) }
   }
 
   const reviewFee = (() => {
@@ -147,29 +112,6 @@ export default function SignupFlow() {
     if (isWeee) { const cats = form.device_categories.length || 1; return WEEE_PRICES.baseFee + Math.max(0, cats - 1) * (WEEE_PRICES.extraCategory || 99) + Math.max(0, (parseInt(form.brand_count) || 1) - 1) * (WEEE_PRICES.extraBrand || 79.95) + (form.year_type === 'first' ? WEEE_PRICES.authFirstYear || 50.76 : 0) }
     return BATTERY_PRICES.baseFee + Math.max(0, (parseInt(form.brand_count) || 1) - 1) * (BATTERY_PRICES.extraBrand || 49) + (form.year_type === 'first' ? BATTERY_PRICES.authFirstYear || 50.76 : 0)
   })()
-
-  if (result) return (
-    <div className="max-w-lg mx-auto px-4 py-16 text-center">
-      <div className="text-5xl mb-4">✅</div>
-      <h1 className="text-2xl font-extrabold mb-2">合同签署成功</h1>
-      <p className="text-sm text-gray-500 mb-6">请登录您的账户下载合同并完成后续流程</p>
-      <div className="bg-white border border-gray-100 rounded-lg p-5 text-left space-y-3 mb-6 text-sm">
-        <div className="flex"><span className="text-gray-400">合同编号</span><span className="font-mono font-medium">{result.contract_number || previewData?.contract_number}</span></div>
-        <div className="flex"><span className="text-gray-400">登录邮箱</span><span className="font-medium">{form.contact_email}</span></div>
-      </div>
-      <Link to={`/login?email=${encodeURIComponent(form.contact_email)}`} className="inline-block px-6 py-3 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary-light">前往登录 →</Link>
-      <div className="mt-8 text-left bg-gray-50 border border-gray-100 rounded-lg p-5 text-sm">
-        <h3 className="font-bold mb-3">📋 后续流程</h3>
-        <ol className="space-y-2 text-gray-600 list-decimal list-inside">
-          <li>登录 Dashboard</li>
-          <li>下载合同并打印</li>
-          <li>签字盖章后上传扫描件</li>
-          <li>收到发票后完成银行转账</li>
-          <li>管理员盖章回传，合同生效</li>
-        </ol>
-      </div>
-    </div>
-  )
 
   return (
     <div className="min-h-screen py-10" style={{background:'#f4f2ef'}}><div className="max-w-4xl mx-auto px-4">
@@ -480,23 +422,10 @@ export default function SignupFlow() {
             {!isPkg && <div><span className="inline-block w-40 text-gray-400">品牌数</span><span className="font-medium">{form.brand_count}</span></div>}
             <div className="border-t pt-2 mt-2 font-bold"><span>预估年费：</span><span className="text-primary">€{reviewFee}</span>{isPkg && <span className="text-gray-400 text-xs font-normal"> + 回收费用（按实际量缴纳）</span>}</div>
           </div>
-          <div className="flex items-center gap-3 pt-2">
-            <button onClick={handlePreview} disabled={previewing || !form.company_name || !form.contact_person || !form.contact_email} className="px-4 py-2 border-2 border-primary text-primary rounded-md text-sm font-semibold hover:bg-primary hover:text-white transition-colors disabled:opacity-40">
-              {previewing ? '生成中...' : '📄 生成预览合同'}
-            </button>
-            {!form.company_name && <span className="text-xs text-red-400">请先填写委托方信息</span>}
-            {previewUrl && <span className="text-xs text-green-600">✅ 预览已生成</span>}
-          </div>
-
-          <label className="flex items-start gap-2 text-sm cursor-pointer">
-            <input type="checkbox" checked={form.agreed} onChange={e => update('agreed', e.target.checked)} className="mt-0.5 shrink-0" />
-            <span>我已阅读并同意预览合同内容。德文版具有法律约束力。</span>
-          </label>
-          {fe('agreed')}
-          <div><label className="block text-sm font-medium mb-1 text-gray-600">签署人姓名</label><input value={form.signer_name} onChange={e => update('signer_name', e.target.value)} className={`${inputCls} ${errCls('signer_name', errors)}`} placeholder="您的姓名（电子签名）" />{fe('signer_name')}</div>
+          <p className="text-xs text-gray-400 pt-2">确认信息无误后，合同将自动生成。您可在登录后的 Dashboard 中下载、签署并上传合同。</p>
           <div className="flex justify-between pt-2">
             <button onClick={() => goStep(step - 1)} className={btnGhostCls}>← 上一步</button>
-            <button onClick={handleSubmit} disabled={!form.agreed || !form.signer_name || submitting} className={btnCls}>{submitting ? '提交中...' : '签署并进入支付 →'}</button>
+            <button onClick={handleCreate} disabled={submitting} className={btnCls}>{submitting ? '创建中...' : '确认无误，创建合同 →'}</button>
           </div>
         </div>
       )}
