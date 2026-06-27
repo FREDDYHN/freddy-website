@@ -12,25 +12,17 @@ export default function Landing() {
     <div>
       <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #3d5a48 0%, #527a60 50%, #3d5a48 100%)' }}>
         <h1 className="text-5xl md:text-6xl font-extrabold mb-10 tracking-tight">德国跨境合规 · 一站式解决方案</h1>
-        {/* Flow diagram — 横条四段 */}
-        <div className="max-w-2xl mx-auto">
-          <div className="grid grid-cols-4 rounded-lg overflow-hidden" style={{border:'1px solid rgba(255,255,255,0.15)'}}>
-            {[
-              { label:'选择产品', sub:'' },
-              { label:'信息填写', sub:'' },
-              { label:'合同签订', sub:'' },
-              { label:'授权代表', sub:'全面接手' },
-            ].map((step, i) => (
-              <div key={i} className="text-center py-3 px-2" style={{
-                background: i === 0 ? 'rgba(255,255,255,0.12)' : 'transparent',
-                borderRight: i < 3 ? '1px solid rgba(255,255,255,0.15)' : 'none',
-              }}>
-                <span className="text-sm md:text-base text-white font-medium">{step.label}</span>
-                {step.sub && <br />}
-                {step.sub && <span className="text-sm md:text-base text-white font-medium">{step.sub}</span>}
-              </div>
-            ))}
-          </div>
+        {/* Flow diagram — 标签链 */}
+        <div className="flex items-center justify-center gap-2 max-w-2xl mx-auto">
+          {['选择产品','信息填写','合同签订','授权代表全面接手'].map((label, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-xs md:text-sm text-white/80 font-medium px-3 py-1.5 rounded-full" style={{
+                background: i === 0 ? 'rgba(255,255,255,0.15)' : 'transparent',
+                border: '1px solid rgba(255,255,255,0.2)',
+              }}>{label}</span>
+              {i < 3 && <span className="text-white/25 text-xs">→</span>}
+            </div>
+          ))}
         </div>
       </section>
 
