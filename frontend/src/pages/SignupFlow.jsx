@@ -219,7 +219,7 @@ export default function SignupFlow() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 / 英文或拼音 *</label>
-              <input value={form.registered_address_en || ''} onChange={e => update('registered_address_en', e.target.value)} className={inputCls} placeholder={`Room 5808, 58th Floor,\nJin Mao Tower, 88 Lujiazui Ring Road,\nPudong New Area, Shanghai, 200120\nChina`} />
+              <input value={form.registered_address_en || ''} onChange={e => update('registered_address_en', e.target.value)} className={inputCls} placeholder="Room 5808, 58th Floor, Jin Mao Tower, 88 Lujiazui Ring Road, Shanghai, China" />
             </div>
             <div>
               <label className="block text-xs font-medium mb-1 text-gray-500">注册地址 / 中文 *</label>
