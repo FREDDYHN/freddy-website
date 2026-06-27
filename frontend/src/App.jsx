@@ -15,6 +15,8 @@ import Admin from './pages/Admin.jsx'
 import ApplyForm from './pages/ApplyForm.jsx'
 import Login from './pages/Login.jsx'
 import Profile from './pages/Profile.jsx'
+import Privacy from './pages/Privacy.jsx'
+import Terms from './pages/Terms.jsx'
 
 export default function App() {
   const nav = useNavigate()
@@ -49,6 +51,8 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/apply" element={<ApplyForm />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
         </Routes>
       </main>
       <Footer />
