@@ -423,7 +423,7 @@ export default function SignupFlow() {
       {step === STEPS.length - 1 && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           <h2 className="font-bold text-lg">信息确认</h2>
-          <div className="bg-gray-50 rounded-lg p-4 text-sm" style={{paddingLeft:'25%'}}>
+          <div className="bg-gray-50 rounded-lg p-4 text-sm">
             <div><span className="inline-block w-32 text-gray-400">服务</span><span className="font-medium">{cfg.label}</span></div>
             <div><span className="inline-block w-32 text-gray-400">公司（英文）</span><span className="font-medium text-xs">{form.company_name_en}</span></div>
             <div><span className="inline-block w-32 text-gray-400">公司（中文）</span><span className="font-medium">{form.company_name}</span></div>
