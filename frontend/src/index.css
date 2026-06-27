@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #3d5a48;
-  --color-primary-light: #527a60;
-  --color-gold: #5a9470;
-  --color-gold-light: #72ad86;
+  --color-primary: #4a5d50;
+  --color-primary-light: #5f7565;
+  --color-gold: #6b8a75;
+  --color-gold-light: #809d8a;
   --color-bg: #f4f2ef;
   --font-sans: 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
 }

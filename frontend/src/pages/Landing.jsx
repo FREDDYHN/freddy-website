@@ -10,7 +10,7 @@ const cards = [
 export default function Landing() {
   return (
     <div>
-      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #3d5a48 0%, #527a60 50%, #3d5a48 100%)' }}>
+      <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #4a5d50 0%, #5f7565 50%, #4a5d50 100%)' }}>
         <h1 className="text-5xl md:text-6xl font-extrabold mb-10 tracking-tight">德国跨境合规 · 一站式解决方案</h1>
         {/* Flow diagram — 线贯穿标签 */}
         <div className="max-w-2xl mx-auto">

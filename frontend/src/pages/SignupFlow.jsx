@@ -158,9 +158,9 @@ export default function SignupFlow() {
                 <div key={i} style={{flex:1, position:'relative'}}>
                   <div style={{
                     height:40, borderRadius:8,
-                    background: done ? 'linear-gradient(135deg, #3d5a48, #5a9470)' :
+                    background: done ? 'linear-gradient(135deg, #4a5d50, #6b8a75)' :
                                 current ? '#ffffff' : '#f4f2ef',
-                    border: current ? '2px solid #5a9470' :
+                    border: current ? '2px solid #6b8a75' :
                             done ? 'none' : '1px solid #d4cfc8',
                     boxShadow: done ? '0 0 10px rgba(45,138,78,0.2)' :
                                current ? '0 0 0 4px rgba(45,138,78,0.08)' : 'none',
@@ -177,7 +177,7 @@ export default function SignupFlow() {
                     )}
                     <span style={{
                       fontSize:13, fontWeight:700,
-                      color: done ? '#e8f5e9' : current ? '#3d5a48' : '#a09a92',
+                      color: done ? '#e8f5e9' : current ? '#4a5d50' : '#a09a92',
                       zIndex:1, transition:'color 0.4s ease',
                     }}>
                       {done ? '✓' : i + 1}
@@ -185,7 +185,7 @@ export default function SignupFlow() {
                   </div>
                   <div style={{
                     marginTop:6, fontSize:12, fontWeight:current ? 600 : 400,
-                    color: current ? '#3d5a48' : done ? '#5a9470' : '#a09a92',
+                    color: current ? '#4a5d50' : done ? '#6b8a75' : '#a09a92',
                     textAlign:'center', whiteSpace:'nowrap', transition:'color 0.4s ease',
                   }}>
                     {s}
