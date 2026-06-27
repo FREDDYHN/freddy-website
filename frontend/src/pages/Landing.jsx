@@ -68,17 +68,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="hero-gradient text-white py-16 px-4 text-center">
-        <div className="inline-block bg-accent/20 text-accent-light text-sm font-bold px-4 py-1.5 rounded-full mb-6">
-          ⚠ 2026年8月12日起强制
-        </div>
-        <h2 className="text-2xl font-bold mb-4">PPWR 法规全面生效</h2>
-        <p className="text-gray-300 mb-8 max-w-xl mx-auto leading-relaxed">所有无德国分支机构的厂商必须在德国指定授权代表。提前准备，避免销售禁令和高额罚款。</p>
-        <Link to="/signup" className="inline-block px-8 py-3 bg-accent text-white font-semibold rounded-lg hover:bg-accent-light transition-colors shadow-lg shadow-accent/20">
-          立即签约包装法 AR →
-        </Link>
-      </section>
     </div>
   )
 }
