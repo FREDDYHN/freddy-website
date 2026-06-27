@@ -15,6 +15,7 @@ export default function Packaging() {
       <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #3d5a48, #527a60, #3d5a48)' }}>
         <h1 className="text-2xl md:text-3xl font-extrabold mb-1">德国包装法 · 本土授权代表</h1>
         <p className="text-sm text-white/60 mb-1">gemäß § 35 Absatz 2 Verpackungsgesetz (VerpackG) / PPWR (EU) 2025/40</p>
+        <p className="text-sm text-white/50">依据《德国包装法》第35条第2款 / 欧盟《包装与包装废弃物法规》(PPWR) 2025/40</p>
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-12">
