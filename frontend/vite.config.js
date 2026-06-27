@@ -13,6 +13,6 @@ export default defineConfig({
       '@shared': resolve(__dirname, '..', 'shared'),
     },
   },
-  server: { port: 2027, proxy: { '/api': 'http://localhost:3002' } },
+  server: { port: 2027, proxy: { '/api': 'http://localhost:3002', '/projects': 'http://localhost:3002', '/templates': 'http://localhost:3002' } },
   build: { outDir: 'dist', assetsDir: 'assets' },
 })

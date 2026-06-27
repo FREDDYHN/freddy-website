@@ -53,6 +53,7 @@ app.use(express.static(distPath, { maxAge: '1y', immutable: true }))
 
 // Serve public contract templates + registration form templates
 app.use('/projects', express.static(pathJoin(rootPath, 'projects', 'contracts'), { maxAge: '7d' }))
+app.use('/projects/generated', express.static(pathJoin(rootPath, 'projects', 'generated'), { maxAge: '1h' }))
 app.use('/templates', express.static(pathJoin(rootPath, 'templates'), { maxAge: '7d' }))
 
 // ══════════════════════════════════════════════
