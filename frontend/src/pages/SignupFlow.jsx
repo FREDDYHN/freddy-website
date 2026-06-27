@@ -22,9 +22,9 @@ const WEEE_CATEGORIES = [
 ]
 
 const SVC = {
-  packaging: { label: '包装法授权代表', steps: ['信息：委托方 / 客户', '包装申报', '套餐选择', '预览签署'], ctLabel: '授权代表合同' },
-  weee: { label: 'WEEE 电子电气法', steps: ['信息：委托方 / 客户', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (WEEE)' },
-  battery: { label: '电池法 BattG', steps: ['信息：委托方 / 客户', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (电池法)' },
+  packaging: { label: '包装法授权代表', steps: ['委托方信息', '包装申报', '套餐选择', '预览签署'], ctLabel: '授权代表合同' },
+  weee: { label: 'WEEE 电子电气法', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (WEEE)' },
+  battery: { label: '电池法 BattG', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (电池法)' },
 }
 
 const inputCls = 'w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-primary'
@@ -200,7 +200,7 @@ export default function SignupFlow() {
       {/* Step 0: §1 Vertragsparteien — Auftraggeber / Kunde */}
       {step === 0 && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
-          <h2 className="font-bold text-lg">信息：委托方 / 客户</h2>
+          <h2 className="font-bold text-lg">委托方信息</h2>
           <p className="text-xs text-gray-400 -mt-2">Auftraggeber / Kunde</p>
 
           <div className="grid grid-cols-2 gap-3">
