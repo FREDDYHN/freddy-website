@@ -118,57 +118,53 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
             return (
               <div key={c.id} className={`border border-gray-100 rounded-lg ${ri % 2 ? 'bg-gray-50/50' : ''}`}>
                 {/* ── Row Summary ── */}
-                <div className="flex items-center gap-4 px-4 py-3 flex-wrap">
-                  <div className="min-w-[140px]">
-                    <p className="text-xs font-semibold text-gray-700 whitespace-nowrap">{c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}</p>
-                    <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors" title="点击复制">{c.contract_number}</button>
-                  </div>
-
-                  {/* AR Fee */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-gray-400">年费</span>
-                    <span className={`text-xs font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur} {isPendingAR ? '待付' : '✓'}</span>
-                    <span className="text-[10px] text-gray-400">{arDeadlineStr}</span>
-                  </div>
-
-                  {/* Packaging fee estimate */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-gray-400">申报费</span>
-                    <span className={`text-xs font-semibold ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
-                      预估€{cost.toFixed(2)} {prepaidPayment?.status === 'paid' ? '✓' : '待缴'}
+                <div className="px-4 py-3">
+                  {/* Line 1: Period + fee summary */}
+                  <div className="flex items-center gap-5 flex-wrap">
+                    <span className="text-xs font-semibold text-gray-700">{c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}</span>
+                    <span className="text-xs text-gray-700">
+                      年费 <span className={`font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
+                      <span className={`font-semibold ml-1 ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>{isPendingAR ? '待付' : '✓'}</span>
                     </span>
-                    <span className="text-[10px] text-gray-400">截止 {reportDeadline}</span>
+                    <span className="text-xs text-gray-700">
+                      申报费 <span className={`font-semibold ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>预估€{cost.toFixed(2)}</span>
+                      <span className={`font-semibold ml-1 ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>{prepaidPayment?.status === 'paid' ? '✓' : '待缴'}</span>
+                    </span>
+                    <span className="text-xs text-gray-700">
+                      年终结算{' '}
+                      {settlementPayment?.status === 'paid' ? (
+                        <span className="font-semibold text-green-600">€{settlementPayment.amount_eur} ✓</span>
+                      ) : (
+                        <span className="text-gray-300">待申报</span>
+                      )}
+                    </span>
+                    <span className="text-xs text-gray-400">截止 {reportDeadline}</span>
                   </div>
 
-                  {/* Year-end settlement */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-gray-400">年终结算</span>
-                    {settlementPayment?.status === 'paid' ? (
-                      <span className="text-xs font-semibold text-green-600">€{settlementPayment.amount_eur} ✓</span>
-                    ) : (
-                      <span className="text-[10px] text-gray-300">待申报</span>
+                  {/* Line 2: Contract number + actions */}
+                  <div className="flex items-center gap-4 mt-1.5 flex-wrap">
+                    <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-xs text-gray-400 hover:text-primary transition-colors" title="点击复制">{c.contract_number}</button>
+
+                    {isPendingAR && (
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
+                          className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
+                          {notifyingId === c.id ? '...' : '通知已转账'}
+                        </button>
+                        <button onClick={() => setExpandedBank(expandedBank === c.id ? null : c.id)}
+                          className="text-[10px] text-primary hover:underline">{expandedBank === c.id ? '▲' : '▼'} 银行信息</button>
+                      </div>
                     )}
+
+                    <button onClick={() => toggleDetail(detailKey)}
+                      className="ml-auto flex items-center gap-1 text-xs text-gray-400 hover:text-primary transition-colors px-2 py-1 rounded hover:bg-gray-100">
+                      明细 <span className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▼</span>
+                    </button>
+
+                    <label className="cursor-pointer text-xs text-gray-400 hover:text-primary transition-colors">
+                      📤 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
+                    </label>
                   </div>
-
-                  {isPendingAR && (
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
-                        className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
-                        {notifyingId === c.id ? '...' : '通知已转账'}
-                      </button>
-                      <button onClick={() => setExpandedBank(expandedBank === c.id ? null : c.id)}
-                        className="text-[10px] text-primary hover:underline">{expandedBank === c.id ? '▲' : '▼'} 银行信息</button>
-                    </div>
-                  )}
-
-                  <button onClick={() => toggleDetail(detailKey)}
-                    className="ml-auto flex items-center gap-1 text-[10px] text-gray-400 hover:text-primary transition-colors px-2 py-1 rounded hover:bg-gray-100">
-                    明细 <span className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▼</span>
-                  </button>
-
-                  <label className="cursor-pointer text-[10px] text-gray-400 hover:text-primary transition-colors">
-                    📤 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
-                  </label>
                 </div>
 
                 {/* Bank info */}
