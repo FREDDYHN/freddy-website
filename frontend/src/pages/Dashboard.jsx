@@ -192,31 +192,25 @@ export default function Dashboard() {
       {/* Zone C — Contract Lifecycle Progress */}
       <ContractProgress contract={c} packaging={data.packaging} />
 
-      {/* Zone D — Action Cards */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* D1: Payment (prioritized when pending) */}
-        <div className={`${c.status === 'pending_payment' ? 'md:order-1' : 'md:order-2'}`}>
-          <PaymentCard
-            contract={c}
-            payments={data.payments}
-            bankInfo={bankInfo}
-            onNotifyPaid={handlePaymentNotify}
-            recyclingFees={data.recycling_fees}
-          />
-        </div>
-        {/* D2: Contract */}
-        <div className="md:order-1">
-          <ContractCard
-            contract={c}
-            uploads={uploads}
-            onGenerate={handleGen}
-            onUpload={handleUpload}
-          />
-        </div>
-      </div>
+      {/* Zone D — Contract Management (full width) */}
+      <ContractCard
+        contract={c}
+        uploads={uploads}
+        onGenerate={handleGen}
+        onUpload={handleUpload}
+      />
 
-      {/* D3: LUCID */}
-      <LucidCard contract={c} onToggle={handleLucidToggle} />
+      {/* Zone D2 — Payment + LUCID */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <PaymentCard
+          contract={c}
+          payments={data.payments}
+          bankInfo={bankInfo}
+          onNotifyPaid={handlePaymentNotify}
+          recyclingFees={data.recycling_fees}
+        />
+        <LucidCard contract={c} onToggle={handleLucidToggle} />
+      </div>
 
       {/* Zone E — Reference Cards */}
       <div className="grid md:grid-cols-2 gap-6">
