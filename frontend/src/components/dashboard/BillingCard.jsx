@@ -97,7 +97,18 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
         <div className="px-3 pb-5 space-y-4">
           {sorted.length === 0 ? (
             <div className="text-center py-8 text-gray-300 text-xs">暂无合同数据</div>
-          ) : sorted.map((c, ri) => {
+          ) : (
+            <>
+            {/* Column Headers */}
+            <div className="flex items-center gap-5 px-4 py-2 text-[10px] text-gray-400 font-medium border-b border-gray-100 flex-wrap">
+              <span className="min-w-[140px]">合同周期 / 合同号</span>
+              <span>年费</span>
+              <span>申报费</span>
+              <span>年终结算</span>
+              <span>截止日期</span>
+              <span className="ml-auto">操作</span>
+            </div>
+            {sorted.map((c, ri) => {
             const pkg = pkgByContract[c.id] || []
             const pays = payByContract[c.id] || []
             const invs = invByContract[c.id] || []
@@ -253,6 +264,8 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
               </div>
             )
           })}
+          </>
+        )}
         </div>
       </div>
 
