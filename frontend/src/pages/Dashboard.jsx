@@ -4,11 +4,10 @@ import { REPORTING_DEADLINE_MONTH, REPORTING_DEADLINE_DAY } from '@shared/consta
 import StatCard from '../components/dashboard/StatCard'
 import ContractProgress from '../components/dashboard/ContractProgress'
 import UrgentAlertBanner from '../components/dashboard/UrgentAlertBanner'
-import PaymentCard from '../components/dashboard/PaymentCard'
+import BillingCard from '../components/dashboard/BillingCard'
 import ContractCard from '../components/dashboard/ContractCard'
 import LucidCard from '../components/dashboard/LucidCard'
 import ClientInfoCard from '../components/dashboard/ClientInfoCard'
-import DeclarationsCard from '../components/dashboard/DeclarationsCard'
 
 const TIER_LABELS = { basic: '基础套餐 / BASIC', standard: '标准套餐 / STANDARD', premium: '高级套餐 / PREMIUM', weee: 'WEEE 合规', battery: '电池法 合规' }
 function tierLabel(t) { return TIER_LABELS[t] || t?.toUpperCase() || '' }
@@ -217,22 +216,22 @@ export default function Dashboard() {
         onUpload={handleUpload}
       />
 
-      {/* Zone D2 — Payment + LUCID */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <PaymentCard
-          contract={c}
-          payments={data.payments}
-          bankInfo={bankInfo}
-          onNotifyPaid={handlePaymentNotify}
-          recyclingFees={data.recycling_fees}
-        />
-        <LucidCard contract={c} onToggle={handleLucidToggle} />
-      </div>
+      {/* Zone D2 — Billing & Declarations (full width) */}
+      <BillingCard
+        contracts={data.contracts}
+        packaging={data.packaging}
+        payments={data.payments}
+        invoices={data.invoices}
+        uploads={uploads}
+        bankInfo={bankInfo}
+        onNotifyPaid={handlePaymentNotify}
+        onUpload={handleUpload}
+      />
 
-      {/* Zone E — Reference Cards */}
+      {/* Zone D3 — LUCID + Client Info */}
       <div className="grid md:grid-cols-2 gap-6">
+        <LucidCard contract={c} onToggle={handleLucidToggle} />
         <ClientInfoCard client={data.client} />
-        <DeclarationsCard packaging={data.packaging} invoices={data.invoices} />
       </div>
     </div>
   )
