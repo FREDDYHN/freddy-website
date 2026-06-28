@@ -83,7 +83,9 @@ export default function SignupFlow() {
   const addItem = () => {
     if (!ni.kg || parseFloat(ni.kg) <= 0) { setErrors({ kg: '请输入有效的重量' }); return }
     setErrors({})
-    setForm(f => ({ ...f, packaging_items: [...f.packaging_items, { material: MATERIALS.find(m => m.key === ni.material)?.label || ni.material, material_key: ni.material, category: ni.category, kg: parseFloat(ni.kg), example: ni.example.trim() }] }))
+    const newItem = { material: MATERIALS.find(m => m.key === ni.material)?.label || ni.material, material_key: ni.material, category: ni.category, kg: parseFloat(ni.kg), example: ni.example.trim() }
+    // Capture ni values before async state update, then reset both atomically
+    setForm(f => ({ ...f, packaging_items: [...f.packaging_items, newItem] }))
     setNi({ material: 'plastics', category: 'B2C', kg: '', example: '' })
   }
   const rmItem = (i) => update('packaging_items', form.packaging_items.filter((_, j) => j !== i))
