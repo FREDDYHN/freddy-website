@@ -100,9 +100,9 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
           ) : (
             <>
             {/* Column Headers */}
-            <div className="grid px-4 py-2 text-xs text-gray-500 font-bold border-b border-gray-200" style={{gridTemplateColumns:'180px 120px 160px 140px 110px 1fr'}}>
+            <div className="grid px-4 py-2 text-xs text-gray-500 font-bold border-b border-gray-200" style={{gridTemplateColumns:'180px 140px 160px 140px 110px 1fr'}}>
               <span>合同周期 / 合同号</span>
-              <span>年费</span>
+              <span>授权代表年费</span>
               <span>申报费</span>
               <span>年终结算</span>
               <span>截止日期</span>
@@ -133,7 +133,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                 {/* ── Row Summary ── */}
                 <div className="px-4 py-3">
                   {/* Line 1: Grid aligned with headers */}
-                  <div className="grid items-center" style={{gridTemplateColumns:'180px 120px 160px 140px 110px 1fr'}}>
+                  <div className="grid items-center" style={{gridTemplateColumns:'180px 140px 160px 140px 110px 1fr'}}>
                     <span className="text-xs font-semibold text-gray-700">{c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}</span>
                     <span className="text-xs text-gray-700">
                       <span className={`font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
@@ -163,7 +163,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                   </div>
 
                   {/* Line 2: Contract number + actions */}
-                  <div className="grid items-center mt-1" style={{gridTemplateColumns:'180px 120px 160px 140px 110px 1fr'}}>
+                  <div className="grid items-center mt-1" style={{gridTemplateColumns:'180px 140px 160px 140px 110px 1fr'}}>
                     <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors text-left" title="点击复制">{c.contract_number}</button>
                     <span></span><span></span><span></span><span></span>
                     <div className="flex items-center gap-2">
