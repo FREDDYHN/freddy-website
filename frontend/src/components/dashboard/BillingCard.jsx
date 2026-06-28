@@ -1,76 +1,57 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { PACKAGING_MATERIALS } from '@shared/constants.js'
 
 const MAT_NAME = Object.fromEntries(PACKAGING_MATERIALS.map(m => [m.key, m.label]))
+const MAT_RATE = Object.fromEntries(PACKAGING_MATERIALS.map(m => [m.key, { min: m.min, max: m.max }]))
 
-function estimateRecycling(items) {
+function matCost(materialKey, kg) {
+  const rate = MAT_RATE[materialKey]
+  if (!rate || !kg) return null
+  return { min: Math.round(rate.min * kg), max: Math.round(rate.max * kg) }
+}
+
+function totalCost(items) {
   if (!items || items.length === 0) return { min: 0, max: 0 }
   let min = 0, max = 0
   for (const item of items) {
-    const mat = PACKAGING_MATERIALS.find(m => m.key === (item.material_type || item.material_key))
+    const mk = item.material_type || item.material_key
     const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0
-    if (mat) { min += mat.min * kg; max += mat.max * kg }
+    const c = matCost(mk, kg)
+    if (c) { min += c.min; max += c.max }
   }
-  return { min: Math.round(min), max: Math.round(max) }
-}
-
-function pkgSummary(items) {
-  if (!items || items.length === 0) return '—'
-  const first = items.slice(0, 3).map(i => `${MAT_NAME[i.material_type || i.material_key] || i.material || '?'} ${i.packaging_category || i.category || ''} ${i.estimated_quantity_kg || i.kg || 0}kg`).join(' · ')
-  return items.length > 3 ? `${first} 等${items.length}项` : first
+  return { min, max }
 }
 
 export default function BillingCard({ contracts, packaging, payments, invoices, uploads, bankInfo, onNotifyPaid, onUpload }) {
   const [collapsed, setCollapsed] = useState(false)
   const [notifyingId, setNotifyingId] = useState(null)
   const [expandedBank, setExpandedBank] = useState(null)
-  const fileRef = useRef(null)
+  const [expandedDetail, setExpandedDetail] = useState({}) // { 'pkg_1': true, 'rec_1': true, 'settle_1': true }
   const [uploadingCid, setUploadingCid] = useState(null)
 
   const bank = bankInfo || {}
 
+  const toggleDetail = (key) => setExpandedDetail(p => ({ ...p, [key]: !p[key] }))
+
   // ── Group data by contract_id ──
   const pkgByContract = {}
   ;(packaging || []).forEach(p => { const cid = p.contract_id; if (!pkgByContract[cid]) pkgByContract[cid] = []; pkgByContract[cid].push(p) })
-
   const payByContract = {}
   ;(payments || []).forEach(p => { const cid = p.contract_id; if (!payByContract[cid]) payByContract[cid] = []; payByContract[cid].push(p) })
-
   const invByContract = {}
   ;(invoices || []).forEach(inv => { const cid = inv.contract_id; if (!invByContract[cid]) invByContract[cid] = []; invByContract[cid].push(inv) })
-
   const uplByContract = {}
   ;(uploads || []).forEach(u => { const cid = u.contract_id; if (cid && !uplByContract[cid]) uplByContract[cid] = []; if (cid) uplByContract[cid].push(u) })
 
-  // Sort contracts newest first
   const sorted = [...(contracts || [])].sort((a, b) => (b.start_date || '').localeCompare(a.start_date || ''))
 
-  const handleNotify = async (cid) => {
-    setNotifyingId(cid)
-    try { await onNotifyPaid(cid) } finally { setNotifyingId(null) }
-  }
-
+  const handleNotify = async (cid) => { setNotifyingId(cid); try { await onNotifyPaid(cid) } finally { setNotifyingId(null) } }
   const handleUpload = async (e, cid) => {
     const file = e.target.files?.[0]; if (!file) return
-    setUploadingCid(cid)
-    try { await onUpload(file, cid) } finally { setUploadingCid(null); e.target.value = '' }
+    setUploadingCid(cid); try { await onUpload(file, cid) } finally { setUploadingCid(null); e.target.value = '' }
   }
 
-  // ── Row render helper ──
-  const renderCell = (label, value, status, date, action) => (
-    <div className="min-w-0">
-      {label && <p className="text-[10px] text-gray-400 mb-0.5">{label}</p>}
-      <p className={`text-xs font-medium ${status === 'paid' || status === 'done' ? 'text-green-600' : status === 'pending' ? 'text-yellow-600' : 'text-gray-600'}`}>
-        {value}
-      </p>
-      {date && <p className="text-[10px] text-gray-400 mt-0.5">{date}</p>}
-      {action}
-    </div>
-  )
-
-  // ── Collapsed summary ──
   const latestContract = sorted[0]
-  const latestPkg = latestContract ? pkgByContract[latestContract.id] || [] : []
   const collapsedSub = latestContract
     ? `${latestContract.start_date?.slice(0, 7) || ''}–${latestContract.end_date?.slice(0, 7) || ''} · ${latestContract.status === 'pending_payment' ? '年费待付' : latestContract.status === 'active' ? '进行中' : latestContract.status}`
     : '暂无合同'
@@ -78,171 +59,285 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
   return (
     <div className="bg-white border border-gray-100 rounded-lg">
       {/* ══════ Collapsible Header ══════ */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="w-full flex items-center gap-3 p-5 text-left hover:bg-gray-50/50 transition-colors rounded-lg"
-      >
+      <button onClick={() => setCollapsed(!collapsed)} className="w-full flex items-center gap-3 p-5 text-left hover:bg-gray-50/50 transition-colors rounded-lg">
         <span className="text-sm font-semibold text-gray-700 flex-shrink-0">💰 付费与申报</span>
         <span className="text-[11px] text-gray-400 flex-1 truncate">{collapsedSub}</span>
         <span className="text-xs text-gray-400 flex-shrink-0">{sorted.length}个周期</span>
         <span className={`text-gray-300 text-xs flex-shrink-0 transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`}>▼</span>
       </button>
 
-      {/* ══════ Expandable Table ══════ */}
-      <div className={`overflow-hidden transition-all duration-300 ${collapsed ? 'max-h-0' : 'max-h-[2000px]'}`}>
-        <div className="px-5 pb-5 overflow-x-auto">
+      {/* ══════ Expandable Body ══════ */}
+      <div className={`overflow-hidden transition-all duration-300 ${collapsed ? 'max-h-0' : 'max-h-[4000px]'}`}>
+        <div className="px-3 pb-5 overflow-x-auto">
           {sorted.length === 0 ? (
             <div className="text-center py-8 text-gray-300 text-xs">暂无合同数据</div>
           ) : (
-            <table className="w-full text-xs border-collapse">
-              {/* Header */}
-              <thead>
-                <tr className="border-b border-gray-100 text-gray-400">
-                  <th className="text-left font-medium py-2 pr-3 whitespace-nowrap">合同周期</th>
-                  <th className="text-left font-medium py-2 px-3 whitespace-nowrap">授权代表年费</th>
-                  <th className="text-left font-medium py-2 px-3 whitespace-nowrap">包装申报</th>
-                  <th className="text-left font-medium py-2 px-3 whitespace-nowrap">回收费预缴</th>
-                  <th className="text-left font-medium py-2 px-3 whitespace-nowrap">年终结算</th>
-                  <th className="text-left font-medium py-2 pl-3 whitespace-nowrap">转账凭证</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map((c, ri) => {
-                  const pkg = pkgByContract[c.id] || []
-                  const pays = payByContract[c.id] || []
-                  const invs = invByContract[c.id] || []
-                  const ups = uplByContract[c.id] || []
+            sorted.map((c, ri) => {
+              const pkg = pkgByContract[c.id] || []
+              const pays = payByContract[c.id] || []
+              const invs = invByContract[c.id] || []
+              const ups = uplByContract[c.id] || []
+              const cost = totalCost(pkg)
 
-                  // AR fee payment
-                  const arPayment = pays.find(p => p.payment_type === 'annual_fee' || !p.payment_type)
-                  const arStatus = c.status === 'active' ? 'paid' : c.status === 'pending_payment' ? 'pending' : c.status
-                  const arPaidDate = arPayment?.paid_at?.slice(0, 10) || c.paid_confirmed_at?.slice(0, 10)
+              // AR fee
+              const arStatus = c.status === 'active' ? 'paid' : c.status === 'pending_payment' ? 'pending' : c.status
+              const arPaidDate = c.paid_confirmed_at?.slice(0, 10)
+              const isPendingAR = c.status === 'pending_payment'
 
-                  // Recycling prepaid
-                  const recycling = estimateRecycling(pkg)
-                  const prepaidPayment = pays.find(p => p.payment_type === 'recycling_prepaid')
-                  const prepaidStatus = prepaidPayment?.status === 'paid' ? 'paid' : !prepaidPayment ? 'pending' : 'pending'
-                  const prepaidAmount = prepaidPayment?.amount_eur
+              // Recycling
+              const prepaidPayment = pays.find(p => p.payment_type === 'recycling_prepaid')
+              const settlementPayment = pays.find(p => p.payment_type === 'recycling_settlement')
+              const proofUploads = ups.filter(u => u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
 
-                  // Year-end settlement
-                  const settlementPayment = pays.find(p => p.payment_type === 'recycling_settlement')
-                  const settlementStatus = settlementPayment?.status === 'paid' ? 'paid' : !settlementPayment ? 'pending' : 'pending'
+              const pkgKey = `pkg_${c.id}`
+              const recKey = `rec_${c.id}`
+              const settleKey = `settle_${c.id}`
+              const bankKey = `bank_${c.id}`
 
-                  // Bank transfer proof uploads for this contract
-                  const proofUploads = ups.filter(u => u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
+              return (
+                <div key={c.id} className={`border border-gray-100 rounded-lg mb-3 ${ri % 2 ? 'bg-gray-50/50' : ''}`}>
+                  {/* ── Row Header ── */}
+                  <div className="flex items-center gap-4 px-4 py-3 flex-wrap">
+                    {/* Contract period */}
+                    <div className="min-w-[140px]">
+                      <p className="text-xs font-semibold text-gray-700 whitespace-nowrap">
+                        {c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}
+                      </p>
+                      <button onClick={() => navigator.clipboard.writeText(c.contract_number)}
+                        className="text-[10px] text-gray-400 hover:text-primary transition-colors" title="点击复制">
+                        {c.contract_number}
+                      </button>
+                    </div>
 
-                  const isPendingAR = c.status === 'pending_payment'
-                  const showBank = expandedBank === c.id
-
-                  return (
-                    <tr key={c.id} className={`border-b border-gray-50 align-top ${ri % 2 ? 'bg-gray-50/50' : ''}`}>
-                      {/* 合同周期 */}
-                      <td className="py-3 pr-3 min-w-[120px]">
-                        <p className="font-medium text-gray-700 whitespace-nowrap">
-                          {c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}
-                        </p>
-                        <button
-                          onClick={() => navigator.clipboard.writeText(c.contract_number)}
-                          className="text-[10px] text-gray-400 hover:text-primary transition-colors mt-0.5"
-                          title="点击复制"
-                        >
-                          {c.contract_number}
+                    {/* AR fee */}
+                    <div className="flex items-center gap-2 min-w-[160px]">
+                      <span className="text-xs text-gray-500">年费</span>
+                      <span className={`text-xs font-semibold ${arStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
+                        €{c.annual_fee_eur} {arStatus === 'paid' ? '✓' : '待付'}
+                      </span>
+                      {arPaidDate && <span className="text-[10px] text-gray-400">{arPaidDate}</span>}
+                      {isPendingAR && (
+                        <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
+                          className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
+                          {notifyingId === c.id ? '...' : '通知已转账'}
                         </button>
-                      </td>
+                      )}
+                    </div>
 
-                      {/* 授权代表年费 */}
-                      <td className="py-3 px-3 min-w-[140px]">
-                        <p className={`text-xs font-medium ${arStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
-                          €{c.annual_fee_eur} {arStatus === 'paid' ? '✓' : '待付'}
-                        </p>
-                        {arPaidDate && <p className="text-[10px] text-gray-400 mt-0.5">{arPaidDate}</p>}
-                        {isPendingAR && (
-                          <div className="mt-1.5 space-y-1">
-                            <button
-                              onClick={() => handleNotify(c.id)}
-                              disabled={notifyingId === c.id}
-                              className="text-[10px] bg-primary text-white px-2 py-1 rounded hover:bg-primary-light disabled:opacity-50 transition-colors"
-                            >
-                              {notifyingId === c.id ? '...' : '通知已转账'}
-                            </button>
-                            <button
-                              onClick={() => setExpandedBank(showBank ? null : c.id)}
-                              className="text-[10px] text-primary hover:underline block"
-                            >
-                              {showBank ? '▲' : '▼'} 银行信息
-                            </button>
-                            {showBank && (
-                              <div className="bg-blue-50 rounded p-2 text-[10px] space-y-0.5 mt-1">
-                                {bank.bank_name && <p><span className="text-gray-400">银行：</span>{bank.bank_name}</p>}
-                                {bank.account_name && <p><span className="text-gray-400">户名：</span>{bank.account_name}</p>}
-                                {bank.account_number && <p><span className="text-gray-400">账号：</span><span className="font-mono">{bank.account_number}</span></p>}
-                                {bank.swift && <p><span className="text-gray-400">SWIFT：</span>{bank.swift}</p>}
-                                <p className="text-gray-400">附言：{bank.reference_prefix || ''}{c.contract_number}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </td>
+                    {/* Packaging summary */}
+                    <button onClick={() => toggleDetail(pkgKey)}
+                      className="flex items-center gap-2 min-w-[200px] text-left hover:bg-gray-100 rounded px-2 py-1 transition-colors">
+                      <span className="text-xs text-gray-500">包装申报</span>
+                      <span className="text-xs font-medium text-gray-700">{pkg.length}种 · {pkg.reduce((s, i) => s + (parseFloat(i.estimated_quantity_kg || i.kg) || 0), 0)}kg</span>
+                      <span className={`text-[10px] text-gray-300 transition-transform duration-200 ${expandedDetail[pkgKey] ? 'rotate-180' : ''}`}>▼</span>
+                    </button>
 
-                      {/* 包装申报 */}
-                      <td className="py-3 px-3 min-w-[160px]">
-                        <p className="text-xs text-gray-600 leading-relaxed">{pkgSummary(pkg)}</p>
-                        <p className="text-[10px] text-gray-400 mt-0.5">{pkg.length}种材料</p>
-                      </td>
+                    {/* Recycling prepaid */}
+                    <button onClick={() => toggleDetail(recKey)}
+                      className="flex items-center gap-2 min-w-[160px] text-left hover:bg-gray-100 rounded px-2 py-1 transition-colors">
+                      <span className="text-xs text-gray-500">回收费预缴</span>
+                      <span className="text-xs font-medium text-gray-700">预估 €{cost.min}–€{cost.max}</span>
+                      {prepaidPayment?.status === 'paid'
+                        ? <span className="text-[10px] text-green-600">€{prepaidPayment.amount_eur} ✓</span>
+                        : <span className="text-[10px] text-yellow-600">待缴</span>}
+                      <span className={`text-[10px] text-gray-300 transition-transform duration-200 ${expandedDetail[recKey] ? 'rotate-180' : ''}`}>▼</span>
+                    </button>
 
-                      {/* 回收费预缴 */}
-                      <td className="py-3 px-3 min-w-[100px]">
-                        <p className="text-xs text-gray-500">预估 €{recycling.min}–€{recycling.max}</p>
-                        {prepaidPayment ? (
-                          <p className={`text-xs font-medium mt-0.5 ${prepaidStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
-                            {prepaidStatus === 'paid' ? `€${prepaidAmount} ✓` : '待缴'}
+                    {/* Year-end settlement */}
+                    <button onClick={() => toggleDetail(settleKey)}
+                      className="flex items-center gap-2 min-w-[140px] text-left hover:bg-gray-100 rounded px-2 py-1 transition-colors">
+                      <span className="text-xs text-gray-500">年终结算</span>
+                      {settlementPayment?.status === 'paid'
+                        ? <span className="text-xs font-semibold text-green-600">€{settlementPayment.amount_eur} ✓</span>
+                        : <span className="text-[10px] text-gray-300">待申报</span>}
+                      {invs.length > 0 && <span className="text-[10px] text-gray-400">{invs.length}张发票</span>}
+                      {settlementPayment && <span className={`text-[10px] text-gray-300 transition-transform duration-200 ${expandedDetail[settleKey] ? 'rotate-180' : ''}`}>▼</span>}
+                    </button>
+
+                    {/* Bank info toggle */}
+                    {isPendingAR && (
+                      <button onClick={() => setExpandedBank(expandedBank === c.id ? null : c.id)}
+                        className="text-[10px] text-primary hover:underline">
+                        {expandedBank === c.id ? '▲' : '▼'} 银行信息
+                      </button>
+                    )}
+
+                    {/* Upload proof */}
+                    <div className="flex items-center gap-2 ml-auto">
+                      {proofUploads.length > 0 && proofUploads.slice(0, 1).map((u, i) => (
+                        <a key={u.id || i} href={`/api/uploads/${u.id}/download`}
+                          className="text-[10px] text-primary hover:underline truncate max-w-[100px]" download title={u.original_name}>
+                          📄 {u.original_name?.slice(0, 12)}...
+                        </a>
+                      ))}
+                      <label className="cursor-pointer text-[10px] text-gray-400 hover:text-primary transition-colors">
+                        {uploadingCid === c.id ? '...' : '📤'}
+                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* ── Bank info expand ── */}
+                  {expandedBank === c.id && (
+                    <div className="px-4 pb-3">
+                      <div className="bg-blue-50 rounded p-2.5 text-[10px] space-y-0.5">
+                        {bank.bank_name && <p><span className="text-gray-400">银行：</span>{bank.bank_name}</p>}
+                        {bank.account_name && <p><span className="text-gray-400">户名：</span>{bank.account_name}</p>}
+                        {bank.account_number && <p><span className="text-gray-400">账号：</span><span className="font-mono">{bank.account_number}</span></p>}
+                        {bank.swift && <p><span className="text-gray-400">SWIFT：</span>{bank.swift}</p>}
+                        <p className="text-gray-400">附言：{bank.reference_prefix || ''}{c.contract_number}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ══════ 预申报详情 ══════ */}
+                  {expandedDetail[pkgKey] && pkg.length > 0 && (
+                    <div className="px-4 pb-3 border-t border-gray-100">
+                      <p className="text-[11px] font-medium text-gray-500 mt-3 mb-2">📦 预申报明细</p>
+                      <table className="w-full text-[11px]">
+                        <thead>
+                          <tr className="text-gray-400 border-b border-gray-100">
+                            <th className="text-left font-normal py-1">材料类别</th>
+                            <th className="text-left font-normal py-1">销售类型</th>
+                            <th className="text-right font-normal py-1">预估重量 (kg)</th>
+                            <th className="text-right font-normal py-1">预估费用 €</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {pkg.map((item, i) => {
+                            const mk = item.material_type || item.material_key
+                            const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0
+                            const mc = matCost(mk, kg)
+                            return (
+                              <tr key={i} className="border-b border-gray-50">
+                                <td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || item.material || mk}</td>
+                                <td className="py-1 text-gray-500">{item.packaging_category || item.category || '—'}</td>
+                                <td className="py-1 text-right tabular-nums font-medium">{kg}</td>
+                                <td className="py-1 text-right tabular-nums text-gray-500">
+                                  {mc ? `€${mc.min}–€${mc.max}` : '—'}
+                                </td>
+                              </tr>
+                            )
+                          })}
+                          <tr className="font-semibold">
+                            <td colSpan={2} className="py-1.5 text-gray-400">合计</td>
+                            <td className="py-1.5 text-right tabular-nums">{pkg.reduce((s, i) => s + (parseFloat(i.estimated_quantity_kg || i.kg) || 0), 0)} kg</td>
+                            <td className="py-1.5 text-right tabular-nums text-primary">€{cost.min}–€{cost.max}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* ══════ 回收费预缴详情 ══════ */}
+                  {expandedDetail[recKey] && pkg.length > 0 && (
+                    <div className="px-4 pb-3 border-t border-gray-100">
+                      <p className="text-[11px] font-medium text-gray-500 mt-3 mb-2">♻️ 回收费预缴明细（按双元系统费率估算）</p>
+                      <table className="w-full text-[11px]">
+                        <thead>
+                          <tr className="text-gray-400 border-b border-gray-100">
+                            <th className="text-left font-normal py-1">材料</th>
+                            <th className="text-right font-normal py-1">重量 (kg)</th>
+                            <th className="text-right font-normal py-1">费率 €/kg</th>
+                            <th className="text-right font-normal py-1">预估 €</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {pkg.map((item, i) => {
+                            const mk = item.material_type || item.material_key
+                            const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0
+                            const rate = MAT_RATE[mk]
+                            const mc = matCost(mk, kg)
+                            return (
+                              <tr key={i} className="border-b border-gray-50">
+                                <td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || mk}</td>
+                                <td className="py-1 text-right tabular-nums">{kg}</td>
+                                <td className="py-1 text-right text-gray-400">{rate ? `€${rate.min}–€${rate.max}` : '—'}</td>
+                                <td className="py-1 text-right tabular-nums text-gray-500">{mc ? `€${mc.min}–€${mc.max}` : '—'}</td>
+                              </tr>
+                            )
+                          })}
+                          <tr className="font-semibold">
+                            <td className="py-1.5 text-gray-400">合计</td>
+                            <td className="py-1.5 text-right tabular-nums">{pkg.reduce((s, i) => s + (parseFloat(i.estimated_quantity_kg || i.kg) || 0), 0)} kg</td>
+                            <td></td>
+                            <td className="py-1.5 text-right tabular-nums text-primary">€{cost.min}–€{cost.max}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      {prepaidPayment?.status === 'paid' && (
+                        <p className="text-[10px] text-green-600 mt-2">✅ 已预缴 €{prepaidPayment.amount_eur}（{prepaidPayment.paid_at?.slice(0, 10)}）</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ══════ 年终结算详情 ══════ */}
+                  {expandedDetail[settleKey] && (
+                    <div className="px-4 pb-3 border-t border-gray-100">
+                      <p className="text-[11px] font-medium text-gray-500 mt-3 mb-2">📋 年终申报结算</p>
+                      {settlementPayment ? (
+                        <div className="space-y-2">
+                          <table className="w-full text-[11px]">
+                            <thead>
+                              <tr className="text-gray-400 border-b border-gray-100">
+                                <th className="text-left font-normal py-1">材料</th>
+                                <th className="text-right font-normal py-1">预申报 (kg)</th>
+                                <th className="text-right font-normal py-1">年终实际 (kg)</th>
+                                <th className="text-right font-normal py-1">差额 (kg)</th>
+                                <th className="text-right font-normal py-1">结算 €</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {pkg.map((item, i) => {
+                                const mk = item.material_type || item.material_key
+                                const estK = parseFloat(item.estimated_quantity_kg || item.kg) || 0
+                                const actK = parseFloat(item.actual_quantity_kg) || 0
+                                const diff = actK - estK
+                                const rate = MAT_RATE[mk]
+                                const diffCost = rate && diff ? Math.round(rate.max * diff) : 0
+                                return (
+                                  <tr key={i} className="border-b border-gray-50">
+                                    <td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || mk}</td>
+                                    <td className="py-1 text-right tabular-nums text-gray-500">{estK}</td>
+                                    <td className="py-1 text-right tabular-nums font-medium">{actK || '—'}</td>
+                                    <td className={`py-1 text-right tabular-nums ${diff > 0 ? 'text-red-500' : diff < 0 ? 'text-green-500' : 'text-gray-400'}`}>
+                                      {actK ? (diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : '0') : '—'}
+                                    </td>
+                                    <td className={`py-1 text-right tabular-nums font-medium ${diffCost > 0 ? 'text-red-500' : diffCost < 0 ? 'text-green-500' : 'text-gray-400'}`}>
+                                      {actK ? (diffCost > 0 ? `+€${diffCost}` : diffCost < 0 ? `-€${Math.abs(diffCost)}` : '€0') : '—'}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                          </table>
+                          <p className={`text-xs font-semibold ${settlementPayment.amount_eur > 0 ? 'text-red-500' : 'text-green-600'}`}>
+                            {settlementPayment.status === 'paid'
+                              ? `✅ 已结算：${settlementPayment.amount_eur > 0 ? '补缴' : '退款'} €${Math.abs(settlementPayment.amount_eur)}（${settlementPayment.paid_at?.slice(0, 10)}）`
+                              : `待结算：€${settlementPayment.amount_eur}`}
                           </p>
-                        ) : (
-                          <p className="text-[10px] text-gray-300 mt-0.5">待生成</p>
-                        )}
-                      </td>
-
-                      {/* 年终结算 */}
-                      <td className="py-3 px-3 min-w-[80px]">
-                        {settlementPayment ? (
-                          <p className={`text-xs font-medium ${settlementStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
-                            {settlementStatus === 'paid' ? `€${settlementPayment.amount_eur} ✓` : '待结算'}
-                          </p>
-                        ) : (
-                          <p className="text-[10px] text-gray-300">待申报</p>
-                        )}
-                        {invs.length > 0 && (
-                          <p className="text-[10px] text-gray-400 mt-0.5">{invs.length}张发票</p>
-                        )}
-                      </td>
-
-                      {/* 转账凭证 */}
-                      <td className="py-3 pl-3 min-w-[80px]">
-                        {proofUploads.length > 0 ? (
-                          <div className="space-y-1">
-                            {proofUploads.slice(0, 2).map((u, i) => (
-                              <a key={u.id || i} href={`/api/uploads/${u.id}/download`}
-                                className="text-[10px] text-primary hover:underline block truncate max-w-[120px]"
-                                download
-                                title={u.original_name}
-                              >
-                                📄 {u.original_name?.slice(0, 16)}...
-                              </a>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-gray-300">—</span>
-                        )}
-                        <label className="cursor-pointer text-[10px] text-gray-400 hover:text-primary transition-colors mt-1 inline-block">
-                          {uploadingCid === c.id ? '上传中...' : '📤 上传'}
-                          <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
-                        </label>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-gray-300 text-xs">
+                          <p>📋 年度申报完成后将生成结算单</p>
+                          <p className="mt-0.5">基于年终实际包装量与预申报量的差额结算</p>
+                        </div>
+                      )}
+                      {invs.length > 0 && (
+                        <div className="mt-3 pt-2 border-t border-gray-100">
+                          <p className="text-[10px] text-gray-400 mb-1">关联发票</p>
+                          {invs.map(inv => (
+                            <p key={inv.id} className="text-[10px] text-gray-500">
+                              {inv.invoice_number} · €{inv.amount_eur} · {inv.invoice_date?.slice(0, 10)} · <span className="text-green-500">已开具</span>
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })
           )}
         </div>
       </div>
