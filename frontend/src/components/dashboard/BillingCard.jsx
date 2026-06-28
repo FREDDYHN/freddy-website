@@ -181,11 +181,14 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                   {expandedBank === c.id && (
                     <div className="px-4 pb-3">
                       <div className="bg-blue-50 rounded p-2.5 text-[10px] space-y-0.5">
-                        {bank.bank_name && <p><span className="text-gray-400">银行：</span>{bank.bank_name}</p>}
-                        {bank.account_name && <p><span className="text-gray-400">户名：</span>{bank.account_name}</p>}
+                        {bank.account_name && <p><span className="text-gray-400">户名：</span><span className="font-medium">{bank.account_name}</span></p>}
+                        {bank.bank_name && <p><span className="text-gray-400">开户行：</span>{bank.bank_name}</p>}
                         {bank.account_number && <p><span className="text-gray-400">账号：</span><span className="font-mono">{bank.account_number}</span></p>}
-                        {bank.swift && <p><span className="text-gray-400">SWIFT：</span>{bank.swift}</p>}
-                        <p className="text-gray-400">附言：{bank.reference_prefix || ''}{c.contract_number}</p>
+                        {bank.bank_code && <p><span className="text-gray-400">银行代码：</span><span className="font-mono">{bank.bank_code}</span></p>}
+                        {bank.bank_address && <p><span className="text-gray-400">开户行地址：</span>{bank.bank_address}</p>}
+                        {bank.company_address && <p><span className="text-gray-400">公司地址：</span>{bank.company_address}</p>}
+                        {bank.company_tax_id && <p><span className="text-gray-400">税号：</span><span className="font-mono">{bank.company_tax_id}</span></p>}
+                        <p className="text-gray-400 pt-0.5 border-t border-blue-200">附言：{bank.reference_prefix || ''}{c.contract_number}</p>
                       </div>
                     </div>
                   )}
