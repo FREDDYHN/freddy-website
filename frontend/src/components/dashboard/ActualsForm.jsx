@@ -7,9 +7,11 @@ const MIN_FEE = 28.90
 /** Quick settlement preview: totalDiff & penalty trigger */
 function previewSettlement(preRawSum, actRawSum) {
   if (!actRawSum || actRawSum <= 0) return { amount: 0, note: '' }
-  const totalDiff = actRawSum - preRawSum
+  // Guard: actual kg increased → fee must not drop (tier-crossing)
+  const guardedActRaw = Math.max(actRawSum, preRawSum)
+  const totalDiff = guardedActRaw - preRawSum
   const threshold = preRawSum * 0.2
-  let actTotal = actRawSum
+  let actTotal = guardedActRaw
   let note = ''
   if (totalDiff > threshold && threshold > 0) {
     actTotal = preRawSum + totalDiff * 1.2
@@ -54,10 +56,12 @@ export default function ActualsForm({ contract, packaging, onClose, onSubmit }) 
   // Real-time preview
   let preRawSum = 0, actRawSum = 0
   items.forEach(i => {
-    const rate = getRecyclingRate(i.material_key, i.estKg)
-    preRawSum += i.estKg * rate
+    const preRate = getRecyclingRate(i.material_key, i.estKg)
+    const preFee = i.estKg * preRate
+    preRawSum += preFee
     const actRate = getRecyclingRate(i.material_key, Math.max(i.estKg, i.actKg))
-    actRawSum += i.actKg * actRate
+    // Guard: if kg increased, fee must not drop (tier-crossing)
+    actRawSum += Math.max(i.actKg * actRate, i.actKg > i.estKg ? preFee : 0)
   })
   const preview = previewSettlement(preRawSum, actRawSum)
   const preTotal = applyFloorFee(preRawSum, MIN_FEE)

@@ -13,20 +13,20 @@ function totalRecyclingCost(items) {
   return applyFloorFee(total, MIN_FEE)
 }
 
-/** Apply contract §5(3) penalty/refund rules:
- *  "实际数量超出申报数量20%以上的，超出部分加收20%附加费"
- *  → IF excess > 20%: surcharge 20% on the ENTIRE excess amount
- *  "实际数量低于申报数量的，仅退还不超过10%的差额"
- *  → IF actual < declared: refund capped at 10% of declared
+/** Apply contract §5(3) penalty/refund rules + tier-crossing guard:
+ *  - Guard: actual kg > pre kg → actual fee NEVER below pre fee (tier rate may drop)
+ *  - Actual > declared +20%: 20% surcharge on ENTIRE excess amount
+ *  - Actual < declared: refund capped at 10% of declared
  */
 function calcTotalSettlement(preTotal, preRawSum, actRawSum) {
   if (!actRawSum || actRawSum <= 0) return { amount: 0, note: '待申报' }
-  const totalDiff = actRawSum - preRawSum
+  // Guard: if actual kg increased, fee must not decrease (tier-crossing)
+  const guardedActRaw = Math.max(actRawSum, preRawSum)
+  const totalDiff = guardedActRaw - preRawSum
   const threshold = preRawSum * 0.2
-  let actTotal = actRawSum
+  let actTotal = guardedActRaw
   let note = ''
   if (totalDiff > threshold && threshold > 0) {
-    // Entire excess × 1.2 (not just portion above threshold)
     actTotal = preRawSum + totalDiff * 1.2
     note = `超出>20%: 全部超额×1.2 (超额€${totalDiff.toFixed(2)} × 1.2 = €${(totalDiff*1.2).toFixed(2)})`
   } else if (totalDiff > 0) {
@@ -253,7 +253,8 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                                 const diffKg = actK ? Math.round((actK - estK) * 100) / 100 : 0
                                 const diffEUR = actK ? Math.round((actK * actRate - estK * preRate) * 100) / 100 : 0
                                 preRawSum += estK * preRate
-                                if (actK) actRawSum += actK * actRate
+                                // Guard: if kg increased, fee must not drop (tier-crossing)
+                                if (actK) actRawSum += Math.max(actK * actRate, estK * preRate)
                                 const diffStr = actK ? (diffKg > 0 ? `+${diffKg}` : diffKg < 0 ? `${diffKg}` : '0') : '—'
                                 const eurStr = actK ? (diffEUR > 0 ? `+€${diffEUR.toFixed(2)}` : diffEUR < 0 ? `-€${Math.abs(diffEUR).toFixed(2)}` : '€0') : '—'
                                 return <tr key={i} className="border-b border-gray-50"><td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || mk}</td><td className="py-1 text-right tabular-nums text-gray-500">{estK}</td><td className="py-1 text-right tabular-nums font-medium">{actK || '—'}</td><td className={`py-1 text-right tabular-nums ${diffKg > 0 ? 'text-red-500' : diffKg < 0 ? 'text-green-500' : 'text-gray-400'}`}>{diffStr}</td><td className={`py-1 text-right tabular-nums ${diffEUR > 0 ? 'text-red-500' : diffEUR < 0 ? 'text-green-500' : 'text-gray-400'}`}>{eurStr}</td></tr>
