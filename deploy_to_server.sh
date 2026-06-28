@@ -74,7 +74,7 @@ if [ ! -f backend/.env ]; then
     cat > backend/.env << EOF
 NODE_ENV=production
 PORT=3002
-BASE_URL=https://www.freddy-epr.cn
+BASE_URL=https://www.freddy-epr.com
 JWT_SECRET=${JWT_SECRET}
 SMTP_HOST=
 SMTP_PORT=587
@@ -106,7 +106,7 @@ echo "📋 Nginx 配置参考 (加到 /etc/nginx/sites-enabled/freddy-epr):"
 cat << 'NGINX'
 server {
     listen 80;
-    server_name freddy-epr.cn www.freddy-epr.cn;
+    server_name freddy-epr.com www.freddy-epr.com;
 
     location / {
         proxy_pass http://127.0.0.1:3002;

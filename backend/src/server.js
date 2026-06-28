@@ -29,7 +29,7 @@ const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
   : [
       'http://localhost:5173', 'http://localhost:3002', 'http://127.0.0.1:5173',
       'https://www.freddy-epr.com', 'https://freddy-epr.com',
-      'https://www.freddy-epr.cn', 'https://freddy-epr.cn',
+      'https://www.freddy-epr.com', 'https://freddy-epr.com',
     ]
 app.use(cors({
   origin: (origin, cb) => {
