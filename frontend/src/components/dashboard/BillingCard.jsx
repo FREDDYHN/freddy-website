@@ -201,7 +201,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                     </div>
 
                     {/* ── ②③ Side by side ── */}
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-8">
                     {/* ── ② Packaging Declaration Fee ── */}
                     <div>
                       <h4 className="text-[11px] font-semibold text-gray-600 mb-2">② 包装预申报费（回收费预缴）</h4>
