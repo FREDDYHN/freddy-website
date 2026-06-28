@@ -103,7 +103,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
             <div className="grid px-4 py-2 text-xs text-gray-500 font-bold border-b border-gray-200" style={{gridTemplateColumns:'180px 140px 160px 140px 110px 1fr'}}>
               <span>合同周期 / 合同号</span>
               <span>授权代表年费</span>
-              <span>申报费</span>
+              <span>预申报费</span>
               <span>年终结算</span>
               <span>截止日期</span>
               <span>操作</span>
