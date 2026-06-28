@@ -167,7 +167,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                     <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors text-left" title="点击复制">{c.contract_number}</button>
                     {isPendingAR ? (
                       <label className="cursor-pointer text-[10px] text-primary hover:underline">
-                        📎 上传凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
+                        上传凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
                       </label>
                     ) : <span></span>}
                     <span></span><span></span><span></span>
