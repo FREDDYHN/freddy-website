@@ -204,7 +204,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                     <div className="grid md:grid-cols-2 gap-8">
                     {/* ── ② Packaging Declaration Fee ── */}
                     <div>
-                      <h4 className="text-[11px] font-semibold text-gray-600 mb-2">② 包装预申报费（回收费预缴）</h4>
+                      <h4 className="text-[11px] font-semibold text-gray-600 mb-2">② 预申报及回收费预估</h4>
                       <p className="text-[10px] text-gray-400 mb-2">截止日期：{reportDeadline}（合同§5(2)） · 依据：回收费价目单_2026</p>
                       {pkg.length > 0 ? (
                         <table className="w-full text-[11px]">
@@ -232,7 +232,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
 
                     {/* ── ③ Year-end Settlement ── */}
                     <div>
-                      <h4 className="text-[11px] font-semibold text-gray-600 mb-2">③ 年终申报结算</h4>
+                      <h4 className="text-[11px] font-semibold text-gray-600 mb-2">③ 年终结算</h4>
                       <p className="text-[10px] text-gray-400 mb-2">截止日期：{reportDeadline} · 合同§5(3): 超出&gt;20%加收20%附加费 · 低于仅退10%内差额 · 总起步价€{MIN_FEE.toFixed(2)}</p>
                       {pkg.length > 0 ? (
                         <table className="w-full text-[11px]">
@@ -245,11 +245,12 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                                 const mk = item.material_type || item.material_key
                                 const estK = parseFloat(item.estimated_quantity_kg || item.kg) || 0
                                 const actK = parseFloat(item.actual_quantity_kg) || 0
-                                const rate = getRecyclingRate(mk, Math.max(estK, actK))
+                                const preRate = getRecyclingRate(mk, estK)
+                                const actRate = actK ? getRecyclingRate(mk, Math.max(estK, actK)) : preRate
                                 const diffKg = actK ? Math.round((actK - estK) * 100) / 100 : 0
-                                const diffEUR = actK ? Math.round((actK - estK) * rate * 100) / 100 : 0
-                                preRawSum += estK * rate
-                                if (actK) actRawSum += actK * rate
+                                const diffEUR = actK ? Math.round((actK * actRate - estK * preRate) * 100) / 100 : 0
+                                preRawSum += estK * preRate
+                                if (actK) actRawSum += actK * actRate
                                 const diffStr = actK ? (diffKg > 0 ? `+${diffKg}` : diffKg < 0 ? `${diffKg}` : '0') : '—'
                                 const eurStr = actK ? (diffEUR > 0 ? `+€${diffEUR.toFixed(2)}` : diffEUR < 0 ? `-€${Math.abs(diffEUR).toFixed(2)}` : '€0') : '—'
                                 return <tr key={i} className="border-b border-gray-50"><td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || mk}</td><td className="py-1 text-right tabular-nums text-gray-500">{estK}</td><td className="py-1 text-right tabular-nums font-medium">{actK || '—'}</td><td className={`py-1 text-right tabular-nums ${diffKg > 0 ? 'text-red-500' : diffKg < 0 ? 'text-green-500' : 'text-gray-400'}`}>{diffStr}</td><td className={`py-1 text-right tabular-nums ${diffEUR > 0 ? 'text-red-500' : diffEUR < 0 ? 'text-green-500' : 'text-gray-400'}`}>{eurStr}</td></tr>
