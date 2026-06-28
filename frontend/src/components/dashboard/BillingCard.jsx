@@ -151,16 +151,6 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       )}
                     </span>
                     <span className="text-xs text-gray-400">{reportDeadline}</span>
-
-                  </div>
-
-                  {/* Line 2: Contract number + actions */}
-                  <div className="grid items-center mt-1" style={{gridTemplateColumns:'180px 140px 160px 140px 110px 1fr'}}>
-                    <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors text-left" title="点击复制">{c.contract_number}</button>
-                    {isPendingAR && proofUploads.length > 0 ? (
-                        <span className="text-[10px] text-yellow-600 font-medium">待确认</span>
-                    ) : <span></span>}
-                    <span></span><span></span><span></span>
                     <div className="flex items-center gap-1.5">
                     {/* Upload zone */}
                     <div className="relative">
@@ -202,6 +192,15 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       明细 <span className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▼</span>
                     </button>
                     </div>
+                  </div>
+
+                  {/* Line 2: Contract number + actions */}
+                  <div className="grid items-center mt-1" style={{gridTemplateColumns:'180px 140px 160px 140px 110px 1fr'}}>
+                    <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors text-left" title="点击复制">{c.contract_number}</button>
+                    {isPendingAR && proofUploads.length > 0 ? (
+                        <span className="text-[10px] text-yellow-600 font-medium">待确认</span>
+                    ) : <span></span>}
+                    <span></span><span></span><span></span>
                   </div>
                 </div>
 
