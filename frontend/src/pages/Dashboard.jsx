@@ -15,12 +15,16 @@ export default function Dashboard() {
   const [bankInfo, setBankInfo] = useState(null)
   const [genMsg, setGenMsg] = useState('')
 
-  const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}` } : {} }
+  function authHeaders() {
+    const t = sessionStorage.getItem('token')
+    return t ? { Authorization: `Bearer ${t}` } : {}
+  }
 
   useEffect(() => {
     const token = sessionStorage.getItem('token')
     if (!token) { setError('login_required'); setLoading(false); return }
-    Promise.all([fetch('/api/dashboard', { headers: ah() }), fetch('/api/uploads', { headers: ah() }), fetch('/api/bank-info')])
+    const h = authHeaders()
+    Promise.all([fetch('/api/dashboard', { headers: h }), fetch('/api/uploads', { headers: h }), fetch('/api/bank-info')])
       .then(async ([dR, uR, bR]) => {
         if (!dR.ok) { if (dR.status === 401) { window.dispatchEvent(new Event('auth:expired')); throw new Error('login_required') } throw new Error('Server error') }
         const [d, u, b] = await Promise.all([dR.json(), uR.json(), bR.json()])
@@ -32,7 +36,9 @@ export default function Dashboard() {
     setGenerating(id); setGenMsg('')
     try {
       const gt = tier === 'weee' ? 'weee' : tier === 'battery' ? 'battery' : 'ar'
-      const r = await fetch(`/api/contracts/${id}/generate`, { method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' }, body: JSON.stringify({ type: gt, client_location: 'cn' }) })
+      const token = sessionStorage.getItem('token')
+      if (!token) throw new Error('未登录，请重新登录')
+      const r = await fetch(`/api/contracts/${id}/generate`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ type: gt, client_location: 'cn' }) })
       const d = await r.json(); if (!r.ok) throw new Error(d.error)
       setGenMsg(`✅ 合同已生成: ${d.contract_number}`); window.open(d.download_url, '_blank')
     } catch (e) { setGenMsg('❌ ' + e.message) }
@@ -45,7 +51,9 @@ export default function Dashboard() {
     try {
       const fd = new FormData(); fd.append('file', f); fd.append('file_type', 'signed_contract')
       if (data?.contracts?.[0]?.id) fd.append('contract_id', data.contracts[0].id)
-      const r = await fetch('/api/uploads', { method: 'POST', headers: ah(), body: fd })
+      const token = sessionStorage.getItem('token')
+      if (!token) { alert('未登录，请重新登录'); return }
+      const r = await fetch('/api/uploads', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: fd })
       const d = await r.json(); if (!r.ok) throw new Error(d.error)
       setUploads(p => [d.file, ...p]); alert('✅ 文件上传成功')
     } catch (e) { alert('❌ 上传失败: ' + e.message) }
@@ -103,7 +111,7 @@ export default function Dashboard() {
       {c.status === 'pending_payment' && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-center">
           <p className="text-xs text-yellow-700 mb-2">📌 完成银行转账后点击下方按钮通知管理员确认</p>
-          <button onClick={async () => { if (!confirm('确认已完成银行转账？')) return; try { const r = await fetch('/api/payments/notify', { method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' }, body: JSON.stringify({ contract_id: c.id }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); alert('✅ 已通知管理员'); window.location.reload() } catch (e) { alert('❌ ' + e.message) } }} className="px-5 py-2 bg-yellow-500 text-white rounded-md text-sm font-semibold hover:bg-yellow-600">💰 我已完成银行转账</button>
+          <button onClick={async () => { if (!confirm('确认已完成银行转账？')) return; try { const r = await fetch('/api/payments/notify', { method: 'POST', headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ contract_id: c.id }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); alert('✅ 已通知管理员'); window.location.reload() } catch (e) { alert('❌ ' + e.message) } }} className="px-5 py-2 bg-yellow-500 text-white rounded-md text-sm font-semibold hover:bg-yellow-600">💰 我已完成银行转账</button>
         </div>
       )}
 
