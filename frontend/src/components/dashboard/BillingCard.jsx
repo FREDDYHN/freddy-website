@@ -120,7 +120,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                 {/* ── Row Summary ── */}
                 <div className="px-4 py-3">
                   {/* Line 1: Period + fee summary + bank info */}
-                  <div className="flex items-center gap-5 flex-wrap">
+                  <div className="flex items-center gap-8 flex-wrap">
                     <span className="text-xs font-semibold text-gray-700">{c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}</span>
                     <span className="text-xs text-gray-700">
                       年费 <span className={`font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
