@@ -100,21 +100,6 @@ export default function Dashboard() {
     alert('✅ 文件上传成功')
   }
 
-  const handlePaymentNotify = async (contractId) => {
-    const token = sessionStorage.getItem('token')
-    if (!token) { alert('未登录'); return }
-    if (!confirm('确认已完成银行转账？管理员核对后将激活合同。')) return
-    const r = await fetch('/api/payments/notify', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contract_id: contractId }),
-    })
-    const d = await r.json()
-    if (!r.ok) throw new Error(d.error)
-    alert('✅ 已通知管理员，核对到账后将激活合同。')
-    window.location.reload()
-  }
-
   const handleLucidToggle = async (contractId, currentlyConfirmed) => {
     const token = sessionStorage.getItem('token')
     if (!token) { alert('未登录'); return }
@@ -224,7 +209,6 @@ export default function Dashboard() {
         invoices={data.invoices}
         uploads={uploads}
         bankInfo={bankInfo}
-        onNotifyPaid={handlePaymentNotify}
         onUpload={handleUpload}
       />
 

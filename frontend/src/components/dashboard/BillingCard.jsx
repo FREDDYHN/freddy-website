@@ -58,9 +58,8 @@ function reportingDeadline(contract) {
   return `${y + 1}-03-01`
 }
 
-export default function BillingCard({ contracts, packaging, payments, invoices, uploads, bankInfo, onNotifyPaid, onUpload }) {
+export default function BillingCard({ contracts, packaging, payments, invoices, uploads, bankInfo, onUpload }) {
   const [collapsed, setCollapsed] = useState(false)
-  const [notifyingId, setNotifyingId] = useState(null)
   const [expandedDetail, setExpandedDetail] = useState({})
   const [uploadingCid, setUploadingCid] = useState(null)
   const [actualsCid, setActualsCid] = useState(null)
@@ -76,7 +75,6 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
 
   const sorted = [...(contracts || [])].sort((a, b) => (b.start_date || '').localeCompare(a.start_date || ''))
 
-  const handleNotify = async (cid) => { setNotifyingId(cid); try { await onNotifyPaid(cid) } finally { setNotifyingId(null) } }
   const handleUpload = async (e, cid, ft) => { const file = e.target.files?.[0]; if (!file) return; setUploadingCid(cid); try { await onUpload(file, cid, ft) } finally { setUploadingCid(null); e.target.value = '' } }
 
   const latestContract = sorted[0]
@@ -199,13 +197,6 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                         </div>
                       )}
                     </div>
-                    {/* Notify + Detail */}
-                    {isPendingAR && (
-                      <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
-                        className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
-                        {notifyingId === c.id ? '...' : '通知已转账'}
-                      </button>
-                    )}
                     <button onClick={() => toggleDetail(detailKey)}
                       className="text-[10px] text-gray-400 hover:text-primary transition-colors px-1.5 py-0.5 rounded hover:bg-gray-100 whitespace-nowrap">
                       明细 <span className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▼</span>
