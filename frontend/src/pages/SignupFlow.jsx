@@ -306,7 +306,7 @@ export default function SignupFlow() {
           <h2 className="font-bold text-lg">包装申报</h2>
           <p className="text-sm text-gray-500">添加您在德国市场使用的包装类型，授权代表据此完成双元系统对接。</p>
           {/* Input row — 4 columns + button, aligned with list below */}
-          <div className="grid gap-2 items-end" style={{gridTemplateColumns:'2fr 0.7fr 1fr 1.2fr auto'}}>
+          <div className="grid gap-2 items-end" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr auto'}}>
             <div>
               <label className="block text-xs text-gray-400 mb-0.5">材料类别</label>
               <select value={ni.material} onChange={e => setNi(n => ({ ...n, material: e.target.value }))} className="w-full border border-gray-200 rounded-md px-2 py-2 text-sm">{MATERIALS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}</select>
@@ -329,11 +329,11 @@ export default function SignupFlow() {
           {form.packaging_items.length > 0 && (
             <div className="space-y-1.5">
               {/* List header */}
-              <div className="grid items-center px-3 py-1.5 text-xs text-gray-400 font-medium" style={{gridTemplateColumns:'2fr 0.7fr 1fr 1.2fr auto'}}>
+              <div className="grid items-center px-3 py-1.5 text-xs text-gray-400 font-medium" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr auto'}}>
                 <span>材料类别</span><span>类别</span><span>预估年量</span><span>产品举例</span><span></span>
               </div>
               {form.packaging_items.map((item, i) => (
-                <div key={i} className="grid items-center bg-gray-50 rounded-md px-3 py-2.5 text-sm" style={{gridTemplateColumns:'2fr 0.7fr 1fr 1.2fr auto'}}>
+                <div key={i} className="grid items-center bg-gray-50 rounded-md px-3 py-2.5 text-sm" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr auto'}}>
                   <span className="font-medium truncate">{item.material}</span>
                   <span className="text-gray-500 text-xs">{item.category}</span>
                   <span className="font-medium tabular-nums">{item.kg} kg</span>
@@ -422,11 +422,11 @@ export default function SignupFlow() {
                 <div className="mt-3">
                   <span className="inline-block w-40 text-gray-400 align-top">包装申报</span>
                   <div className="inline-block">
-                    <div className="grid text-xs text-gray-400 mb-1" style={{gridTemplateColumns:'2fr 0.7fr 1fr 1.2fr'}}>
+                    <div className="grid text-xs text-gray-400 mb-1" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr'}}>
                       <span>材料类别</span><span>类别</span><span>预估年量</span><span>产品举例</span>
                     </div>
                     {form.packaging_items.map((item, i) => (
-                      <div key={i} className="grid text-sm mb-0.5" style={{gridTemplateColumns:'2fr 0.7fr 1fr 1.2fr'}}>
+                      <div key={i} className="grid text-sm mb-0.5" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr'}}>
                         <span className="font-medium">{item.material}</span>
                         <span className="text-gray-500">{item.category}</span>
                         <span className="tabular-nums">{item.kg} kg</span>

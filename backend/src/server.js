@@ -111,8 +111,21 @@ app.get('/api/dashboard', authMiddleware, async (req, res) => {
     const invoices = await db.all(
       'SELECT * FROM invoices WHERE client_id = ? ORDER BY id DESC', clientId
     )
+    const reminders = await db.all(
+      `SELECT r.*, c.contract_number FROM reminders r
+       JOIN contracts c ON r.contract_id = c.id
+       WHERE c.client_id = ? AND r.status = 'pending'
+       ORDER BY r.due_date ASC`,
+      clientId
+    )
+    const recyclingFees = await db.all(
+      `SELECT * FROM payments WHERE client_id = ?
+       AND payment_type IN ('recycling_prepaid', 'recycling_settlement')
+       ORDER BY id DESC`,
+      clientId
+    )
 
-    res.json({ success: true, data: { client, contracts, packaging, payments, invoices } })
+    res.json({ success: true, data: { client, contracts, packaging, payments, invoices, reminders, recycling_fees: recyclingFees } })
   } catch (e) {
     console.error('[server] dashboard error:', e)
     res.status(500).json({ error: e.message })

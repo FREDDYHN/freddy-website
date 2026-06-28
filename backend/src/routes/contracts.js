@@ -269,6 +269,23 @@ router.post('/:id/confirm-lucid', authMiddleware, async (req, res) => {
   }
 })
 
+// POST /api/contracts/:id/cancel-lucid — Revoke LUCID confirmation (auth required)
+router.post('/:id/cancel-lucid', authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const contract = await db.get('SELECT * FROM contracts WHERE id = ?', req.params.id)
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    if (req.user.role !== 'admin' && contract.client_id !== req.user.client_id) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+    await db.run('UPDATE contracts SET lucid_confirmed = 0 WHERE id = ?', req.params.id)
+    res.json({ success: true })
+  } catch (e) {
+    console.error('[contracts] cancel-lucid error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // GET /api/contracts/lookup/:number — Public lookup by contract number
 router.get('/lookup/:number', async (req, res) => {
   try {
