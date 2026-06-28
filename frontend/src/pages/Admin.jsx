@@ -137,7 +137,21 @@ export default function Admin() {
                     <td className="p-3 font-mono text-xs">{c.contract_number}</td>
                     <td className="p-3">{c.company_name}<br /><span className="text-xs text-gray-400">{c.contact_email}</span></td>
                     <td className="p-3"><span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{c.tier?.toUpperCase()}</span></td>
-                    <td className="p-3 font-medium">€{c.annual_fee_eur}</td>
+                    <td className="p-3">
+                      <span className="font-medium">€{c.annual_fee_eur}</span>
+                      {(c.status === 'pending_payment' || c.status === 'signed') && (
+                        <div className="mt-1">
+                          {c.upload_count > 0 ? (
+                            <a href={`/api/uploads?contract_id=${c.id}`} target="_blank" className="text-[10px] text-yellow-600 hover:underline">
+                              📋 查看付款凭证 ({c.upload_count})
+                            </a>
+                          ) : (
+                            <span className="text-[10px] text-gray-300">查看付款凭证</span>
+                          )}
+                        </div>
+                      )}
+                      {c.status === 'active' && <div className="text-[10px] text-green-500 mt-1">已付款 ✓</div>}
+                    </td>
                     <td className="p-3">
                       {c.prepaid_status === 'paid' ? (
                         <span className="text-xs text-green-600 font-medium">€{c.prepaid_amount} ✓</span>

@@ -185,6 +185,12 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
         row.id
       )
       if (settlement) { row.settlement_amount = settlement.amount_eur; row.settlement_status = settlement.status }
+      // Check for uploaded payment proofs
+      const proofs = await db.get(
+        'SELECT COUNT(*) as cnt FROM uploads WHERE contract_id = ? AND file_type IN (\'signed_contract\', \'bank_proof\')',
+        row.id
+      )
+      if (proofs) row.upload_count = proofs.cnt
     }
 
     res.json({
