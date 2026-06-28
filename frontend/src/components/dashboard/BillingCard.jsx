@@ -61,12 +61,10 @@ function reportingDeadline(contract) {
 export default function BillingCard({ contracts, packaging, payments, invoices, uploads, bankInfo, onNotifyPaid, onUpload }) {
   const [collapsed, setCollapsed] = useState(false)
   const [notifyingId, setNotifyingId] = useState(null)
-  const [expandedBank, setExpandedBank] = useState(null)
   const [expandedDetail, setExpandedDetail] = useState({})
   const [uploadingCid, setUploadingCid] = useState(null)
   const [actualsCid, setActualsCid] = useState(null) // contract ID for actuals form modal
 
-  const bank = bankInfo || {}
   const toggleDetail = (key) => setExpandedDetail(p => ({ ...p, [key]: !p[key] }))
 
   const pkgByContract = {}; (packaging || []).forEach(p => { const cid = p.contract_id; if (!pkgByContract[cid]) pkgByContract[cid] = []; pkgByContract[cid].push(p) })
@@ -154,12 +152,6 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                     </span>
                     <span className="text-xs text-gray-400">{reportDeadline}</span>
 
-                    {isPendingAR && (
-                      <button onClick={() => setExpandedBank(expandedBank === c.id ? null : c.id)}
-                        className="text-xs text-primary hover:underline">
-                        {expandedBank === c.id ? '▲' : '▼'} 银行信息
-                      </button>
-                    )}
                   </div>
 
                   {/* Line 2: Contract number + actions */}
@@ -169,7 +161,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       proofUploads.length > 0 ? (
                         <span className="text-[10px] text-yellow-600 font-medium">待确认</span>
                       ) : (
-                        <label className="cursor-pointer text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light transition-colors">
+                        <label className="cursor-pointer text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light transition-colors inline-block">
                           上传凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
                         </label>
                       )
@@ -193,20 +185,6 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                     </div>
                   </div>
                 </div>
-
-                {/* Bank info */}
-                {expandedBank === c.id && (
-                  <div className="px-4 pb-3">
-                    <div className="bg-blue-50 rounded p-2.5 text-[10px] space-y-0.5">
-                      {bank.account_name && <p><span className="text-gray-400">户名：</span><span className="font-medium">{bank.account_name}</span></p>}
-                      {bank.bank_name && <p><span className="text-gray-400">开户行：</span>{bank.bank_name}</p>}
-                      {bank.account_number && <p><span className="text-gray-400">账号：</span><span className="font-mono">{bank.account_number}</span></p>}
-                      {bank.bank_code && <p><span className="text-gray-400">银行代码：</span><span className="font-mono">{bank.bank_code}</span></p>}
-                      {bank.bank_address && <p><span className="text-gray-400">开户行地址：</span>{bank.bank_address}</p>}
-                      <p className="text-gray-400 pt-0.5 border-t border-blue-200">附言：{bank.reference_prefix || ''}{c.contract_number}</p>
-                    </div>
-                  </div>
-                )}
 
                 {/* ══════ Expandable Detail ══════ */}
                 {expanded && (
