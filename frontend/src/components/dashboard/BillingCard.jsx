@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { PACKAGING_MATERIALS, getRecyclingRate, calcMaterialFee, applyFloorFee } from '@shared/constants.js'
+import ActualsForm from './ActualsForm'
 
 const MAT_NAME = Object.fromEntries(PACKAGING_MATERIALS.map(m => [m.key, m.label]))
 const MIN_FEE = 28.90
@@ -63,6 +64,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
   const [expandedBank, setExpandedBank] = useState(null)
   const [expandedDetail, setExpandedDetail] = useState({})
   const [uploadingCid, setUploadingCid] = useState(null)
+  const [actualsCid, setActualsCid] = useState(null) // contract ID for actuals form modal
 
   const bank = bankInfo || {}
   const toggleDetail = (key) => setExpandedDetail(p => ({ ...p, [key]: !p[key] }))
@@ -134,8 +136,10 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       年终结算{' '}
                       {settlementPayment?.status === 'paid' ? (
                         <span className="font-semibold text-green-600">€{settlementPayment.amount_eur} ✓</span>
+                      ) : pkg.some(p => p.submitted_at) ? (
+                        <span className="text-blue-500">已申报</span>
                       ) : (
-                        <span className="text-gray-300">待申报</span>
+                        <button onClick={() => setActualsCid(c.id)} className="text-primary hover:underline font-semibold">申报实际量</button>
                       )}
                     </span>
                     <span className="text-xs text-gray-400">截止 {reportDeadline}</span>
@@ -291,6 +295,16 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
           })}
         </div>
       </div>
+
+      {/* Actuals Form Modal */}
+      {actualsCid && (
+        <ActualsForm
+          contract={sorted.find(c => c.id === actualsCid)}
+          packaging={pkgByContract[actualsCid] || []}
+          onClose={() => setActualsCid(null)}
+          onSubmit={() => window.location.reload()}
+        />
+      )}
     </div>
   )
 }

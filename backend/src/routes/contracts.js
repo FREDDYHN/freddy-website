@@ -286,6 +286,40 @@ router.post('/:id/cancel-lucid', authMiddleware, async (req, res) => {
   }
 })
 
+// POST /api/contracts/:id/submit-actuals — Submit actual packaging quantities (auth required)
+router.post('/:id/submit-actuals', authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const contract = await db.get('SELECT * FROM contracts WHERE id = ?', req.params.id)
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    if (req.user.role !== 'admin' && contract.client_id !== req.user.client_id) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+    const { items } = req.body
+    if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'items array required' })
+
+    await db.run('BEGIN')
+    try {
+      for (const item of items) {
+        await db.run(
+          'UPDATE packaging_data SET actual_quantity_kg = ?, submitted_at = datetime(\'now\') WHERE contract_id = ? AND material_type = ?',
+          parseFloat(item.actual_kg), req.params.id, item.material_type
+        )
+      }
+      await db.run('COMMIT')
+    } catch (e) {
+      await db.run('ROLLBACK')
+      throw e
+    }
+
+    const packaging = await db.all('SELECT * FROM packaging_data WHERE contract_id = ?', req.params.id)
+    res.json({ success: true, packaging })
+  } catch (e) {
+    console.error('[contracts] submit-actuals error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // GET /api/contracts/lookup/:number — Public lookup by contract number
 router.get('/lookup/:number', async (req, res) => {
   try {
