@@ -368,7 +368,10 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
     const db = await getDb()
     const contract = await db.get(
       `SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email,
-              cl.contact_phone, cl.uscc, cl.registered_address, cl.legal_representative
+              cl.contact_phone, cl.uscc, cl.registered_address,
+              cl.registered_address as company_address,
+              cl.legal_representative,
+              cl.wechat_id
        FROM contracts c JOIN clients cl ON c.client_id = cl.id WHERE c.id = ?`,
       req.params.id
     )
