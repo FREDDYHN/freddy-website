@@ -46,14 +46,31 @@ export default function Dashboard() {
     }).catch(e => { setError(e.message) }).finally(() => setLoading(false))
   }, [])
 
+  // ── Helpers ──
+
+  /** Download a protected URL with auth token, trigger browser save dialog */
+  async function authDownload(url, filename) {
+    const token = sessionStorage.getItem('token')
+    const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    if (!r.ok) throw new Error(`下载失败 (${r.status})`)
+    const blob = await r.blob()
+    const objUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = objUrl
+    a.download = filename || ''
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(objUrl)
+  }
+
   // ── Handlers ──
 
   const handleGen = async (id, contractNumber) => {
     const pendingUrl = sessionStorage.getItem('pending_download')
     const pendingNo = sessionStorage.getItem('pending_contract_no')
     if (pendingUrl) {
-      alert(`✅ 合同已生成: ${pendingNo || ''}`)
-      window.open(pendingUrl, '_blank')
+      await authDownload(pendingUrl, `${pendingNo || 'contract'}.docx`)
       sessionStorage.removeItem('pending_download')
       sessionStorage.removeItem('pending_contract_no')
       return
@@ -67,7 +84,7 @@ export default function Dashboard() {
     })
     const d = await r.json()
     if (!r.ok) throw new Error(d.error)
-    window.open(d.download_url, '_blank')
+    await authDownload(d.download_url, `${d.contract_number || 'contract'}.docx`)
   }
 
   const handleUpload = async (file, contractId) => {

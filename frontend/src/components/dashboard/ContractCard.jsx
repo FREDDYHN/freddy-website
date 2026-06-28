@@ -29,6 +29,22 @@ export default function ContractCard({ contract, uploads, onGenerate, onUpload }
 
   // ── Step click handlers ──
 
+  /** Download a protected URL with auth token */
+  const authDownload = async (url, filename) => {
+    const token = sessionStorage.getItem('token')
+    const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    if (!r.ok) { alert('下载失败，请重新登录'); return }
+    const blob = await r.blob()
+    const objUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = objUrl
+    a.download = filename || ''
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(objUrl)
+  }
+
   const handleGen = async () => {
     if (!contract || generating) return
     setGenerating(true)
@@ -50,15 +66,12 @@ export default function ContractCard({ contract, uploads, onGenerate, onUpload }
 
   const handleNodeClick = (idx) => {
     if (idx === 0) {
-      // Generate / re-download
       handleGen()
     } else if (idx === 1) {
-      // Upload (re-upload if already done)
       fileRef.current?.click()
     } else if (idx === 2) {
-      // Download stamped if available
       if (adminStampedFile) {
-        window.open(`/api/uploads/${adminStampedFile.id}/download`, '_blank')
+        authDownload(`/api/uploads/${adminStampedFile.id}/download`, adminStampedFile.original_name)
       }
     }
     // idx === 3: no action, just visual
@@ -89,7 +102,8 @@ export default function ContractCard({ contract, uploads, onGenerate, onUpload }
     return (
       <Tag
         key={step.key}
-        onClick={clickable ? () => handleNodeClick(idx) : undefined}
+        type={Tag === 'button' ? 'button' : undefined}
+        onClick={clickable ? (e) => { e.stopPropagation(); handleNodeClick(idx) } : undefined}
         className={`flex flex-col items-center relative z-10 ${cursorCls}`}
         style={{ width: `${100 / steps.length}%`, minWidth: 0 }}
         title={clickable ? (done ? `重新${step.label}` : step.label) : ''}
