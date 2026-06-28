@@ -33,6 +33,17 @@ export async function getDb() {
     await db.exec(schema)
   }
 
+  // Auto-run migrations
+  const migrationsDir = join(dirname(SCHEMA_PATH), 'migrations')
+  if (fs.existsSync(migrationsDir)) {
+    const files = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.sql')).sort()
+    for (const file of files) {
+      const sql = fs.readFileSync(join(migrationsDir, file), 'utf-8')
+      try { await db.exec(sql); console.log(`[db] Migration: ${file}`) }
+      catch (e) { if (!e.message.includes('duplicate column')) console.warn(`[db] Migration skip (${file}): ${e.message}`) }
+    }
+  }
+
   console.log(`[db] Connected: ${DB_PATH}`)
   return db
 }
