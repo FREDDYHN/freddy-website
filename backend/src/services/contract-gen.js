@@ -5,7 +5,7 @@
  * preserving 100% of the original formatting (required by EAR).
  *
  * Template mapping:
- *   AR (包装法):     projects/contracts/LIVANTO/Bevollmächtigungsvertrag_03.docx
+ *   AR (包装法):     projects/contracts/LIVANTO/VerpackG_Bevollmächtigungsvertrag.docx
  *   WEEE (中国主体): projects/中国主体合同/非德国主体_WEEE合同模板_*.docx
  *   WEEE (德国主体): projects/德国主体合同/德国主体_WEEE合同模板_*.docx
  *   Battery (中国):  projects/中国主体合同/非德国主体_WEEE&电池法合同模板_*.docx
