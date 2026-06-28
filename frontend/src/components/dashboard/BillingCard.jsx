@@ -12,32 +12,30 @@ function totalRecyclingCost(items) {
   return applyFloorFee(total, MIN_FEE)
 }
 
-/** Apply contract §5(3) penalty rules to total declared vs actual fees.
- *  Returns final settlement amount and explanation.
+/** Apply contract §5(3) penalty/refund rules:
+ *  "实际数量超出申报数量20%以上的，超出部分加收20%附加费"
+ *  → IF excess > 20%: surcharge 20% on the ENTIRE excess amount
+ *  "实际数量低于申报数量的，仅退还不超过10%的差额"
+ *  → IF actual < declared: refund capped at 10% of declared
  */
-function calcTotalSettlement(preTotal, preRawSum, actRawSum, preFloorApplied) {
+function calcTotalSettlement(preTotal, preRawSum, actRawSum) {
   if (!actRawSum || actRawSum <= 0) return { amount: 0, note: '待申报' }
-  // Determine if actual > declared for penalty
-  const actTotalRaw = actRawSum
-  const preTotalRaw = preRawSum
-  const totalDiff = actTotalRaw - preTotalRaw
-  const threshold = preTotalRaw * 0.2
-  let actTotal = actTotalRaw
+  const totalDiff = actRawSum - preRawSum
+  const threshold = preRawSum * 0.2
+  let actTotal = actRawSum
   let note = ''
   if (totalDiff > threshold && threshold > 0) {
-    // Penalty: excess portion × 1.2
-    const excess = totalDiff - threshold
-    actTotal = preTotalRaw + threshold + excess * 1.2
-    note = `超出>20%: 超额部分×1.2罚则`
+    // Entire excess × 1.2 (not just portion above threshold)
+    actTotal = preRawSum + totalDiff * 1.2
+    note = `超出>20%: 全部超额×1.2 (超额€${totalDiff.toFixed(2)} × 1.2 = €${(totalDiff*1.2).toFixed(2)})`
   } else if (totalDiff > 0) {
     note = `差额≤20%: 按正常费率`
   } else if (totalDiff < 0) {
-    const refundLimit = preTotalRaw * 0.1
+    const refundLimit = preRawSum * 0.1
     const refundable = Math.min(Math.abs(totalDiff), refundLimit)
-    actTotal = preTotalRaw - refundable
+    actTotal = preRawSum - refundable
     note = Math.abs(totalDiff) > refundLimit ? `退款限10%: 仅退€${refundable.toFixed(2)}` : `退款: €${Math.abs(totalDiff).toFixed(2)}`
   }
-  // Apply floor
   actTotal = applyFloorFee(actTotal, MIN_FEE)
   const settle = Math.round((actTotal - preTotal) * 100) / 100
   return { amount: settle, note }
