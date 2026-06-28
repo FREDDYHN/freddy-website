@@ -167,16 +167,25 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
 
     const [rows, countRow] = await Promise.all([
       db.all(
-        `SELECT c.*, cl.company_name, cl.contact_email,
-         (SELECT amount_eur FROM payments WHERE contract_id = c.id AND payment_type = 'recycling_prepaid' ORDER BY id DESC LIMIT 1) as prepaid_amount,
-         (SELECT status FROM payments WHERE contract_id = c.id AND payment_type = 'recycling_prepaid' ORDER BY id DESC LIMIT 1) as prepaid_status,
-         (SELECT amount_eur FROM payments WHERE contract_id = c.id AND payment_type = 'recycling_settlement' ORDER BY id DESC LIMIT 1) as settlement_amount,
-         (SELECT status FROM payments WHERE contract_id = c.id AND payment_type = 'recycling_settlement' ORDER BY id DESC LIMIT 1) as settlement_status
-         FROM contracts c JOIN clients cl ON c.client_id = cl.id ORDER BY c.id DESC LIMIT ? OFFSET ?`,
+        'SELECT c.*, cl.company_name, cl.contact_email FROM contracts c JOIN clients cl ON c.client_id = cl.id ORDER BY c.id DESC LIMIT ? OFFSET ?',
         perPage, offset
       ),
       db.get('SELECT COUNT(*) as total FROM contracts'),
     ])
+
+    // Enrich with payment info
+    for (const row of rows) {
+      const prepaid = await db.get(
+        \"SELECT amount_eur, status FROM payments WHERE contract_id = ? AND payment_type = 'recycling_prepaid' ORDER BY id DESC LIMIT 1\",
+        row.id
+      )
+      if (prepaid) { row.prepaid_amount = prepaid.amount_eur; row.prepaid_status = prepaid.status }
+      const settlement = await db.get(
+        \"SELECT amount_eur, status FROM payments WHERE contract_id = ? AND payment_type = 'recycling_settlement' ORDER BY id DESC LIMIT 1\",
+        row.id
+      )
+      if (settlement) { row.settlement_amount = settlement.amount_eur; row.settlement_status = settlement.status }
+    }
 
     res.json({
       data: rows,
