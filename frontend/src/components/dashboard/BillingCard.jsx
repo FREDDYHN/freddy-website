@@ -123,7 +123,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
             const reportDeadline = reportingDeadline(c)
             const prepaidPayment = pays.find(p => p.payment_type === 'recycling_prepaid')
             const settlementPayment = pays.find(p => p.payment_type === 'recycling_settlement')
-            const proofUploads = ups.filter(u => u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
+            const proofUploads = ups.filter(u => u.file_type?.startsWith('proof_') || u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
 
             // Material group for settlement
             const matKg = {}; pkg.forEach(item => { const mk = item.material_type || item.material_key; matKg[mk] = (matKg[mk] || 0) + (parseFloat(item.estimated_quantity_kg || item.kg) || 0) })
