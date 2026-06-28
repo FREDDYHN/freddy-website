@@ -167,7 +167,12 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
 
     const [rows, countRow] = await Promise.all([
       db.all(
-        'SELECT c.*, cl.company_name, cl.contact_email FROM contracts c JOIN clients cl ON c.client_id = cl.id ORDER BY c.id DESC LIMIT ? OFFSET ?',
+        `SELECT c.*, cl.company_name, cl.contact_email,
+         (SELECT amount_eur FROM payments WHERE contract_id = c.id AND payment_type = 'recycling_prepaid' ORDER BY id DESC LIMIT 1) as prepaid_amount,
+         (SELECT status FROM payments WHERE contract_id = c.id AND payment_type = 'recycling_prepaid' ORDER BY id DESC LIMIT 1) as prepaid_status,
+         (SELECT amount_eur FROM payments WHERE contract_id = c.id AND payment_type = 'recycling_settlement' ORDER BY id DESC LIMIT 1) as settlement_amount,
+         (SELECT status FROM payments WHERE contract_id = c.id AND payment_type = 'recycling_settlement' ORDER BY id DESC LIMIT 1) as settlement_status
+         FROM contracts c JOIN clients cl ON c.client_id = cl.id ORDER BY c.id DESC LIMIT ? OFFSET ?`,
         perPage, offset
       ),
       db.get('SELECT COUNT(*) as total FROM contracts'),
@@ -287,6 +292,58 @@ app.get('/api/admin/clients/export', authMiddleware, adminMiddleware, async (req
     console.error('[server] client export error:', e)
     if (!res.headersSent) res.status(500).json({ error: e.message })
     else res.end()
+  }
+})
+
+// ── Admin: List Applications (WEEE/Battery) ──
+app.get('/api/admin/applications', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const rows = await db.all(
+      `SELECT a.*, cl.company_name, cl.contact_email FROM applications a
+       LEFT JOIN clients cl ON a.client_id = cl.id
+       ORDER BY a.id DESC LIMIT 100`
+    )
+    res.json(rows)
+  } catch (e) {
+    console.error('[server] applications error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ── Admin: Set Recycling Fee ──
+app.post('/api/admin/set-fee', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const { contract_id, fee_type, amount_eur } = req.body
+    if (!contract_id || !fee_type || amount_eur == null) return res.status(400).json({ error: 'contract_id, fee_type, amount_eur required' })
+
+    const contract = await db.get('SELECT * FROM contracts WHERE id = ?', contract_id)
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+
+    const paymentType = fee_type === 'prepaid' ? 'recycling_prepaid' : 'recycling_settlement'
+
+    // Check if payment already exists
+    const existing = await db.get(
+      'SELECT * FROM payments WHERE contract_id = ? AND payment_type = ?',
+      contract_id, paymentType
+    )
+
+    if (existing) {
+      await db.run('UPDATE payments SET amount_eur = ?, status = ? WHERE id = ?',
+        amount_eur, 'pending', existing.id)
+    } else {
+      const tradeNo = 'EPR-' + paymentType.toUpperCase() + '-' + Date.now().toString(36).toUpperCase()
+      await db.run(
+        'INSERT INTO payments (client_id, contract_id, payment_type, amount_eur, out_trade_no, status) VALUES (?, ?, ?, ?, ?, ?)',
+        contract.client_id, contract_id, paymentType, amount_eur, tradeNo, 'pending'
+      )
+    }
+
+    res.json({ success: true, contract_id, fee_type, amount_eur })
+  } catch (e) {
+    console.error('[server] set-fee error:', e)
+    res.status(500).json({ error: e.message })
   }
 })
 
