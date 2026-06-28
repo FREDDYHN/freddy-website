@@ -99,9 +99,26 @@ export async function generateContract({ type, clientLocation, data }) {
   const outPath = join(outputDir, outName)
   const outBuf = doc.getZip().generate({ type: 'nodebuffer' })
 
+  // Post-process: fill header/footer tags (docxtemplater only processes document.xml)
+  const headerZip = new PizZip(outBuf)
+  let headerModified = false
+  if (headerZip.files['word/header1.xml']) {
+    let hdrXml = headerZip.files['word/header1.xml'].asText()
+    hdrXml = hdrXml.replace(/\{contract_number\}/g, data.contract_number || '')
+    headerZip.file('word/header1.xml', hdrXml)
+    headerModified = true
+  }
+  if (headerZip.files['word/footer1.xml']) {
+    let ftrXml = headerZip.files['word/footer1.xml'].asText()
+    ftrXml = ftrXml.replace(/\{contract_number\}/g, data.contract_number || '')
+    headerZip.file('word/footer1.xml', ftrXml)
+    headerModified = true
+  }
+  const processedBuf = headerModified ? headerZip.generate({ type: 'nodebuffer' }) : outBuf
+
   // Post-process: fill Anlage B table rows from packaging_items array
   if (pkgItems.length > 0) {
-    const outZip = new PizZip(outBuf)
+    const outZip = new PizZip(processedBuf)
     let outXml = outZip.files['word/document.xml'].asText()
     const marker = outXml.indexOf('PACKAGING_DATA')
     if (marker > 0) {
@@ -183,7 +200,7 @@ export async function generateContract({ type, clientLocation, data }) {
     }
     await writeFile(outPath, outZip.generate({ type: 'nodebuffer', compression: 'DEFLATE' }))
   } else {
-    await writeFile(outPath, outBuf)
+    await writeFile(outPath, processedBuf)
   }
   console.log(`[contract-gen] Generated: ${outPath}`)
   return outPath
