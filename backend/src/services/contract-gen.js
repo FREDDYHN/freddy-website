@@ -28,7 +28,7 @@ try { await mkdir(outputDir, { recursive: true }) } catch {}
 
 /** Template paths keyed by contract type + client location */
 const TEMPLATES = {
-  ar: join(projectsDir, 'contracts', 'LIVANTO', 'VerpackG_Bevollmächtigungsvertrag.docx'),
+  ar: join(projectsDir, 'contracts', 'LIVANTO', '包装法_授权代表合同.docx'),
   weee_cn: join(projectsDir, '中国主体合同', '非德国主体_WEEE合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_WEEE.docx'),
   weee_de: join(projectsDir, '德国主体合同', '德国主体_WEEE合同模板_Leistungsvertrag_Kunde mit Sitz in Deutschland_WEEE.docx'),
   battery_cn: join(projectsDir, '中国主体合同', '非德国主体_WEEE&电池法合同模板_Bevollmächtigungsvertrag_Kunde mit Sitz außerhalb von Deutschland_WEEE & Batterien.docx'),
