@@ -12,32 +12,35 @@ function totalRecyclingCost(items) {
   return applyFloorFee(total, MIN_FEE)
 }
 
-/** Year-end settlement per contract §5(3) + floor fee rule:
- *  - minFee is the floor for TOTAL fee, not per material
- *  - Actual > declared +20%: 20% surcharge on excess
- *  - Actual < declared: refund only within 10% of declared
- *  - Below floor: no refund
+/** Apply contract §5(3) penalty rules to total declared vs actual fees.
+ *  Returns final settlement amount and explanation.
  */
-function calcSettlement(declaredKg, actualKg, rate) {
-  if (!actualKg || actualKg <= 0) return { diff: 0, amount: 0, note: '待申报', fee: 0 }
-  const diff = actualKg - declaredKg
-  const declaredFee = declaredKg * rate
-  let rawActualFee = actualKg * rate, note = ''
-  const threshold = declaredKg * 0.2
-  if (diff > threshold) {
-    const excess = diff - threshold
-    rawActualFee = (declaredKg + threshold) * rate + excess * rate * 1.2
-    rawActualFee = Math.round(rawActualFee * 100) / 100
-    note = `超量>20%: +${excess.toFixed(1)}kg × 1.2费率`
-  } else if (diff > 0) {
-    note = `差额≤20%: +${diff.toFixed(1)}kg`
-  } else if (diff < 0) {
-    const refundLimit = declaredKg * 0.1
-    const refundable = Math.min(Math.abs(diff), refundLimit)
-    rawActualFee = Math.round((declaredKg - refundable) * rate * 100) / 100
-    note = Math.abs(diff) > refundLimit ? `退款限10%: 仅退${refundable.toFixed(1)}kg` : `退款: ${Math.abs(diff).toFixed(1)}kg`
+function calcTotalSettlement(preTotal, preRawSum, actRawSum, preFloorApplied) {
+  if (!actRawSum || actRawSum <= 0) return { amount: 0, note: '待申报' }
+  // Determine if actual > declared for penalty
+  const actTotalRaw = actRawSum
+  const preTotalRaw = preRawSum
+  const totalDiff = actTotalRaw - preTotalRaw
+  const threshold = preTotalRaw * 0.2
+  let actTotal = actTotalRaw
+  let note = ''
+  if (totalDiff > threshold && threshold > 0) {
+    // Penalty: excess portion × 1.2
+    const excess = totalDiff - threshold
+    actTotal = preTotalRaw + threshold + excess * 1.2
+    note = `超出>20%: 超额部分×1.2罚则`
+  } else if (totalDiff > 0) {
+    note = `差额≤20%: 按正常费率`
+  } else if (totalDiff < 0) {
+    const refundLimit = preTotalRaw * 0.1
+    const refundable = Math.min(Math.abs(totalDiff), refundLimit)
+    actTotal = preTotalRaw - refundable
+    note = Math.abs(totalDiff) > refundLimit ? `退款限10%: 仅退€${refundable.toFixed(2)}` : `退款: €${Math.abs(totalDiff).toFixed(2)}`
   }
-  return { diff: Math.round(diff * 100) / 100, fee: rawActualFee, note }
+  // Apply floor
+  actTotal = applyFloorFee(actTotal, MIN_FEE)
+  const settle = Math.round((actTotal - preTotal) * 100) / 100
+  return { amount: settle, note }
 }
 
 /** Deadline helpers */
@@ -227,45 +230,41 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       )}
                     </div>
 
-                    {/* ── ③ Year-end Settlement Comparison ── */}
+                    {/* ── ③ Year-end Settlement ── */}
                     <div>
-                      <h4 className="text-[11px] font-semibold text-gray-600 mb-2">③ 年终申报结算（预申报 vs 实际）</h4>
-                      <p className="text-[10px] text-gray-400 mb-2">截止日期：{reportDeadline} · 结算规则：合同§5(3) — 超出&gt;20%加收20%附加费 · 低于仅退10%内差额</p>
+                      <h4 className="text-[11px] font-semibold text-gray-600 mb-2">③ 年终申报结算</h4>
+                      <p className="text-[10px] text-gray-400 mb-2">截止日期：{reportDeadline} · 合同§5(3): 超出&gt;20%加收20%附加费 · 低于仅退10%内差额 · 总起步价€{MIN_FEE.toFixed(2)}</p>
                       {pkg.length > 0 ? (
                         <table className="w-full text-[11px]">
-                          <thead><tr className="text-gray-400 border-b border-gray-100"><th className="text-left font-normal py-1">材料</th><th className="text-right font-normal py-1">预申报kg</th><th className="text-right font-normal py-1">实际kg</th><th className="text-right font-normal py-1">差额</th><th className="text-right font-normal py-1">结算€</th><th className="text-left font-normal py-1 pl-2">说明</th></tr></thead>
+                          <thead><tr className="text-gray-400 border-b border-gray-100"><th className="text-left font-normal py-1">材料</th><th className="text-right font-normal py-1">预申报kg</th><th className="text-right font-normal py-1">实际kg</th><th className="text-right font-normal py-1">差额kg</th><th className="text-right font-normal py-1">差价€</th></tr></thead>
                           <tbody>
                             {(() => {
-                              // Per-material settlement with penalty rules
+                              // Per-material raw diff
+                              let preRawSum = 0, actRawSum = 0
                               const rows = pkg.map((item, i) => {
                                 const mk = item.material_type || item.material_key
                                 const estK = parseFloat(item.estimated_quantity_kg || item.kg) || 0
                                 const actK = parseFloat(item.actual_quantity_kg) || 0
                                 const rate = getRecyclingRate(mk, Math.max(estK, actK))
-                                const s = calcSettlement(estK, actK, rate)
-                                const diffDisplay = actK ? (s.diff > 0 ? `+${s.diff}` : s.diff < 0 ? `${s.diff}` : '0') : '—'
-                                return { mk, estK, actK, rate, ...s, diffDisplay }
+                                const diffKg = actK ? Math.round((actK - estK) * 100) / 100 : 0
+                                const diffEUR = actK ? Math.round((actK - estK) * rate * 100) / 100 : 0
+                                preRawSum += estK * rate
+                                if (actK) actRawSum += actK * rate
+                                const diffStr = actK ? (diffKg > 0 ? `+${diffKg}` : diffKg < 0 ? `${diffKg}` : '0') : '—'
+                                const eurStr = actK ? (diffEUR > 0 ? `+€${diffEUR.toFixed(2)}` : diffEUR < 0 ? `-€${Math.abs(diffEUR).toFixed(2)}` : '€0') : '—'
+                                return <tr key={i} className="border-b border-gray-50"><td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || mk}</td><td className="py-1 text-right tabular-nums text-gray-500">{estK}</td><td className="py-1 text-right tabular-nums font-medium">{actK || '—'}</td><td className={`py-1 text-right tabular-nums ${diffKg > 0 ? 'text-red-500' : diffKg < 0 ? 'text-green-500' : 'text-gray-400'}`}>{diffStr}</td><td className={`py-1 text-right tabular-nums ${diffEUR > 0 ? 'text-red-500' : diffEUR < 0 ? 'text-green-500' : 'text-gray-400'}`}>{eurStr}</td></tr>
                               })
-                              // Sum all per-material fees (raw, no floor)
-                              const preSum = rows.reduce((t, r) => t + (r.estK * r.rate), 0)
-                              const actSum = rows.reduce((t, r) => t + (r.actK ? r.fee : 0), 0)
-                              // Apply floor
-                              const preTotal = applyFloorFee(preSum, MIN_FEE)
-                              const actTotal = actSum > 0 ? applyFloorFee(actSum, MIN_FEE) : 0
-                              const settleAmount = actTotal ? Math.round((actTotal - preTotal) * 100) / 100 : 0
-                              const belowFloor = actSum > 0 && actSum < MIN_FEE && settleAmount < 0
-
+                              const preTotal = applyFloorFee(preRawSum, MIN_FEE)
+                              const s = calcTotalSettlement(preTotal, preRawSum, actRawSum, preRawSum < MIN_FEE)
+                              const settleAmount = s.amount
                               return <>
-                                {rows.map((r, i) => (
-                                  <tr key={i} className="border-b border-gray-50"><td className="py-1 font-medium text-gray-700">{MAT_NAME[r.mk] || r.mk}</td><td className="py-1 text-right tabular-nums text-gray-500">{r.estK}</td><td className="py-1 text-right tabular-nums font-medium">{r.actK || '—'}</td><td className={`py-1 text-right tabular-nums ${r.diff > 0 ? 'text-red-500' : r.diff < 0 ? 'text-green-500' : 'text-gray-400'}`}>{r.diffDisplay}</td><td className="py-1 text-right tabular-nums text-gray-500">€{r.actK ? r.fee.toFixed(2) : '—'}</td><td className="py-1 pl-2 text-[10px] text-gray-400">{r.actK ? r.note : ''}</td></tr>
-                                ))}
-                                <tr className="font-semibold border-t border-gray-200"><td colSpan={3} className="py-1.5 text-gray-400">预申报各材料公斤价累加</td><td></td><td className="py-1.5 text-right tabular-nums">€{preSum.toFixed(2)}</td><td></td></tr>
-                                {preSum < MIN_FEE && <tr className="text-[10px]"><td colSpan={6} className="py-1 text-center text-amber-600 bg-amber-50 rounded">预申报小计 €{preSum.toFixed(2)} 低于起步价 €{MIN_FEE.toFixed(2)}，取起步价</td></tr>}
-                                <tr className="font-semibold"><td colSpan={3} className="py-1.5 text-gray-400">预申报合计（总起步价 €{MIN_FEE.toFixed(2)}）</td><td></td><td className="py-1.5 text-right tabular-nums text-primary">€{preTotal.toFixed(2)}</td><td></td></tr>
-                                {actSum > 0 && <tr className="font-semibold"><td colSpan={3} className="py-1.5 text-gray-400">年终实际各材料累加</td><td></td><td className="py-1.5 text-right tabular-nums">€{actSum.toFixed(2)}</td><td></td></tr>}
-                                {belowFloor && <tr className="text-[10px]"><td colSpan={6} className="py-1 text-center text-red-500 bg-red-50 rounded">实际合计 €{actSum.toFixed(2)} 低于起步价，不予退款</td></tr>}
-                                {actSum > 0 && <tr className="font-semibold"><td colSpan={3} className="py-1.5 text-gray-400">年终实际合计（总起步价 €{MIN_FEE.toFixed(2)}）</td><td></td><td className="py-1.5 text-right tabular-nums text-primary">€{actTotal.toFixed(2)}</td><td></td></tr>}
-                                {actSum > 0 && <tr className="font-bold text-sm"><td colSpan={3} className="py-2 text-gray-600">结算差额</td><td></td><td className={`py-2 text-right tabular-nums ${settleAmount > 0 ? 'text-red-500' : settleAmount < 0 ? 'text-green-500' : 'text-gray-400'}`}>{settleAmount > 0 ? `补缴 €${settleAmount.toFixed(2)}` : settleAmount < 0 ? `退款 €${Math.abs(settleAmount).toFixed(2)}` : '€0'}</td><td></td></tr>}
+                                {rows}
+                                <tr className="font-semibold border-t border-gray-200"><td colSpan={3} className="py-1.5 text-gray-400">预申报合计（总起步价 €{MIN_FEE.toFixed(2)}）</td><td></td><td className="py-1.5 text-right tabular-nums text-primary">€{preTotal.toFixed(2)}</td></tr>
+                                {actRawSum > 0 && <>
+                                  <tr className="font-semibold"><td colSpan={3} className="py-1.5 text-gray-400">年终实际合计</td><td></td><td className="py-1.5 text-right tabular-nums">€{actRawSum.toFixed(2)}</td></tr>
+                                  {s.note && <tr className="text-[10px]"><td colSpan={5} className="py-1 text-center text-amber-600 bg-amber-50 rounded">{s.note}</td></tr>}
+                                  <tr className="font-bold text-sm"><td colSpan={3} className="py-2 text-gray-600">结算差额</td><td></td><td className={`py-2 text-right tabular-nums ${settleAmount > 0 ? 'text-red-500' : settleAmount < 0 ? 'text-green-500' : 'text-gray-400'}`}>{settleAmount > 0 ? `补缴 €${settleAmount.toFixed(2)}` : settleAmount < 0 ? `退款 €${Math.abs(settleAmount).toFixed(2)}` : '€0'}</td></tr>
+                                </>}
                               </>
                             })()}
                           </tbody>
@@ -273,11 +272,11 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       ) : (<p className="text-xs text-gray-300 text-center py-4">暂无申报数据</p>)}
                       {settlementPayment ? (
                         <p className={`text-xs font-semibold mt-2 ${settlementPayment.amount_eur > 0 ? 'text-red-500' : 'text-green-600'}`}>
-                          {settlementPayment.status === 'paid' ? '✅' : '⏳'} {settlementPayment.amount_eur > 0 ? '补缴' : '退款'} €{Math.abs(settlementPayment.amount_eur)}（{settlementPayment.paid_at?.slice(0, 10) || '待确认'}）
+                          {settlementPayment.status === 'paid' ? '✅' : '⏳'} 已{settlementPayment.amount_eur > 0 ? '补缴' : '退款'} €{Math.abs(settlementPayment.amount_eur)}（{settlementPayment.paid_at?.slice(0, 10) || ''}）
                         </p>
-                      ) : (
-                        <p className="text-[10px] text-gray-300 mt-2">年度实际数量申报后生成结算</p>
-                      )}
+                      ) : actRawSum > 0 ? (
+                        <p className="text-[10px] text-gray-300 mt-2">等待结算确认</p>
+                      ) : null}
                       {invs.length > 0 && (
                         <div className="mt-2 pt-2 border-t border-gray-100">
                           {invs.map(inv => (<p key={inv.id} className="text-[10px] text-gray-500">{inv.invoice_number} · €{inv.amount_eur} · {inv.invoice_date?.slice(0, 10)} · <span className="text-green-500">已开具</span></p>))}
