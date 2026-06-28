@@ -22,7 +22,7 @@ const WEEE_CATEGORIES = [
 ]
 
 const SVC = {
-  packaging: { label: '德国包装法 · 本土授权代表', steps: ['委托方信息', '包装申报', '信息确认'], ctLabel: '授权代表合同' },
+  packaging: { label: '德国包装法 · 本土授权代表', steps: ['委托方信息', '包装预申报', '信息确认'], ctLabel: '授权代表合同' },
   weee: { label: 'WEEE 电子电气法', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (WEEE)' },
   battery: { label: '电池法 BattG', steps: ['委托方信息', '产品信息', '费用确认', '预览签署'], ctLabel: '授权代表合同 (电池法)' },
 }
@@ -303,7 +303,7 @@ export default function SignupFlow() {
       {/* Step 1a: Packaging Declaration */}
       {step === 1 && isPkg && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
-          <h2 className="font-bold text-lg">包装申报</h2>
+          <h2 className="font-bold text-lg">包装预申报</h2>
           <p className="text-sm text-gray-500">添加您在德国市场使用的包装类型，授权代表据此完成双元系统对接。</p>
           {/* Input row — 4 columns + button, aligned with list below */}
           <div className="grid gap-2 items-end" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr auto'}}>
@@ -420,7 +420,7 @@ export default function SignupFlow() {
             {isPkg && <>
                 <div><span className="inline-block w-40 text-gray-400">套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div>
                 <div className="mt-3">
-                  <span className="inline-block w-40 text-gray-400 align-top">包装申报</span>
+                  <span className="inline-block w-40 text-gray-400 align-top">包装预申报</span>
                   <div className="inline-block">
                     <div className="grid text-xs text-gray-400 mb-1" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr'}}>
                       <span>材料类别</span><span>类别</span><span>预估年量</span><span>产品举例</span>

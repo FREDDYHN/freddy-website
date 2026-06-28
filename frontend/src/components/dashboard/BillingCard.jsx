@@ -3,50 +3,78 @@ import { PACKAGING_MATERIALS, getRecyclingRate, calcMaterialFee } from '@shared/
 
 const MAT_NAME = Object.fromEntries(PACKAGING_MATERIALS.map(m => [m.key, m.label]))
 
-function totalCost(items) {
+function totalRecyclingCost(items) {
   if (!items || items.length === 0) return 0
-  // Group by material key and sum kg
   const byMat = {}
-  for (const item of items) {
-    const mk = item.material_type || item.material_key
-    const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0
-    byMat[mk] = (byMat[mk] || 0) + kg
-  }
-  let total = 0
-  for (const [mk, kg] of Object.entries(byMat)) {
-    total += calcMaterialFee(mk, kg)
-  }
+  for (const item of items) { const mk = item.material_type || item.material_key; const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0; byMat[mk] = (byMat[mk] || 0) + kg }
+  let total = 0; for (const [mk, kg] of Object.entries(byMat)) total += calcMaterialFee(mk, kg)
   return total
+}
+
+/** Calculate year-end settlement per contract rules §5(3):
+ *  Actual > declared +20%: 20% surcharge on excess
+ *  Actual < declared: refund only within 10% of declared
+ */
+function calcSettlement(declaredKg, actualKg, rate) {
+  if (!actualKg || actualKg <= 0) return { diff: 0, surcharge: 0, amount: 0, note: '待申报' }
+  const diff = actualKg - declaredKg
+  const threshold = declaredKg * 0.2
+  let amount = 0, surcharge = 0, note = ''
+  if (diff > threshold) {
+    const excess = diff - threshold
+    surcharge = Math.round(excess * rate * 0.2 * 100) / 100
+    const normal = Math.round((declaredKg + threshold) * rate * 100) / 100
+    amount = Math.round((normal + (excess * rate * 1.2)) * 100) / 100
+    note = `超出>20%: 超量${excess.toFixed(1)}kg × ${(rate*1.2).toFixed(4)}`
+  } else if (diff > 0) {
+    amount = Math.round(diff * rate * 100) / 100
+    note = `差额≤20%: ${diff.toFixed(1)}kg × €${rate.toFixed(4)}`
+  } else if (diff < 0) {
+    const refundLimit = declaredKg * 0.1
+    const refundable = Math.min(Math.abs(diff), refundLimit)
+    amount = -Math.round(refundable * rate * 100) / 100
+    note = Math.abs(diff) > refundLimit ? `退款限10%: 应退${Math.abs(diff).toFixed(1)}kg, 实退${refundable.toFixed(1)}kg` : `退款: ${Math.abs(diff).toFixed(1)}kg`
+  } else {
+    note = '无差额'
+  }
+  return { diff: Math.round(diff * 100) / 100, surcharge, amount: Math.round(amount * 100) / 100, note }
+}
+
+/** Deadline helpers */
+function arDeadline(contract) {
+  if (!contract) return ''
+  // Due 14 days after contract start, or immediately if pending
+  if (contract.status === 'pending_payment') return '请尽快支付以激活合同'
+  if (contract.paid_confirmed_at) return `已付 · ${contract.paid_confirmed_at.slice(0, 10)}`
+  return `截止 ${contract.start_date?.slice(0, 10) || ''}`
+}
+
+function reportingDeadline(contract) {
+  // §5(2): March 1 of following year
+  if (!contract?.start_date) return '次年3月1日'
+  const y = parseInt(contract.start_date.slice(0, 4))
+  return `${y + 1}-03-01`
 }
 
 export default function BillingCard({ contracts, packaging, payments, invoices, uploads, bankInfo, onNotifyPaid, onUpload }) {
   const [collapsed, setCollapsed] = useState(false)
   const [notifyingId, setNotifyingId] = useState(null)
   const [expandedBank, setExpandedBank] = useState(null)
-  const [expandedDetail, setExpandedDetail] = useState({}) // { 'pkg_1': true, 'rec_1': true, 'settle_1': true }
+  const [expandedDetail, setExpandedDetail] = useState({})
   const [uploadingCid, setUploadingCid] = useState(null)
 
   const bank = bankInfo || {}
-
   const toggleDetail = (key) => setExpandedDetail(p => ({ ...p, [key]: !p[key] }))
 
-  // ── Group data by contract_id ──
-  const pkgByContract = {}
-  ;(packaging || []).forEach(p => { const cid = p.contract_id; if (!pkgByContract[cid]) pkgByContract[cid] = []; pkgByContract[cid].push(p) })
-  const payByContract = {}
-  ;(payments || []).forEach(p => { const cid = p.contract_id; if (!payByContract[cid]) payByContract[cid] = []; payByContract[cid].push(p) })
-  const invByContract = {}
-  ;(invoices || []).forEach(inv => { const cid = inv.contract_id; if (!invByContract[cid]) invByContract[cid] = []; invByContract[cid].push(inv) })
-  const uplByContract = {}
-  ;(uploads || []).forEach(u => { const cid = u.contract_id; if (cid && !uplByContract[cid]) uplByContract[cid] = []; if (cid) uplByContract[cid].push(u) })
+  const pkgByContract = {}; (packaging || []).forEach(p => { const cid = p.contract_id; if (!pkgByContract[cid]) pkgByContract[cid] = []; pkgByContract[cid].push(p) })
+  const payByContract = {}; (payments || []).forEach(p => { const cid = p.contract_id; if (!payByContract[cid]) payByContract[cid] = []; payByContract[cid].push(p) })
+  const invByContract = {}; (invoices || []).forEach(inv => { const cid = inv.contract_id; if (!invByContract[cid]) invByContract[cid] = []; invByContract[cid].push(inv) })
+  const uplByContract = {}; (uploads || []).forEach(u => { const cid = u.contract_id; if (cid && !uplByContract[cid]) uplByContract[cid] = []; if (cid) uplByContract[cid].push(u) })
 
   const sorted = [...(contracts || [])].sort((a, b) => (b.start_date || '').localeCompare(a.start_date || ''))
 
   const handleNotify = async (cid) => { setNotifyingId(cid); try { await onNotifyPaid(cid) } finally { setNotifyingId(null) } }
-  const handleUpload = async (e, cid) => {
-    const file = e.target.files?.[0]; if (!file) return
-    setUploadingCid(cid); try { await onUpload(file, cid) } finally { setUploadingCid(null); e.target.value = '' }
-  }
+  const handleUpload = async (e, cid) => { const file = e.target.files?.[0]; if (!file) return; setUploadingCid(cid); try { await onUpload(file, cid) } finally { setUploadingCid(null); e.target.value = '' } }
 
   const latestContract = sorted[0]
   const collapsedSub = latestContract
@@ -55,7 +83,6 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
 
   return (
     <div className="bg-white border border-gray-100 rounded-lg">
-      {/* ══════ Collapsible Header ══════ */}
       <button onClick={() => setCollapsed(!collapsed)} className="w-full flex items-center gap-3 p-5 text-left hover:bg-gray-50/50 transition-colors rounded-lg">
         <span className="text-sm font-semibold text-gray-700 flex-shrink-0">💰 付费与申报</span>
         <span className="text-[11px] text-gray-400 flex-1 truncate">{collapsedSub}</span>
@@ -63,241 +90,178 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
         <span className={`text-gray-300 text-xs flex-shrink-0 transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`}>▼</span>
       </button>
 
-      {/* ══════ Expandable Body ══════ */}
-      <div className={`overflow-hidden transition-all duration-300 ${collapsed ? 'max-h-0' : 'max-h-[4000px]'}`}>
-        <div className="px-3 pb-5 overflow-x-auto">
+      <div className={`overflow-hidden transition-all duration-300 ${collapsed ? 'max-h-0' : 'max-h-[6000px]'}`}>
+        <div className="px-3 pb-5 space-y-4">
           {sorted.length === 0 ? (
             <div className="text-center py-8 text-gray-300 text-xs">暂无合同数据</div>
-          ) : (
-            sorted.map((c, ri) => {
-              const pkg = pkgByContract[c.id] || []
-              const pays = payByContract[c.id] || []
-              const invs = invByContract[c.id] || []
-              const ups = uplByContract[c.id] || []
-              const cost = totalCost(pkg)
+          ) : sorted.map((c, ri) => {
+            const pkg = pkgByContract[c.id] || []
+            const pays = payByContract[c.id] || []
+            const invs = invByContract[c.id] || []
+            const ups = uplByContract[c.id] || []
+            const cost = totalRecyclingCost(pkg)
+            const detailKey = `detail_${c.id}`
+            const expanded = expandedDetail[detailKey]
 
-              // AR fee
-              const arStatus = c.status === 'active' ? 'paid' : c.status === 'pending_payment' ? 'pending' : c.status
-              const arPaidDate = c.paid_confirmed_at?.slice(0, 10)
-              const isPendingAR = c.status === 'pending_payment'
+            // Fee statuses
+            const isPendingAR = c.status === 'pending_payment'
+            const arDeadlineStr = arDeadline(c)
+            const reportDeadline = reportingDeadline(c)
+            const prepaidPayment = pays.find(p => p.payment_type === 'recycling_prepaid')
+            const settlementPayment = pays.find(p => p.payment_type === 'recycling_settlement')
+            const proofUploads = ups.filter(u => u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
 
-              // Recycling
-              const prepaidPayment = pays.find(p => p.payment_type === 'recycling_prepaid')
-              const settlementPayment = pays.find(p => p.payment_type === 'recycling_settlement')
-              const proofUploads = ups.filter(u => u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
+            // Material group for settlement
+            const matKg = {}; pkg.forEach(item => { const mk = item.material_type || item.material_key; matKg[mk] = (matKg[mk] || 0) + (parseFloat(item.estimated_quantity_kg || item.kg) || 0) })
 
-              const pkgKey = `pkg_${c.id}`
-              const settleKey = `settle_${c.id}`
-              const bankKey = `bank_${c.id}`
-
-              return (
-                <div key={c.id} className={`border border-gray-100 rounded-lg mb-3 ${ri % 2 ? 'bg-gray-50/50' : ''}`}>
-                  {/* ── Row Header ── */}
-                  <div className="flex items-center gap-4 px-4 py-3 flex-wrap">
-                    {/* Contract period */}
-                    <div className="min-w-[140px]">
-                      <p className="text-xs font-semibold text-gray-700 whitespace-nowrap">
-                        {c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}
-                      </p>
-                      <button onClick={() => navigator.clipboard.writeText(c.contract_number)}
-                        className="text-[10px] text-gray-400 hover:text-primary transition-colors" title="点击复制">
-                        {c.contract_number}
-                      </button>
-                    </div>
-
-                    {/* AR fee */}
-                    <div className="flex items-center gap-2 min-w-[160px]">
-                      <span className="text-xs text-gray-500">年费</span>
-                      <span className={`text-xs font-semibold ${arStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
-                        €{c.annual_fee_eur} {arStatus === 'paid' ? '✓' : '待付'}
-                      </span>
-                      {arPaidDate && <span className="text-[10px] text-gray-400">{arPaidDate}</span>}
-                      {isPendingAR && (
-                        <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
-                          className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
-                          {notifyingId === c.id ? '...' : '通知已转账'}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Packaging + Recycling (combined) */}
-                    <button onClick={() => toggleDetail(pkgKey)}
-                      className="flex items-center gap-2 min-w-[240px] text-left hover:bg-gray-100 rounded px-2 py-1 transition-colors">
-                      <span className="text-xs text-gray-500">包装申报（回收费预缴）</span>
-                      <span className="text-xs font-medium text-gray-700">{pkg.length}种 · {pkg.reduce((s, i) => s + (parseFloat(i.estimated_quantity_kg || i.kg) || 0), 0)}kg</span>
-                      <span className="text-xs text-gray-500">预估€{cost.toFixed(2)}</span>
-                      {prepaidPayment?.status === 'paid'
-                        ? <span className="text-[10px] text-green-600">€{prepaidPayment.amount_eur} ✓</span>
-                        : <span className="text-[10px] text-yellow-600">待缴</span>}
-                      <span className={`text-[10px] text-gray-300 transition-transform duration-200 ${expandedDetail[pkgKey] ? 'rotate-180' : ''}`}>▼</span>
-                    </button>
-
-                    {/* Year-end settlement */}
-                    <button onClick={() => toggleDetail(settleKey)}
-                      className="flex items-center gap-2 min-w-[140px] text-left hover:bg-gray-100 rounded px-2 py-1 transition-colors">
-                      <span className="text-xs text-gray-500">年终结算</span>
-                      {settlementPayment?.status === 'paid'
-                        ? <span className="text-xs font-semibold text-green-600">€{settlementPayment.amount_eur} ✓</span>
-                        : <span className="text-[10px] text-gray-300">待申报</span>}
-                      {invs.length > 0 && <span className="text-[10px] text-gray-400">{invs.length}张发票</span>}
-                      {settlementPayment && <span className={`text-[10px] text-gray-300 transition-transform duration-200 ${expandedDetail[settleKey] ? 'rotate-180' : ''}`}>▼</span>}
-                    </button>
-
-                    {/* Bank info toggle */}
-                    {isPendingAR && (
-                      <button onClick={() => setExpandedBank(expandedBank === c.id ? null : c.id)}
-                        className="text-[10px] text-primary hover:underline">
-                        {expandedBank === c.id ? '▲' : '▼'} 银行信息
-                      </button>
-                    )}
-
-                    {/* Upload proof */}
-                    <div className="flex items-center gap-2 ml-auto">
-                      {proofUploads.length > 0 && proofUploads.slice(0, 1).map((u, i) => (
-                        <a key={u.id || i} href={`/api/uploads/${u.id}/download`}
-                          className="text-[10px] text-primary hover:underline truncate max-w-[100px]" download title={u.original_name}>
-                          📄 {u.original_name?.slice(0, 12)}...
-                        </a>
-                      ))}
-                      <label className="cursor-pointer text-[10px] text-gray-400 hover:text-primary transition-colors">
-                        {uploadingCid === c.id ? '...' : '📤'}
-                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
-                      </label>
-                    </div>
+            return (
+              <div key={c.id} className={`border border-gray-100 rounded-lg ${ri % 2 ? 'bg-gray-50/50' : ''}`}>
+                {/* ── Row Summary ── */}
+                <div className="flex items-center gap-4 px-4 py-3 flex-wrap">
+                  <div className="min-w-[140px]">
+                    <p className="text-xs font-semibold text-gray-700 whitespace-nowrap">{c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}</p>
+                    <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors" title="点击复制">{c.contract_number}</button>
                   </div>
 
-                  {/* ── Bank info expand ── */}
-                  {expandedBank === c.id && (
-                    <div className="px-4 pb-3">
-                      <div className="bg-blue-50 rounded p-2.5 text-[10px] space-y-0.5">
-                        {bank.account_name && <p><span className="text-gray-400">户名：</span><span className="font-medium">{bank.account_name}</span></p>}
-                        {bank.bank_name && <p><span className="text-gray-400">开户行：</span>{bank.bank_name}</p>}
-                        {bank.account_number && <p><span className="text-gray-400">账号：</span><span className="font-mono">{bank.account_number}</span></p>}
-                        {bank.bank_code && <p><span className="text-gray-400">银行代码：</span><span className="font-mono">{bank.bank_code}</span></p>}
-                        {bank.bank_address && <p><span className="text-gray-400">开户行地址：</span>{bank.bank_address}</p>}
-                        <p className="text-gray-400 pt-0.5 border-t border-blue-200">附言：{bank.reference_prefix || ''}{c.contract_number}</p>
-                      </div>
+                  {/* AR Fee */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-gray-400">年费</span>
+                    <span className={`text-xs font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur} {isPendingAR ? '待付' : '✓'}</span>
+                    <span className="text-[10px] text-gray-400">{arDeadlineStr}</span>
+                  </div>
+
+                  {/* Packaging fee estimate */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-gray-400">申报费</span>
+                    <span className={`text-xs font-semibold ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
+                      预估€{cost.toFixed(2)} {prepaidPayment?.status === 'paid' ? '✓' : '待缴'}
+                    </span>
+                    <span className="text-[10px] text-gray-400">截止 {reportDeadline}</span>
+                  </div>
+
+                  {/* Year-end settlement */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-gray-400">年终结算</span>
+                    {settlementPayment?.status === 'paid' ? (
+                      <span className="text-xs font-semibold text-green-600">€{settlementPayment.amount_eur} ✓</span>
+                    ) : (
+                      <span className="text-[10px] text-gray-300">待申报</span>
+                    )}
+                  </div>
+
+                  {isPendingAR && (
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
+                        className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
+                        {notifyingId === c.id ? '...' : '通知已转账'}
+                      </button>
+                      <button onClick={() => setExpandedBank(expandedBank === c.id ? null : c.id)}
+                        className="text-[10px] text-primary hover:underline">{expandedBank === c.id ? '▲' : '▼'} 银行信息</button>
                     </div>
                   )}
 
-                  {/* ══════ 包装申报 + 回收费预缴详情 ══════ */}
-                  {expandedDetail[pkgKey] && pkg.length > 0 && (
-                    <div className="px-4 pb-3 border-t border-gray-100">
-                      <p className="text-[11px] font-medium text-gray-500 mt-3 mb-2">📦 包装申报（回收费预缴）</p>
-                      <table className="w-full text-[11px]">
-                        <thead>
-                          <tr className="text-gray-400 border-b border-gray-100">
-                            <th className="text-left font-normal py-1">材料类别</th>
-                            <th className="text-left font-normal py-1">销售类型</th>
-                            <th className="text-right font-normal py-1">预估重量 (kg)</th>
-                            <th className="text-right font-normal py-1">费率 €/kg</th>
-                            <th className="text-right font-normal py-1">预估费 €</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {/* Pre-compute total kg per material for tier lookup */}
-                          {(() => {
-                            const matKg = {}
-                            pkg.forEach(item => { const mk = item.material_type || item.material_key; matKg[mk] = (matKg[mk] || 0) + (parseFloat(item.estimated_quantity_kg || item.kg) || 0) })
-                            return pkg.map((item, i) => {
-                              const mk = item.material_type || item.material_key
-                              const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0
-                              const rate = getRecyclingRate(mk, matKg[mk] || 0)
-                              const itemFee = Math.round(kg * rate * 100) / 100
-                              return (
-                                <tr key={i} className="border-b border-gray-50">
-                                  <td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || item.material || mk}</td>
-                                  <td className="py-1 text-gray-500">{item.packaging_category || item.category || '—'}</td>
-                                  <td className="py-1 text-right tabular-nums font-medium">{kg}</td>
-                                  <td className="py-1 text-right text-gray-400">€{rate.toFixed(4)}</td>
-                                  <td className="py-1 text-right tabular-nums text-gray-500">€{itemFee.toFixed(2)}</td>
-                                </tr>
-                              )
-                            }).concat(
-                              <tr key="_tot" className="font-semibold">
-                                <td colSpan={2} className="py-1.5 text-gray-400">合计（含最低消费 €23.90/材料）</td>
-                                <td className="py-1.5 text-right tabular-nums">{pkg.reduce((s, i) => s + (parseFloat(i.estimated_quantity_kg || i.kg) || 0), 0)} kg</td>
-                                <td></td>
-                                <td className="py-1.5 text-right tabular-nums text-primary">€{cost.toFixed(2)}</td>
-                              </tr>
-                            )
-                          })()}
-                        </tbody>
-                      </table>
+                  <button onClick={() => toggleDetail(detailKey)}
+                    className="ml-auto flex items-center gap-1 text-[10px] text-gray-400 hover:text-primary transition-colors px-2 py-1 rounded hover:bg-gray-100">
+                    明细 <span className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▼</span>
+                  </button>
+
+                  <label className="cursor-pointer text-[10px] text-gray-400 hover:text-primary transition-colors">
+                    📤 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
+                  </label>
+                </div>
+
+                {/* Bank info */}
+                {expandedBank === c.id && (
+                  <div className="px-4 pb-3">
+                    <div className="bg-blue-50 rounded p-2.5 text-[10px] space-y-0.5">
+                      {bank.account_name && <p><span className="text-gray-400">户名：</span><span className="font-medium">{bank.account_name}</span></p>}
+                      {bank.bank_name && <p><span className="text-gray-400">开户行：</span>{bank.bank_name}</p>}
+                      {bank.account_number && <p><span className="text-gray-400">账号：</span><span className="font-mono">{bank.account_number}</span></p>}
+                      {bank.bank_code && <p><span className="text-gray-400">银行代码：</span><span className="font-mono">{bank.bank_code}</span></p>}
+                      {bank.bank_address && <p><span className="text-gray-400">开户行地址：</span>{bank.bank_address}</p>}
+                      <p className="text-gray-400 pt-0.5 border-t border-blue-200">附言：{bank.reference_prefix || ''}{c.contract_number}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ══════ Expandable Detail ══════ */}
+                {expanded && (
+                  <div className="px-4 pb-4 border-t border-gray-100 space-y-4">
+                    {/* ── ① AR Fee ── */}
+                    <div>
+                      <h4 className="text-[11px] font-semibold text-gray-600 mt-3 mb-2">① 授权代表年费</h4>
+                      <div className="bg-gray-50 rounded-lg p-3 text-xs space-y-1">
+                        <div className="flex justify-between"><span className="text-gray-400">服务等级</span><span className="font-medium">{c.tier === 'basic' ? '基础 €89/年' : c.tier === 'standard' ? '标准 €159/年' : c.tier === 'premium' ? '高级 €249/年' : c.tier}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-400">合同周期</span><span>{c.start_date?.slice(0, 10)} – {c.end_date?.slice(0, 10)}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-400">支付状态</span><span className={isPendingAR ? 'text-yellow-600 font-medium' : 'text-green-600 font-medium'}>{isPendingAR ? '待付款' : '已付款'}</span></div>
+                        {c.paid_confirmed_at && <div className="flex justify-between"><span className="text-gray-400">确认日期</span><span>{c.paid_confirmed_at.slice(0, 10)}</span></div>}
+                        <div className="flex justify-between pt-1 border-t border-gray-100"><span className="text-gray-400">年费金额</span><span className="font-bold text-primary">€{c.annual_fee_eur}</span></div>
+                      </div>
+                    </div>
+
+                    {/* ── ② Packaging Declaration Fee ── */}
+                    <div>
+                      <h4 className="text-[11px] font-semibold text-gray-600 mb-2">② 包装预申报费（回收费预缴）</h4>
+                      <p className="text-[10px] text-gray-400 mb-2">截止日期：{reportDeadline}（合同§5(2)） · 依据：回收费价目单_2026</p>
+                      {pkg.length > 0 ? (
+                        <table className="w-full text-[11px]">
+                          <thead><tr className="text-gray-400 border-b border-gray-100"><th className="text-left font-normal py-1">材料类别</th><th className="text-left font-normal py-1">类型</th><th className="text-right font-normal py-1">预估kg</th><th className="text-right font-normal py-1">费率€/kg</th><th className="text-right font-normal py-1">预估费€</th></tr></thead>
+                          <tbody>
+                            {pkg.map((item, i) => {
+                              const mk = item.material_type || item.material_key; const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0
+                              const rate = getRecyclingRate(mk, matKg[mk] || 0); const itemFee = Math.round(kg * rate * 100) / 100
+                              return (<tr key={i} className="border-b border-gray-50"><td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || item.material || mk}</td><td className="py-1 text-gray-500">{item.packaging_category || item.category || '—'}</td><td className="py-1 text-right tabular-nums font-medium">{kg}</td><td className="py-1 text-right text-gray-400">€{rate.toFixed(4)}</td><td className="py-1 text-right tabular-nums text-gray-500">€{itemFee.toFixed(2)}</td></tr>)
+                            })}
+                          </tbody>
+                          <tfoot>
+                            <tr className="font-semibold"><td colSpan={3} className="py-1.5 text-gray-400">合计（各材料≥€{PACKAGING_MATERIALS[0]?.minFee?.toFixed(2) || '23.90'}最低消费）</td><td></td><td className="py-1.5 text-right tabular-nums text-primary">€{cost.toFixed(2)}</td></tr>
+                          </tfoot>
+                        </table>
+                      ) : (<p className="text-xs text-gray-300 text-center py-4">暂无申报数据</p>)}
                       {prepaidPayment?.status === 'paid' && (
                         <p className="text-[10px] text-green-600 mt-2">✅ 已预缴 €{prepaidPayment.amount_eur}（{prepaidPayment.paid_at?.slice(0, 10)}）</p>
                       )}
                     </div>
-                  )}
 
-                  {/* ══════ 年终结算详情 ══════ */}
-                  {expandedDetail[settleKey] && (
-                    <div className="px-4 pb-3 border-t border-gray-100">
-                      <p className="text-[11px] font-medium text-gray-500 mt-3 mb-2">📋 年终申报结算</p>
+                    {/* ── ③ Year-end Settlement Comparison ── */}
+                    <div>
+                      <h4 className="text-[11px] font-semibold text-gray-600 mb-2">③ 年终申报结算（预申报 vs 实际）</h4>
+                      <p className="text-[10px] text-gray-400 mb-2">截止日期：{reportDeadline} · 结算规则：合同§5(3) — 超出&gt;20%加收20%附加费 · 低于仅退10%内差额</p>
+                      {pkg.length > 0 ? (
+                        <table className="w-full text-[11px]">
+                          <thead><tr className="text-gray-400 border-b border-gray-100"><th className="text-left font-normal py-1">材料</th><th className="text-right font-normal py-1">预申报kg</th><th className="text-right font-normal py-1">实际kg</th><th className="text-right font-normal py-1">差额</th><th className="text-right font-normal py-1">结算€</th><th className="text-left font-normal py-1 pl-2">说明</th></tr></thead>
+                          <tbody>
+                            {pkg.map((item, i) => {
+                              const mk = item.material_type || item.material_key
+                              const estK = parseFloat(item.estimated_quantity_kg || item.kg) || 0
+                              const actK = parseFloat(item.actual_quantity_kg) || 0
+                              const rate = getRecyclingRate(mk, Math.max(estK, actK))
+                              const s = calcSettlement(estK, actK, rate)
+                              const diffDisplay = actK ? (s.diff > 0 ? `+${s.diff}` : s.diff < 0 ? `${s.diff}` : '0') : '—'
+                              const costDisplay = actK ? (s.amount > 0 ? `€${s.amount.toFixed(2)}` : s.amount < 0 ? `-€${Math.abs(s.amount).toFixed(2)}` : '€0') : '—'
+                              return (<tr key={i} className="border-b border-gray-50"><td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || mk}</td><td className="py-1 text-right tabular-nums text-gray-500">{estK}</td><td className="py-1 text-right tabular-nums font-medium">{actK || '—'}</td><td className={`py-1 text-right tabular-nums ${s.diff > 0 ? 'text-red-500' : s.diff < 0 ? 'text-green-500' : 'text-gray-400'}`}>{diffDisplay}</td><td className={`py-1 text-right tabular-nums font-medium ${s.amount > 0 ? 'text-red-500' : s.amount < 0 ? 'text-green-500' : 'text-gray-400'}`}>{costDisplay}</td><td className="py-1 pl-2 text-[10px] text-gray-400">{actK ? s.note : ''}</td></tr>)
+                            })}
+                          </tbody>
+                        </table>
+                      ) : (<p className="text-xs text-gray-300 text-center py-4">暂无申报数据</p>)}
                       {settlementPayment ? (
-                        <div className="space-y-2">
-                          <table className="w-full text-[11px]">
-                            <thead>
-                              <tr className="text-gray-400 border-b border-gray-100">
-                                <th className="text-left font-normal py-1">材料</th>
-                                <th className="text-right font-normal py-1">预申报 (kg)</th>
-                                <th className="text-right font-normal py-1">年终实际 (kg)</th>
-                                <th className="text-right font-normal py-1">差额 (kg)</th>
-                                <th className="text-right font-normal py-1">结算 €</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {pkg.map((item, i) => {
-                                const mk = item.material_type || item.material_key
-                                const estK = parseFloat(item.estimated_quantity_kg || item.kg) || 0
-                                const actK = parseFloat(item.actual_quantity_kg) || 0
-                                const diff = actK - estK
-                                const rate = getRecyclingRate(mk, Math.max(estK, actK))
-                                const diffCost = rate && diff ? Math.round(rate * diff * 100) / 100 : 0
-                                return (
-                                  <tr key={i} className="border-b border-gray-50">
-                                    <td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || mk}</td>
-                                    <td className="py-1 text-right tabular-nums text-gray-500">{estK}</td>
-                                    <td className="py-1 text-right tabular-nums font-medium">{actK || '—'}</td>
-                                    <td className={`py-1 text-right tabular-nums ${diff > 0 ? 'text-red-500' : diff < 0 ? 'text-green-500' : 'text-gray-400'}`}>
-                                      {actK ? (diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : '0') : '—'}
-                                    </td>
-                                    <td className={`py-1 text-right tabular-nums font-medium ${diffCost > 0 ? 'text-red-500' : diffCost < 0 ? 'text-green-500' : 'text-gray-400'}`}>
-                                      {actK ? (diffCost > 0 ? `+€${diffCost}` : diffCost < 0 ? `-€${Math.abs(diffCost)}` : '€0') : '—'}
-                                    </td>
-                                  </tr>
-                                )
-                              })}
-                            </tbody>
-                          </table>
-                          <p className={`text-xs font-semibold ${settlementPayment.amount_eur > 0 ? 'text-red-500' : 'text-green-600'}`}>
-                            {settlementPayment.status === 'paid'
-                              ? `✅ 已结算：${settlementPayment.amount_eur > 0 ? '补缴' : '退款'} €${Math.abs(settlementPayment.amount_eur)}（${settlementPayment.paid_at?.slice(0, 10)}）`
-                              : `待结算：€${settlementPayment.amount_eur}`}
-                          </p>
-                        </div>
+                        <p className={`text-xs font-semibold mt-2 ${settlementPayment.amount_eur > 0 ? 'text-red-500' : 'text-green-600'}`}>
+                          {settlementPayment.status === 'paid' ? '✅' : '⏳'} {settlementPayment.amount_eur > 0 ? '补缴' : '退款'} €{Math.abs(settlementPayment.amount_eur)}（{settlementPayment.paid_at?.slice(0, 10) || '待确认'}）
+                        </p>
                       ) : (
-                        <div className="text-center py-4 text-gray-300 text-xs">
-                          <p>📋 年度申报完成后将生成结算单</p>
-                          <p className="mt-0.5">基于年终实际包装量与预申报量的差额结算</p>
-                        </div>
+                        <p className="text-[10px] text-gray-300 mt-2">年度实际数量申报后生成结算</p>
                       )}
                       {invs.length > 0 && (
-                        <div className="mt-3 pt-2 border-t border-gray-100">
-                          <p className="text-[10px] text-gray-400 mb-1">关联发票</p>
-                          {invs.map(inv => (
-                            <p key={inv.id} className="text-[10px] text-gray-500">
-                              {inv.invoice_number} · €{inv.amount_eur} · {inv.invoice_date?.slice(0, 10)} · <span className="text-green-500">已开具</span>
-                            </p>
-                          ))}
+                        <div className="mt-2 pt-2 border-t border-gray-100">
+                          {invs.map(inv => (<p key={inv.id} className="text-[10px] text-gray-500">{inv.invoice_number} · €{inv.amount_eur} · {inv.invoice_date?.slice(0, 10)} · <span className="text-green-500">已开具</span></p>))}
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-              )
-            })
-          )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

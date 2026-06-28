@@ -50,9 +50,9 @@ export default function UrgentAlertBanner({ reminders, contract }) {
   } else if (contract.status === 'active') {
     const d2d = daysToDeadline()
     if (d2d <= 5) {
-      alert = { level: 'critical', icon: '🚨', title: `申报截止仅剩${d2d}天！`, desc: '请立即准备并提交年度包装申报数据。', color: 'bg-red-50 border-red-200 text-red-700' }
+      alert = { level: 'critical', icon: '🚨', title: `申报截止仅剩${d2d}天！`, desc: '请立即准备并提交年度包装申报。', color: 'bg-red-50 border-red-200 text-red-700' }
     } else if (d2d <= 14) {
-      alert = { level: 'warning', icon: '⚠️', title: `申报截止还有${d2d}天`, desc: '请开始准备年度包装申报数据。', color: 'bg-amber-50 border-amber-200 text-amber-700' }
+      alert = { level: 'warning', icon: '⚠️', title: `申报截止还有${d2d}天`, desc: '请开始准备年度包装申报。', color: 'bg-amber-50 border-amber-200 text-amber-700' }
     } else {
       const dl = calcDaysLeft(contract)
       if (dl <= 30) {
