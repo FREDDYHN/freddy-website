@@ -380,6 +380,18 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' })
     }
 
+    // Fetch packaging data for Anlage B
+    const packagingItems = await db.all(
+      'SELECT material_type, packaging_category, estimated_quantity_kg FROM packaging_data WHERE contract_id = ?',
+      req.params.id
+    )
+    const pkgItems = packagingItems.map(p => ({
+      material: p.material_type,
+      category: p.packaging_category,
+      kg: String(p.estimated_quantity_kg || ''),
+      example: '',
+    }))
+
     const { type, client_location } = req.body
     const genType = type || 'ar'
 
@@ -388,6 +400,7 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
       clientLocation: client_location || 'cn',
       data: {
         ...contract,
+        packaging_items: pkgItems,
         contract_date: contract.created_at?.slice(0, 10) || new Date().toISOString().slice(0, 10),
         sign_date: new Date().toISOString().slice(0, 10),
         livanto_address: 'LIVANTO GmbH, Germany',
