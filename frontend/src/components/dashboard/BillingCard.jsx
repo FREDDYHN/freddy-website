@@ -63,7 +63,9 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
   const [notifyingId, setNotifyingId] = useState(null)
   const [expandedDetail, setExpandedDetail] = useState({})
   const [uploadingCid, setUploadingCid] = useState(null)
-  const [actualsCid, setActualsCid] = useState(null) // contract ID for actuals form modal
+  const [actualsCid, setActualsCid] = useState(null)
+  const [expandedUpload, setExpandedUpload] = useState({})
+  const [expandedDownload, setExpandedDownload] = useState({})
 
   const toggleDetail = (key) => setExpandedDetail(p => ({ ...p, [key]: !p[key] }))
 
@@ -167,7 +169,43 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       )
                     ) : <span></span>}
                     <span></span><span></span><span></span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                    {/* Upload zone */}
+                    <div className="relative">
+                      <button onClick={() => { const k = 'up_' + c.id; setExpandedUpload(p => ({...p, [k]: !p[k]})) }}
+                        className="text-[10px] text-gray-500 hover:text-primary transition-colors px-1.5 py-0.5 rounded hover:bg-gray-100 whitespace-nowrap">
+                        凭证上传 <span className={`inline-block transition-transform duration-200 ${expandedUpload['up_' + c.id] ? 'rotate-180' : ''}`}>▼</span>
+                      </button>
+                      {expandedUpload['up_' + c.id] && (
+                        <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-2 space-y-1 min-w-[150px]">
+                          <label className="cursor-pointer text-[10px] hover:bg-gray-50 rounded px-2 py-1 block whitespace-nowrap">
+                            📎 年费凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_annual_fee')} disabled={uploadingCid === c.id} className="hidden" />
+                          </label>
+                          <label className="cursor-pointer text-[10px] hover:bg-gray-50 rounded px-2 py-1 block whitespace-nowrap">
+                            📎 预申报凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_prepaid')} disabled={uploadingCid === c.id} className="hidden" />
+                          </label>
+                          <label className="cursor-pointer text-[10px] hover:bg-gray-50 rounded px-2 py-1 block whitespace-nowrap">
+                            📎 结算凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_settlement')} disabled={uploadingCid === c.id} className="hidden" />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                    {/* Download zone */}
+                    <div className="relative">
+                      <button onClick={() => { const k = 'dl_' + c.id; setExpandedDownload(p => ({...p, [k]: !p[k]})) }}
+                        className="text-[10px] text-gray-500 hover:text-primary transition-colors px-1.5 py-0.5 rounded hover:bg-gray-100 whitespace-nowrap">
+                        凭证下载 <span className={`inline-block transition-transform duration-200 ${expandedDownload['dl_' + c.id] ? 'rotate-180' : ''}`}>▼</span>
+                      </button>
+                      {expandedDownload['dl_' + c.id] && (
+                        <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-2 space-y-1 min-w-[150px]">
+                          {invs.filter(inv => inv.invoice_number?.includes('-AR')).map(inv => <a key={inv.id} href={`/api/uploads?invoice_id=${inv.id}`} className="text-[10px] hover:bg-gray-50 rounded px-2 py-1 block whitespace-nowrap">📄 年费发票</a>)}
+                          {invs.filter(inv => inv.invoice_number?.includes('-REC')).map(inv => <a key={inv.id} className="text-[10px] hover:bg-gray-50 rounded px-2 py-1 block whitespace-nowrap">📄 预申报账单</a>)}
+                          {invs.filter(inv => inv.invoice_number?.includes('-STL')).map(inv => <a key={inv.id} className="text-[10px] hover:bg-gray-50 rounded px-2 py-1 block whitespace-nowrap">📄 结算账单</a>)}
+                          {(invs || []).length === 0 && <span className="text-[10px] text-gray-300 px-2 py-1 block">暂无文件</span>}
+                        </div>
+                      )}
+                    </div>
+                    {/* Notify + Detail */}
                     {isPendingAR && (
                       <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
                         className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
@@ -178,10 +216,6 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       className="text-[10px] text-gray-400 hover:text-primary transition-colors px-1.5 py-0.5 rounded hover:bg-gray-100 whitespace-nowrap">
                       明细 <span className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▼</span>
                     </button>
-
-                    <label className="cursor-pointer text-xs text-gray-400 hover:text-primary transition-colors">
-                      📤 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
-                    </label>
                     </div>
                   </div>
                 </div>

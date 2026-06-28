@@ -86,12 +86,12 @@ export default function Dashboard() {
     await authDownload(d.download_url, `${d.contract_number || 'contract'}.docx`)
   }
 
-  const handleUpload = async (file, contractId) => {
+  const handleUpload = async (file, contractId, fileType = 'signed_contract') => {
     const token = sessionStorage.getItem('token')
     if (!token) { alert('未登录，请重新登录'); return }
     const fd = new FormData()
     fd.append('file', file)
-    fd.append('file_type', 'signed_contract')
+    fd.append('file_type', fileType)
     if (contractId) fd.append('contract_id', String(contractId))
     const r = await fetch('/api/uploads', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
     const d = await r.json()
