@@ -295,7 +295,7 @@ export default function SignupFlow() {
           </div>
 
           <div className="flex justify-end pt-2">
-            <button onClick={() => next(1)} disabled={!form.company_name || !form.company_name_en || !form.registered_address || !form.legal_representative || !form.legal_representative_en || !form.contact_person || !form.contact_person_en || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password || !form.password_confirm} className={btnCls}>下一步 →</button>
+            <button onClick={() => next(step + 1)} disabled={!form.company_name || !form.company_name_en || !form.registered_address || !form.legal_representative || !form.legal_representative_en || !form.contact_person || !form.contact_person_en || !form.contact_email || !form.contact_phone || !form.wechat_id || !form.password || !form.password_confirm} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
@@ -344,8 +344,8 @@ export default function SignupFlow() {
             </div>
           )}
           <div className="flex justify-between pt-2">
-            <button onClick={() => goStep(0)} className={btnGhostCls}>← 上一步</button>
-            <button onClick={() => goStep(2)} className={btnCls}>下一步 →</button>
+            <button onClick={() => goStep(step - 1)} className={btnGhostCls}>← 上一步</button>
+            <button onClick={() => goStep(step + 1)} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
@@ -371,8 +371,8 @@ export default function SignupFlow() {
             <div><label className="block text-sm font-medium mb-1 text-gray-600">年份类型</label><select value={form.year_type} onChange={e => update('year_type', e.target.value)} className={inputCls}><option value="first">首年（含一次性费用）</option><option value="renewal">续年</option></select></div>
           </div>
           <div className="flex justify-between pt-2">
-            <button onClick={() => goStep(0)} className={btnGhostCls}>← 上一步</button>
-            <button onClick={() => goStep(2)} disabled={isWeee && form.device_categories.length === 0} className={btnCls}>下一步 →</button>
+            <button onClick={() => goStep(step - 1)} className={btnGhostCls}>← 上一步</button>
+            <button onClick={() => goStep(step + 1)} disabled={isWeee && form.device_categories.length === 0} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
@@ -393,8 +393,8 @@ export default function SignupFlow() {
           </div>
           <p className="text-xs text-gray-400">* 最终费用以合同为准</p>
           <div className="flex">
-            <button onClick={() => goStep(1)} className={btnGhostCls}>← 上一步</button>
-            <button onClick={() => goStep(3)} className={btnCls}>下一步 →</button>
+            <button onClick={() => goStep(step - 1)} className={btnGhostCls}>← 上一步</button>
+            <button onClick={() => goStep(step + 1)} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
