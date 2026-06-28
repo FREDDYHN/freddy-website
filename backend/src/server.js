@@ -176,12 +176,12 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
     // Enrich with payment info
     for (const row of rows) {
       const prepaid = await db.get(
-        \"SELECT amount_eur, status FROM payments WHERE contract_id = ? AND payment_type = 'recycling_prepaid' ORDER BY id DESC LIMIT 1\",
+        `SELECT amount_eur, status FROM payments WHERE contract_id = ? AND payment_type = 'recycling_prepaid' ORDER BY id DESC LIMIT 1`,
         row.id
       )
       if (prepaid) { row.prepaid_amount = prepaid.amount_eur; row.prepaid_status = prepaid.status }
       const settlement = await db.get(
-        \"SELECT amount_eur, status FROM payments WHERE contract_id = ? AND payment_type = 'recycling_settlement' ORDER BY id DESC LIMIT 1\",
+        `SELECT amount_eur, status FROM payments WHERE contract_id = ? AND payment_type = 'recycling_settlement' ORDER BY id DESC LIMIT 1`,
         row.id
       )
       if (settlement) { row.settlement_amount = settlement.amount_eur; row.settlement_status = settlement.status }
