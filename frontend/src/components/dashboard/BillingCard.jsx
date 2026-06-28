@@ -119,7 +119,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
               <div key={c.id} className={`border border-gray-100 rounded-lg ${ri % 2 ? 'bg-gray-50/50' : ''}`}>
                 {/* ── Row Summary ── */}
                 <div className="px-4 py-3">
-                  {/* Line 1: Period + fee summary */}
+                  {/* Line 1: Period + fee summary + bank info */}
                   <div className="flex items-center gap-5 flex-wrap">
                     <span className="text-xs font-semibold text-gray-700">{c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}</span>
                     <span className="text-xs text-gray-700">
@@ -139,6 +139,13 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       )}
                     </span>
                     <span className="text-xs text-gray-400">截止 {reportDeadline}</span>
+
+                    {isPendingAR && (
+                      <button onClick={() => setExpandedBank(expandedBank === c.id ? null : c.id)}
+                        className="ml-auto text-xs text-primary hover:underline flex-shrink-0">
+                        {expandedBank === c.id ? '▲' : '▼'} 银行信息
+                      </button>
+                    )}
                   </div>
 
                   {/* Line 2: Contract number + actions */}
@@ -146,14 +153,10 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                     <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-xs text-gray-400 hover:text-primary transition-colors" title="点击复制">{c.contract_number}</button>
 
                     {isPendingAR && (
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
-                          className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
-                          {notifyingId === c.id ? '...' : '通知已转账'}
-                        </button>
-                        <button onClick={() => setExpandedBank(expandedBank === c.id ? null : c.id)}
-                          className="text-[10px] text-primary hover:underline">{expandedBank === c.id ? '▲' : '▼'} 银行信息</button>
-                      </div>
+                      <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
+                        className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
+                        {notifyingId === c.id ? '...' : '通知已转账'}
+                      </button>
                     )}
 
                     <button onClick={() => toggleDetail(detailKey)}
