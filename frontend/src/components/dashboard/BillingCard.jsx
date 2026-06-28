@@ -11,33 +11,41 @@ function totalRecyclingCost(items) {
   return total
 }
 
-/** Calculate year-end settlement per contract rules §5(3):
- *  Actual > declared +20%: 20% surcharge on excess
- *  Actual < declared: refund only within 10% of declared
+/** Year-end settlement per contract §5(3) + minFee floor rule:
+ *  - Actual fee = max(minFee, actualKg × rate). minFee is the floor, no refund below it.
+ *  - Actual > declared +20%: 20% surcharge on excess portion
+ *  - Actual < declared: refund only within 10% of declared, capped by minFee floor
+ *  - If actualKg × rate < minFee: no refund (already paid minFee)
  */
-function calcSettlement(declaredKg, actualKg, rate) {
-  if (!actualKg || actualKg <= 0) return { diff: 0, surcharge: 0, amount: 0, note: '待申报' }
+function calcSettlement(declaredKg, actualKg, rate, minFee) {
+  if (!actualKg || actualKg <= 0) return { diff: 0, amount: 0, note: '待申报' }
   const diff = actualKg - declaredKg
+  const preDeclaredFee = Math.max(minFee, declaredKg * rate)
+  const rawActualFee = actualKg * rate
+  // Below minFee floor → no refund
+  if (rawActualFee <= minFee) return { diff: Math.round(diff * 100) / 100, amount: 0, note: `低于起步价€${minFee.toFixed(2)}，不予退款` }
+  // Apply contract §5(3) penalty rules
   const threshold = declaredKg * 0.2
-  let amount = 0, surcharge = 0, note = ''
+  let actualFee = rawActualFee
+  let note = ''
   if (diff > threshold) {
     const excess = diff - threshold
-    surcharge = Math.round(excess * rate * 0.2 * 100) / 100
-    const normal = Math.round((declaredKg + threshold) * rate * 100) / 100
-    amount = Math.round((normal + (excess * rate * 1.2)) * 100) / 100
-    note = `超出>20%: 超量${excess.toFixed(1)}kg × ${(rate*1.2).toFixed(4)}`
+    actualFee = (declaredKg + threshold) * rate + excess * rate * 1.2
+    actualFee = Math.round(actualFee * 100) / 100
+    note = `超量>20%: +${excess.toFixed(1)}kg × 1.2费率`
   } else if (diff > 0) {
-    amount = Math.round(diff * rate * 100) / 100
-    note = `差额≤20%: ${diff.toFixed(1)}kg × €${rate.toFixed(4)}`
+    actualFee = Math.round(rawActualFee * 100) / 100
+    note = `差额≤20%: +${diff.toFixed(1)}kg`
   } else if (diff < 0) {
     const refundLimit = declaredKg * 0.1
     const refundable = Math.min(Math.abs(diff), refundLimit)
-    amount = -Math.round(refundable * rate * 100) / 100
-    note = Math.abs(diff) > refundLimit ? `退款限10%: 应退${Math.abs(diff).toFixed(1)}kg, 实退${refundable.toFixed(1)}kg` : `退款: ${Math.abs(diff).toFixed(1)}kg`
-  } else {
-    note = '无差额'
+    actualFee = Math.round((declaredKg - refundable) * rate * 100) / 100
+    // Don't go below minFee
+    actualFee = Math.max(actualFee, minFee)
+    note = Math.abs(diff) > refundLimit ? `退款限10%: 仅退${refundable.toFixed(1)}kg` : `退款: ${Math.abs(diff).toFixed(1)}kg`
   }
-  return { diff: Math.round(diff * 100) / 100, surcharge, amount: Math.round(amount * 100) / 100, note }
+  const amount = Math.round((actualFee - preDeclaredFee) * 100) / 100
+  return { diff: Math.round(diff * 100) / 100, amount, note }
 }
 
 /** Deadline helpers */
@@ -235,8 +243,10 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                               const mk = item.material_type || item.material_key
                               const estK = parseFloat(item.estimated_quantity_kg || item.kg) || 0
                               const actK = parseFloat(item.actual_quantity_kg) || 0
+                              const mat = PACKAGING_MATERIALS.find(m => m.key === mk)
                               const rate = getRecyclingRate(mk, Math.max(estK, actK))
-                              const s = calcSettlement(estK, actK, rate)
+                              const minFee = mat?.minFee || 28.90
+                              const s = calcSettlement(estK, actK, rate, minFee)
                               const diffDisplay = actK ? (s.diff > 0 ? `+${s.diff}` : s.diff < 0 ? `${s.diff}` : '0') : '—'
                               const costDisplay = actK ? (s.amount > 0 ? `€${s.amount.toFixed(2)}` : s.amount < 0 ? `-€${Math.abs(s.amount).toFixed(2)}` : '€0') : '—'
                               return (<tr key={i} className="border-b border-gray-50"><td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || mk}</td><td className="py-1 text-right tabular-nums text-gray-500">{estK}</td><td className="py-1 text-right tabular-nums font-medium">{actK || '—'}</td><td className={`py-1 text-right tabular-nums ${s.diff > 0 ? 'text-red-500' : s.diff < 0 ? 'text-green-500' : 'text-gray-400'}`}>{diffDisplay}</td><td className={`py-1 text-right tabular-nums font-medium ${s.amount > 0 ? 'text-red-500' : s.amount < 0 ? 'text-green-500' : 'text-gray-400'}`}>{costDisplay}</td><td className="py-1 pl-2 text-[10px] text-gray-400">{actK ? s.note : ''}</td></tr>)
