@@ -67,7 +67,7 @@ export const EUR_CNY_RATE = 7.8
 //  PACKAGING MATERIALS
 // ══════════════════════════════════════════════
 
-// Source: 回收费价目单_2026 / EASY-LIZE China 网站 2025
+// Source: 回收费价目单_2026 / EASY-LIZE China 2026
 export const PACKAGING_MATERIALS = [
   { key: 'glass',      label: '玻璃 / Glas',                minFee: 23.90, tiers: [{ toKg: 49.999, rate: 0.24 }, { toKg: 99.999, rate: 0.17 }, { toKg: Infinity, rate: 0.12 }] },
   { key: 'paper',      label: '纸/纸板 / Papier/Pappe',     minFee: 23.90, tiers: [{ toKg: 49.999, rate: 0.33 }, { toKg: 99.999, rate: 0.27 }, { toKg: 999.999, rate: 0.25 }, { toKg: Infinity, rate: 0.22 }] },
