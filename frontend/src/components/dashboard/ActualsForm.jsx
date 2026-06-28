@@ -26,10 +26,6 @@ export default function ActualsForm({ contract, packaging, onClose, onSubmit }) 
     setItems(prev => prev.map(i => i.material_key === mk ? { ...i, actKg: parseFloat(val) || 0 } : i))
   }
 
-  const totalEstKg = items.reduce((s, i) => s + i.estKg, 0)
-  const totalActKg = items.reduce((s, i) => s + i.actKg, 0)
-  const totalDiff = totalActKg - totalEstKg
-
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
@@ -92,16 +88,6 @@ export default function ActualsForm({ contract, packaging, onClose, onSubmit }) 
             </tbody>
           </table>
 
-          <div className="bg-gray-50 rounded-lg p-3 flex justify-between text-sm">
-            <span className="text-gray-400">合计</span>
-            <div className="text-right">
-              <p>预申报 <span className="font-semibold tabular-nums">{totalEstKg.toFixed(1)} kg</span></p>
-              <p>实际 <span className="font-semibold tabular-nums">{totalActKg.toFixed(1)} kg</span></p>
-              <p className={`font-semibold ${totalDiff > 0 ? 'text-red-500' : totalDiff < 0 ? 'text-green-500' : 'text-gray-400'}`}>
-                差额 {totalDiff > 0 ? '+' : ''}{totalDiff.toFixed(1)} kg
-              </p>
-            </div>
-          </div>
         </div>
 
         <div className="flex justify-end gap-3 p-5 border-t border-gray-100">
