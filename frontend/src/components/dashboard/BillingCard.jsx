@@ -136,15 +136,14 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                   <div className="grid items-center" style={{gridTemplateColumns:'180px 120px 160px 140px 110px 1fr'}}>
                     <span className="text-xs font-semibold text-gray-700">{c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}</span>
                     <span className="text-xs text-gray-700">
-                      年费 <span className={`font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
+                      <span className={`font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
                       <span className={`font-semibold ml-1 ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>{isPendingAR ? '待付' : '✓'}</span>
                     </span>
                     <span className="text-xs text-gray-700">
-                      申报费 <span className={`font-semibold ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>预估€{cost.toFixed(2)}</span>
+                      <span className={`font-semibold ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>预估€{cost.toFixed(2)}</span>
                       <span className={`font-semibold ml-1 ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>{prepaidPayment?.status === 'paid' ? '✓' : '待缴'}</span>
                     </span>
                     <span className="text-xs text-gray-700">
-                      年终结算{' '}
                       {settlementPayment?.status === 'paid' ? (
                         <span className="font-semibold text-green-600">€{settlementPayment.amount_eur} ✓</span>
                       ) : pkg.some(p => p.submitted_at) ? (
@@ -153,7 +152,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                         <button onClick={() => setActualsCid(c.id)} className="text-primary hover:underline font-semibold">申报实际量</button>
                       )}
                     </span>
-                    <span className="text-xs text-gray-400">截止 {reportDeadline}</span>
+                    <span className="text-xs text-gray-400">{reportDeadline}</span>
 
                     {isPendingAR && (
                       <button onClick={() => setExpandedBank(expandedBank === c.id ? null : c.id)}
