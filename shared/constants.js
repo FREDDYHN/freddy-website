@@ -89,12 +89,17 @@ export function getRecyclingRate(materialKey, totalKg) {
   return mat.tiers[mat.tiers.length - 1].rate
 }
 
-/** Calculate recycling fee for one material: max(kg * rate, minFee) */
+/** Calculate recycling fee for one material: kg * rate (individual, no floor) */
 export function calcMaterialFee(materialKey, totalKg) {
   const mat = PACKAGING_MATERIALS.find(m => m.key === materialKey)
   if (!mat || totalKg <= 0) return 0
   const rate = getRecyclingRate(materialKey, totalKg)
-  return Math.max(mat.minFee, Math.round(totalKg * rate * 100) / 100)
+  return Math.round(totalKg * rate * 100) / 100
+}
+
+/** Apply minFee floor to TOTAL of all materials: max(minFee, sum of all materials' kg × rate) */
+export function applyFloorFee(totalFee, minFee = 28.90) {
+  return Math.max(minFee, totalFee)
 }
 
 // ══════════════════════════════════════════════
