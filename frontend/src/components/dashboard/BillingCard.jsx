@@ -98,12 +98,11 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
           ) : (
             <>
             {/* Column Headers */}
-            <div className="grid px-4 py-2 text-xs text-gray-500 font-bold border-b border-gray-200" style={{gridTemplateColumns:'180px 140px 160px 140px 110px 1fr'}}>
+            <div className="grid px-4 py-2 text-xs text-gray-500 font-bold border-b border-gray-200" style={{gridTemplateColumns:'180px 140px 160px 160px 1fr'}}>
               <span>合同周期 / 合同号</span>
               <span>授权代表年费</span>
               <span>预申报费</span>
               <span>年终结算</span>
-              <span>截止日期</span>
               <span>操作</span>
             </div>
             {sorted.map((c, ri) => {
@@ -131,7 +130,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                 {/* ── Row Summary ── */}
                 <div className="px-4 py-3">
                   {/* Line 1: Grid aligned with headers */}
-                  <div className="grid items-center" style={{gridTemplateColumns:'180px 140px 160px 140px 110px 1fr'}}>
+                  <div className="grid items-center" style={{gridTemplateColumns:'180px 140px 160px 160px 1fr'}}>
                     <span className="text-xs font-semibold text-gray-700">{c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}</span>
                     <span className="text-xs text-gray-700">
                       <span className={`font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
@@ -147,10 +146,12 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       ) : pkg.some(p => p.submitted_at) ? (
                         <span className="text-blue-500">已申报</span>
                       ) : (
-                        <button onClick={() => setActualsCid(c.id)} className="text-primary hover:underline font-semibold">申报实际量</button>
+                        <span>
+                          <button onClick={() => setActualsCid(c.id)} className="text-primary hover:underline font-semibold">申报实际量</button>
+                          <br/><span className="text-[10px] text-gray-400">截止：{reportDeadline}</span>
+                        </span>
                       )}
                     </span>
-                    <span className="text-xs text-gray-400">{reportDeadline}</span>
                     <div className="flex items-center gap-1.5">
                     {/* Upload zone */}
                     <div className="relative">
@@ -195,7 +196,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                   </div>
 
                   {/* Line 2: Contract number + actions */}
-                  <div className="grid items-center mt-1" style={{gridTemplateColumns:'180px 140px 160px 140px 110px 1fr'}}>
+                  <div className="grid items-center mt-1" style={{gridTemplateColumns:'180px 140px 160px 160px 1fr'}}>
                     <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors text-left" title="点击复制">{c.contract_number}</button>
                     {isPendingAR && proofUploads.length > 0 ? (
                         <span className="text-[10px] text-yellow-600 font-medium">待确认</span>
