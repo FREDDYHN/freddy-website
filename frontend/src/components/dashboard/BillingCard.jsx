@@ -138,6 +138,11 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                     <span className="text-xs text-gray-700">
                       <span className={`font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
                       <span className={`font-semibold ml-1 ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>{isPendingAR ? '待付' : '✓'}</span>
+                      {isPendingAR && (
+                        <label className="cursor-pointer text-[10px] text-primary hover:underline block mt-0.5">
+                          📎 上传凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
+                        </label>
+                      )}
                     </span>
                     <span className="text-xs text-gray-700">
                       <span className={`font-semibold ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>预估€{cost.toFixed(2)}</span>
@@ -167,11 +172,6 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                     <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors text-left" title="点击复制">{c.contract_number}</button>
                     <span></span><span></span><span></span><span></span>
                     <div className="flex items-center gap-2">
-                    {isPendingAR && (
-                      <label className="cursor-pointer text-[10px] text-primary hover:underline">
-                        📎 上传凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
-                      </label>
-                    )}
                     {isPendingAR && (
                       <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
                         className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
