@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { REPORTING_DEADLINE_MONTH, REPORTING_DEADLINE_DAY } from '@shared/constants.js'
 
+const TIER_LABELS = { basic: '基础套餐 / BASIC', standard: '标准套餐 / STANDARD', premium: '高级套餐 / PREMIUM', weee: 'WEEE 合规', battery: '电池法 合规' }
+function tierLabel(t) { return TIER_LABELS[t] || t?.toUpperCase() || '' }
+
 export default function Dashboard() {
   const [data, setData] = useState(null)
   const [uploads, setUploads] = useState([])
@@ -69,7 +72,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {[{ l: '合同编号', v: c.contract_number, s: c.tier?.toUpperCase() }, { l: '年费', v: '€' + c.annual_fee_eur, s: '含AR服务' }, { l: '合同剩余', v: daysLeft + ' 天', s: c.end_date, w: daysLeft < 60 }, { l: '距申报截止', v: daysToReport + ' 天', s: `${reportYear}-${String(REPORTING_DEADLINE_MONTH).padStart(2, '0')}-${String(REPORTING_DEADLINE_DAY).padStart(2, '0')}`, w: daysToReport < 45 }].map((s, i) => (
+        {[{ l: '合同编号', v: c.contract_number, s: tierLabel(c.tier) }, { l: '年费', v: '€' + c.annual_fee_eur, s: '含AR服务' }, { l: '合同剩余', v: daysLeft + ' 天', s: c.end_date, w: daysLeft < 60 }, { l: '距申报截止', v: daysToReport + ' 天', s: `${reportYear}-${String(REPORTING_DEADLINE_MONTH).padStart(2, '0')}-${String(REPORTING_DEADLINE_DAY).padStart(2, '0')}`, w: daysToReport < 45 }].map((s, i) => (
           <div key={i} className="bg-white border border-gray-100 rounded-lg p-4">
             <p className="text-xs text-gray-400 mb-1">{s.l}</p>
             <p className={`text-xl font-bold ${s.w ? 'text-red-600' : 'text-primary'}`}>{s.v}</p>
