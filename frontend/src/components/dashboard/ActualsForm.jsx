@@ -1,36 +1,9 @@
 import { useState } from 'react'
-import { PACKAGING_MATERIALS, getRecyclingRate, calcMaterialFee, applyFloorFee } from '@shared/constants.js'
+import { PACKAGING_MATERIALS } from '@shared/constants.js'
 
 const MAT_NAME = Object.fromEntries(PACKAGING_MATERIALS.map(m => [m.key, m.label]))
-const MIN_FEE = 28.90
-
-/** Quick settlement preview: totalDiff & penalty trigger */
-function previewSettlement(preRawSum, actRawSum) {
-  if (!actRawSum || actRawSum <= 0) return { amount: 0, note: '' }
-  // Guard: actual kg increased → fee must not drop (tier-crossing)
-  const guardedActRaw = Math.max(actRawSum, preRawSum)
-  const totalDiff = guardedActRaw - preRawSum
-  const threshold = preRawSum * 0.2
-  let actTotal = guardedActRaw
-  let note = ''
-  if (totalDiff > threshold && threshold > 0) {
-    actTotal = preRawSum + totalDiff * 1.2
-    note = `超出>20%: 全部超额×1.2 (+€${(totalDiff * 0.2).toFixed(2)})`
-  } else if (totalDiff > 0) {
-    note = `差额≤20%: 按正常费率补缴`
-  } else if (totalDiff < 0) {
-    const refundable = Math.min(Math.abs(totalDiff), preRawSum * 0.1)
-    actTotal = preRawSum - refundable
-    note = Math.abs(totalDiff) > refundable ? `退款限10%: 仅退€${refundable.toFixed(2)}` : `退款 €${Math.abs(totalDiff).toFixed(2)}`
-  }
-  actTotal = applyFloorFee(actTotal, MIN_FEE)
-  const preTotal = applyFloorFee(preRawSum, MIN_FEE)
-  const settle = Math.round((actTotal - preTotal) * 100) / 100
-  return { amount: settle, note }
-}
 
 export default function ActualsForm({ contract, packaging, onClose, onSubmit }) {
-  // Group by material, prefill actual from existing data or estimated
   const matMap = {}
   ;(packaging || []).forEach(p => {
     const mk = p.material_type || p.material_key
@@ -43,7 +16,7 @@ export default function ActualsForm({ contract, packaging, onClose, onSubmit }) 
     material_key: mk,
     material_label: MAT_NAME[mk] || mk,
     estKg: v.estKg,
-    actKg: v.actKg || v.estKg, // default to estimated
+    actKg: v.actKg || v.estKg,
   }))
 
   const [items, setItems] = useState(initItems)
@@ -53,18 +26,9 @@ export default function ActualsForm({ contract, packaging, onClose, onSubmit }) 
     setItems(prev => prev.map(i => i.material_key === mk ? { ...i, actKg: parseFloat(val) || 0 } : i))
   }
 
-  // Real-time preview
-  let preRawSum = 0, actRawSum = 0
-  items.forEach(i => {
-    const preRate = getRecyclingRate(i.material_key, i.estKg)
-    const preFee = i.estKg * preRate
-    preRawSum += preFee
-    const actRate = getRecyclingRate(i.material_key, Math.max(i.estKg, i.actKg))
-    // Guard: if kg increased, fee must not drop (tier-crossing)
-    actRawSum += Math.max(i.actKg * actRate, i.actKg > i.estKg ? preFee : 0)
-  })
-  const preview = previewSettlement(preRawSum, actRawSum)
-  const preTotal = applyFloorFee(preRawSum, MIN_FEE)
+  const totalEstKg = items.reduce((s, i) => s + i.estKg, 0)
+  const totalActKg = items.reduce((s, i) => s + i.actKg, 0)
+  const totalDiff = totalActKg - totalEstKg
 
   const handleSubmit = async () => {
     setSubmitting(true)
@@ -87,8 +51,7 @@ export default function ActualsForm({ contract, packaging, onClose, onSubmit }) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        {/* Header */}
+      <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <div>
             <h3 className="font-bold text-gray-800">📋 年终实际包装量申报</h3>
@@ -97,7 +60,6 @@ export default function ActualsForm({ contract, packaging, onClose, onSubmit }) 
           <button onClick={onClose} className="text-gray-300 hover:text-gray-500 text-xl">✕</button>
         </div>
 
-        {/* Form */}
         <div className="p-5 space-y-4">
           <table className="w-full text-sm">
             <thead>
@@ -117,14 +79,9 @@ export default function ActualsForm({ contract, packaging, onClose, onSubmit }) 
                     <td className="py-2 font-medium text-gray-700">{item.material_label}</td>
                     <td className="py-2 text-right tabular-nums text-gray-500">{item.estKg.toFixed(1)}</td>
                     <td className="py-2 text-right">
-                      <input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        value={item.actKg || ''}
+                      <input type="number" step="0.1" min="0" value={item.actKg || ''}
                         onChange={e => updateKg(item.material_key, e.target.value)}
-                        className="w-24 text-right border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-primary tabular-nums"
-                      />
+                        className="w-24 text-right border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-primary tabular-nums" />
                     </td>
                     <td className={`py-2 text-right tabular-nums text-xs ${diff > 0 ? 'text-red-500' : diff < 0 ? 'text-green-500' : 'text-gray-400'}`}>
                       {diffStr}
@@ -135,21 +92,18 @@ export default function ActualsForm({ contract, packaging, onClose, onSubmit }) 
             </tbody>
           </table>
 
-          {/* Preview */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-gray-400">预申报合计</span><span className="font-semibold">€{preTotal.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">实际合计（未含罚则）</span><span className="font-semibold">€{actRawSum.toFixed(2)}</span></div>
-            {preview.note && <p className="text-xs text-amber-600 bg-amber-50 rounded px-2 py-1">{preview.note}</p>}
-            <div className="flex justify-between border-t border-gray-200 pt-2">
-              <span className="text-gray-600 font-semibold">预估结算</span>
-              <span className={`font-bold ${preview.amount > 0 ? 'text-red-500' : preview.amount < 0 ? 'text-green-500' : 'text-gray-400'}`}>
-                {preview.amount > 0 ? `补缴 €${preview.amount.toFixed(2)}` : preview.amount < 0 ? `退款 €${Math.abs(preview.amount).toFixed(2)}` : '€0'}
-              </span>
+          <div className="bg-gray-50 rounded-lg p-3 flex justify-between text-sm">
+            <span className="text-gray-400">合计</span>
+            <div className="text-right">
+              <p>预申报 <span className="font-semibold tabular-nums">{totalEstKg.toFixed(1)} kg</span></p>
+              <p>实际 <span className="font-semibold tabular-nums">{totalActKg.toFixed(1)} kg</span></p>
+              <p className={`font-semibold ${totalDiff > 0 ? 'text-red-500' : totalDiff < 0 ? 'text-green-500' : 'text-gray-400'}`}>
+                差额 {totalDiff > 0 ? '+' : ''}{totalDiff.toFixed(1)} kg
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex justify-end gap-3 p-5 border-t border-gray-100">
           <button onClick={onClose} className="px-4 py-2 border border-gray-200 rounded-md text-sm text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
           <button onClick={handleSubmit} disabled={submitting}
