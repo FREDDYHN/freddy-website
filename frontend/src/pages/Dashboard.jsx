@@ -39,8 +39,6 @@ export default function Dashboard() {
       const pendingUrl = sessionStorage.getItem('pending_download')
       const pendingNo = sessionStorage.getItem('pending_contract_no')
       if (pendingUrl) {
-        sessionStorage.removeItem('pending_download')
-        sessionStorage.removeItem('pending_contract_no')
         setGenMsg(`✅ 合同已生成: ${pendingNo || ''}`)
         window.open(pendingUrl, '_blank')
         setGenerating(null)

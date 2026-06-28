@@ -105,17 +105,11 @@ export function adminMiddleware(req, res, next) {
 
 export function authMiddleware(req, res, next) {
   const header = req.headers.authorization
-  if (!header?.startsWith('Bearer ')) {
-    console.warn('[auth] Missing/invalid Authorization header on', req.method, req.path, '| header:', JSON.stringify(header))
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
+  if (!header?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' })
   try {
     req.user = jwt.verify(header.slice(7), JWT_SECRET)
     next()
-  } catch (e) {
-    console.warn('[auth] Invalid token on', req.method, req.path, '| error:', e.message)
-    res.status(401).json({ error: 'Invalid token' })
-  }
+  } catch { res.status(401).json({ error: 'Invalid token' }) }
 }
 
 export default router
