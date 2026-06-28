@@ -77,7 +77,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
   const sorted = [...(contracts || [])].sort((a, b) => (b.start_date || '').localeCompare(a.start_date || ''))
 
   const handleNotify = async (cid) => { setNotifyingId(cid); try { await onNotifyPaid(cid) } finally { setNotifyingId(null) } }
-  const handleUpload = async (e, cid) => { const file = e.target.files?.[0]; if (!file) return; setUploadingCid(cid); try { await onUpload(file, cid) } finally { setUploadingCid(null); e.target.value = '' } }
+  const handleUpload = async (e, cid, ft) => { const file = e.target.files?.[0]; if (!file) return; setUploadingCid(cid); try { await onUpload(file, cid, ft) } finally { setUploadingCid(null); e.target.value = '' } }
 
   const latestContract = sorted[0]
   const collapsedSub = latestContract
@@ -159,14 +159,8 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                   {/* Line 2: Contract number + actions */}
                   <div className="grid items-center mt-1" style={{gridTemplateColumns:'180px 140px 160px 140px 110px 1fr'}}>
                     <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors text-left" title="点击复制">{c.contract_number}</button>
-                    {isPendingAR ? (
-                      proofUploads.length > 0 ? (
+                    {isPendingAR && proofUploads.length > 0 ? (
                         <span className="text-[10px] text-yellow-600 font-medium">待确认</span>
-                      ) : (
-                        <label className="cursor-pointer text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light transition-colors inline-block">
-                          上传凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
-                        </label>
-                      )
                     ) : <span></span>}
                     <span></span><span></span><span></span>
                     <div className="flex items-center gap-1.5">
