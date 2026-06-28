@@ -103,7 +103,13 @@ app.get('/api/dashboard', authMiddleware, async (req, res) => {
       'SELECT * FROM contracts WHERE client_id = ? ORDER BY id DESC', clientId
     )
     const packaging = contracts.length > 0
-      ? await db.all('SELECT * FROM packaging_data WHERE contract_id = ?', contracts[0].id)
+      ? await db.all(
+          `SELECT pd.* FROM packaging_data pd
+           JOIN contracts c ON pd.contract_id = c.id
+           WHERE c.client_id = ?
+           ORDER BY c.start_date DESC, pd.material_type`,
+          clientId
+        )
       : []
     const payments = await db.all(
       'SELECT * FROM payments WHERE client_id = ? ORDER BY id DESC', clientId
