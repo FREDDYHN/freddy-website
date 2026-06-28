@@ -12,14 +12,8 @@ export default function ContractCard({ contract, uploads, onGenerate, onUpload }
   const mySignedUpload = (uploads || []).find(u => u.file_type === 'signed_contract')
   const adminStampedFile = (uploads || []).find(u => u.file_type === 'admin_stamped')
   const generatedKey = `contract_generated_${contract.id}`
-  const contractGenerated = !!(
-    sessionStorage.getItem('pending_download') ||
-    sessionStorage.getItem(generatedKey) ||
-    contract.contract_pdf_path
-  )
-  if (!sessionStorage.getItem(generatedKey) && (sessionStorage.getItem('pending_download') || contract.contract_pdf_path)) {
-    sessionStorage.setItem(generatedKey, '1')
-  }
+  // Step 1 is done ONLY after user explicitly clicks "生成合同" in dashboard
+  const contractGenerated = !!(sessionStorage.getItem(generatedKey) || contract.contract_pdf_path)
 
   const steps = [
     { key: 'generate', label: '生成合同', sub: contractGenerated ? contract.contract_number : '点击下载', icon: '📥', done: !!contractGenerated },
