@@ -164,16 +164,14 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
 
                   {/* Line 2: Contract number + actions */}
                   <div className="grid items-center mt-1" style={{gridTemplateColumns:'180px 140px 160px 140px 110px 1fr'}}>
-                    <div>
-                      <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors text-left" title="点击复制">{c.contract_number}</button>
-                      {isPendingAR && (
-                        <label className="cursor-pointer text-[10px] text-primary hover:underline block mt-0.5">
-                          📎 上传凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
-                        </label>
-                      )}
-                    </div>
+                    <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors text-left" title="点击复制">{c.contract_number}</button>
                     <span></span><span></span><span></span><span></span>
                     <div className="flex items-center gap-2">
+                    {isPendingAR && (
+                      <label className="cursor-pointer text-[10px] text-primary hover:underline">
+                        📎 上传凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
+                      </label>
+                    )}
                     {isPendingAR && (
                       <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
                         className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
