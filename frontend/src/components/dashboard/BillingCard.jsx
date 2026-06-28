@@ -213,16 +213,17 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       <p className="text-[10px] text-gray-400 mb-2">截止日期：{reportDeadline}（合同§5(2)） · 依据：回收费价目单_2026</p>
                       {pkg.length > 0 ? (
                         <table className="w-full text-[11px]">
-                          <thead><tr className="text-gray-400 border-b border-gray-100"><th className="text-left font-normal py-1">材料类别</th><th className="text-left font-normal py-1">类型</th><th className="text-right font-normal py-1">预估kg</th><th className="text-right font-normal py-1">费率€/kg</th><th className="text-right font-normal py-1">预估费€</th></tr></thead>
+                          <thead><tr className="text-gray-400 border-b border-gray-100"><th className="text-left font-normal py-1">材料类别</th><th className="text-right font-normal py-1">总预估kg</th><th className="text-right font-normal py-1">费率€/kg</th><th className="text-right font-normal py-1">预估费€</th></tr></thead>
                           <tbody>
-                            {pkg.map((item, i) => {
-                              const mk = item.material_type || item.material_key; const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0
-                              const rate = getRecyclingRate(mk, matKg[mk] || 0); const itemFee = Math.round(kg * rate * 100) / 100
-                              return (<tr key={i} className="border-b border-gray-50"><td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || item.material || mk}</td><td className="py-1 text-gray-500">{item.packaging_category || item.category || '—'}</td><td className="py-1 text-right tabular-nums font-medium">{kg}</td><td className="py-1 text-right text-gray-400">€{rate.toFixed(4)}</td><td className="py-1 text-right tabular-nums text-gray-500">€{itemFee.toFixed(2)}</td></tr>)
+                            {Object.entries(matKg).map(([mk, totalKg]) => {
+                              const mat = PACKAGING_MATERIALS.find(m => m.key === mk)
+                              const rate = getRecyclingRate(mk, totalKg)
+                              const fee = calcMaterialFee(mk, totalKg)
+                              return (<tr key={mk} className="border-b border-gray-50"><td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || mk}</td><td className="py-1 text-right tabular-nums font-medium">{totalKg}</td><td className="py-1 text-right text-gray-400">€{rate.toFixed(4)}</td><td className="py-1 text-right tabular-nums font-medium text-primary">€{fee.toFixed(2)}</td></tr>)
                             })}
                           </tbody>
                           <tfoot>
-                            <tr className="font-semibold"><td colSpan={3} className="py-1.5 text-gray-400">合计（各材料≥€{PACKAGING_MATERIALS[0]?.minFee?.toFixed(2) || '23.90'}最低消费）</td><td></td><td className="py-1.5 text-right tabular-nums text-primary">€{cost.toFixed(2)}</td></tr>
+                            <tr className="font-semibold"><td colSpan={2} className="py-1.5 text-gray-400">合计（每种材料不低于起步价 €28.90）</td><td></td><td className="py-1.5 text-right tabular-nums text-primary font-bold">€{cost.toFixed(2)}</td></tr>
                           </tfoot>
                         </table>
                       ) : (<p className="text-xs text-gray-300 text-center py-4">暂无申报数据</p>)}
