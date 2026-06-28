@@ -49,10 +49,10 @@ export default function Dashboard() {
     setUploading(false); e.target.value = ''
   }
 
-  if (error === 'login_required') return <div className="max-w-4xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-extrabold mb-4">请先登录</h1><p className="text-gray-400 mb-6">登录后查看合规面板</p><Link to="/login" className="inline-block px-6 py-2.5 bg-primary text-white rounded-md text-sm font-semibold">前往登录 →</Link></div>
-  if (loading) return <div className="max-w-4xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-48" /><div className="h-32 bg-gray-100 rounded" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
-  if (error) return <div className="max-w-4xl mx-auto px-4 py-16 text-center"><div className="text-4xl mb-4">⚠️</div><h1 className="text-xl font-bold mb-2">加载失败</h1><p className="text-gray-400 mb-4">{error}</p><button onClick={() => window.location.reload()} className="px-4 py-2 border rounded-md text-sm">重试</button></div>
-  if (!data?.contracts?.length) return <div className="max-w-4xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-extrabold mb-4">暂无合同</h1><p className="text-gray-400 mb-6">请先 <Link to="/signup" className="text-primary underline font-medium">在线签约</Link></p></div>
+  if (error === 'login_required') return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-extrabold mb-4">请先登录</h1><p className="text-gray-400 mb-6">登录后查看合规面板</p><Link to="/login" className="inline-block px-6 py-2.5 bg-primary text-white rounded-md text-sm font-semibold">前往登录 →</Link></div>
+  if (loading) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-48" /><div className="h-32 bg-gray-100 rounded" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
+  if (error) return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><div className="text-4xl mb-4">⚠️</div><h1 className="text-xl font-bold mb-2">加载失败</h1><p className="text-gray-400 mb-4">{error}</p><button onClick={() => window.location.reload()} className="px-4 py-2 border rounded-md text-sm">重试</button></div>
+  if (!data?.contracts?.length) return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-extrabold mb-4">暂无合同</h1><p className="text-gray-400 mb-6">请先 <Link to="/signup" className="text-primary underline font-medium">在线签约</Link></p></div>
 
   const c = data.contracts[0]; const now = new Date()
   const daysLeft = Math.max(0, Math.ceil((new Date(c.end_date) - now) / 86400000))
@@ -62,7 +62,7 @@ export default function Dashboard() {
   const sl = { active: '已激活', pending_payment: '待付款', signed: '已签署', expired: '已过期' }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
+    <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex flex-wrap items-center justify-between mb-8">
         <div><h1 className="text-2xl font-extrabold">我的合规面板</h1><p className="text-sm text-gray-400">{data.client.company_name}</p></div>
         <div className="flex gap-2"><Link to="/profile" className="px-3 py-1.5 text-sm border border-gray-200 rounded-md text-gray-500 hover:bg-gray-50">✏️ 编辑资料</Link><span className={`px-3 py-1 rounded-md text-sm font-medium ${sc[c.status] || ''}`}>{sl[c.status] || c.status}</span></div>
