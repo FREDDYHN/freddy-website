@@ -35,6 +35,19 @@ export default function Dashboard() {
   const handleGen = async (id, tier) => {
     setGenerating(id); setGenMsg('')
     try {
+      // Check if contract was already generated during signup (passed via sessionStorage)
+      const pendingUrl = sessionStorage.getItem('pending_download')
+      const pendingNo = sessionStorage.getItem('pending_contract_no')
+      if (pendingUrl) {
+        sessionStorage.removeItem('pending_download')
+        sessionStorage.removeItem('pending_contract_no')
+        setGenMsg(`✅ 合同已生成: ${pendingNo || ''}`)
+        window.open(pendingUrl, '_blank')
+        setGenerating(null)
+        return
+      }
+
+      // Fallback: call generate endpoint for old contracts without pre-generated URL
       const gt = tier === 'weee' ? 'weee' : tier === 'battery' ? 'battery' : 'ar'
       const token = sessionStorage.getItem('token')
       if (!token) throw new Error('未登录，请重新登录')
