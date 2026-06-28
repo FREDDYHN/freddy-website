@@ -146,10 +146,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       ) : pkg.some(p => p.submitted_at) ? (
                         <span className="text-blue-500">已申报</span>
                       ) : (
-                        <span>
-                          <button onClick={() => setActualsCid(c.id)} className="text-primary hover:underline font-semibold">申报实际量</button>
-                          <br/><span className="text-[10px] text-gray-400">截止：{reportDeadline}</span>
-                        </span>
+                        <button onClick={() => setActualsCid(c.id)} className="text-primary hover:underline font-semibold">申报实际量</button>
                       )}
                     </span>
                     <div className="flex items-center gap-1.5">
@@ -201,7 +198,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                     {isPendingAR && proofUploads.length > 0 ? (
                         <span className="text-[10px] text-yellow-600 font-medium">待确认</span>
                     ) : <span></span>}
-                    <span></span><span></span><span></span>
+                    <span></span><span className="text-[10px] text-gray-400">截止：{reportDeadline}</span><span></span>
                   </div>
                 </div>
 
