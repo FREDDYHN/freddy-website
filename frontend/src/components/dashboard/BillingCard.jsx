@@ -169,7 +169,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       proofUploads.length > 0 ? (
                         <span className="text-[10px] text-yellow-600 font-medium">待确认</span>
                       ) : (
-                        <label className="cursor-pointer text-[10px] text-primary hover:underline">
+                        <label className="cursor-pointer text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light transition-colors">
                           上传凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
                         </label>
                       )
