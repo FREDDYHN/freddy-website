@@ -186,8 +186,6 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                         {bank.account_number && <p><span className="text-gray-400">账号：</span><span className="font-mono">{bank.account_number}</span></p>}
                         {bank.bank_code && <p><span className="text-gray-400">银行代码：</span><span className="font-mono">{bank.bank_code}</span></p>}
                         {bank.bank_address && <p><span className="text-gray-400">开户行地址：</span>{bank.bank_address}</p>}
-                        {bank.company_address && <p><span className="text-gray-400">公司地址：</span>{bank.company_address}</p>}
-                        {bank.company_tax_id && <p><span className="text-gray-400">税号：</span><span className="font-mono">{bank.company_tax_id}</span></p>}
                         <p className="text-gray-400 pt-0.5 border-t border-blue-200">附言：{bank.reference_prefix || ''}{c.contract_number}</p>
                       </div>
                     </div>
