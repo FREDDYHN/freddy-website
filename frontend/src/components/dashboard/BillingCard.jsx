@@ -90,7 +90,6 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
               const proofUploads = ups.filter(u => u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
 
               const pkgKey = `pkg_${c.id}`
-              const recKey = `rec_${c.id}`
               const settleKey = `settle_${c.id}`
               const bankKey = `bank_${c.id}`
 
@@ -124,23 +123,16 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       )}
                     </div>
 
-                    {/* Packaging summary */}
+                    {/* Packaging + Recycling (combined) */}
                     <button onClick={() => toggleDetail(pkgKey)}
-                      className="flex items-center gap-2 min-w-[200px] text-left hover:bg-gray-100 rounded px-2 py-1 transition-colors">
-                      <span className="text-xs text-gray-500">包装申报</span>
+                      className="flex items-center gap-2 min-w-[240px] text-left hover:bg-gray-100 rounded px-2 py-1 transition-colors">
+                      <span className="text-xs text-gray-500">包装申报（回收费预缴）</span>
                       <span className="text-xs font-medium text-gray-700">{pkg.length}种 · {pkg.reduce((s, i) => s + (parseFloat(i.estimated_quantity_kg || i.kg) || 0), 0)}kg</span>
-                      <span className={`text-[10px] text-gray-300 transition-transform duration-200 ${expandedDetail[pkgKey] ? 'rotate-180' : ''}`}>▼</span>
-                    </button>
-
-                    {/* Recycling prepaid */}
-                    <button onClick={() => toggleDetail(recKey)}
-                      className="flex items-center gap-2 min-w-[160px] text-left hover:bg-gray-100 rounded px-2 py-1 transition-colors">
-                      <span className="text-xs text-gray-500">回收费预缴</span>
-                      <span className="text-xs font-medium text-gray-700">预估 €{cost.min}–€{cost.max}</span>
+                      <span className="text-xs text-gray-500">预估€{cost.min}–€{cost.max}</span>
                       {prepaidPayment?.status === 'paid'
                         ? <span className="text-[10px] text-green-600">€{prepaidPayment.amount_eur} ✓</span>
                         : <span className="text-[10px] text-yellow-600">待缴</span>}
-                      <span className={`text-[10px] text-gray-300 transition-transform duration-200 ${expandedDetail[recKey] ? 'rotate-180' : ''}`}>▼</span>
+                      <span className={`text-[10px] text-gray-300 transition-transform duration-200 ${expandedDetail[pkgKey] ? 'rotate-180' : ''}`}>▼</span>
                     </button>
 
                     {/* Year-end settlement */}
@@ -191,56 +183,18 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                     </div>
                   )}
 
-                  {/* ══════ 预申报详情 ══════ */}
+                  {/* ══════ 包装申报 + 回收费预缴详情 ══════ */}
                   {expandedDetail[pkgKey] && pkg.length > 0 && (
                     <div className="px-4 pb-3 border-t border-gray-100">
-                      <p className="text-[11px] font-medium text-gray-500 mt-3 mb-2">📦 预申报明细</p>
+                      <p className="text-[11px] font-medium text-gray-500 mt-3 mb-2">📦 包装申报（回收费预缴）</p>
                       <table className="w-full text-[11px]">
                         <thead>
                           <tr className="text-gray-400 border-b border-gray-100">
                             <th className="text-left font-normal py-1">材料类别</th>
                             <th className="text-left font-normal py-1">销售类型</th>
                             <th className="text-right font-normal py-1">预估重量 (kg)</th>
-                            <th className="text-right font-normal py-1">预估费用 €</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {pkg.map((item, i) => {
-                            const mk = item.material_type || item.material_key
-                            const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0
-                            const mc = matCost(mk, kg)
-                            return (
-                              <tr key={i} className="border-b border-gray-50">
-                                <td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || item.material || mk}</td>
-                                <td className="py-1 text-gray-500">{item.packaging_category || item.category || '—'}</td>
-                                <td className="py-1 text-right tabular-nums font-medium">{kg}</td>
-                                <td className="py-1 text-right tabular-nums text-gray-500">
-                                  {mc ? `€${mc.min}–€${mc.max}` : '—'}
-                                </td>
-                              </tr>
-                            )
-                          })}
-                          <tr className="font-semibold">
-                            <td colSpan={2} className="py-1.5 text-gray-400">合计</td>
-                            <td className="py-1.5 text-right tabular-nums">{pkg.reduce((s, i) => s + (parseFloat(i.estimated_quantity_kg || i.kg) || 0), 0)} kg</td>
-                            <td className="py-1.5 text-right tabular-nums text-primary">€{cost.min}–€{cost.max}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {/* ══════ 回收费预缴详情 ══════ */}
-                  {expandedDetail[recKey] && pkg.length > 0 && (
-                    <div className="px-4 pb-3 border-t border-gray-100">
-                      <p className="text-[11px] font-medium text-gray-500 mt-3 mb-2">♻️ 回收费预缴明细（按双元系统费率估算）</p>
-                      <table className="w-full text-[11px]">
-                        <thead>
-                          <tr className="text-gray-400 border-b border-gray-100">
-                            <th className="text-left font-normal py-1">材料</th>
-                            <th className="text-right font-normal py-1">重量 (kg)</th>
                             <th className="text-right font-normal py-1">费率 €/kg</th>
-                            <th className="text-right font-normal py-1">预估 €</th>
+                            <th className="text-right font-normal py-1">预估费 €</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -251,15 +205,16 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                             const mc = matCost(mk, kg)
                             return (
                               <tr key={i} className="border-b border-gray-50">
-                                <td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || mk}</td>
-                                <td className="py-1 text-right tabular-nums">{kg}</td>
+                                <td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || item.material || mk}</td>
+                                <td className="py-1 text-gray-500">{item.packaging_category || item.category || '—'}</td>
+                                <td className="py-1 text-right tabular-nums font-medium">{kg}</td>
                                 <td className="py-1 text-right text-gray-400">{rate ? `€${rate.min}–€${rate.max}` : '—'}</td>
                                 <td className="py-1 text-right tabular-nums text-gray-500">{mc ? `€${mc.min}–€${mc.max}` : '—'}</td>
                               </tr>
                             )
                           })}
                           <tr className="font-semibold">
-                            <td className="py-1.5 text-gray-400">合计</td>
+                            <td colSpan={2} className="py-1.5 text-gray-400">合计</td>
                             <td className="py-1.5 text-right tabular-nums">{pkg.reduce((s, i) => s + (parseFloat(i.estimated_quantity_kg || i.kg) || 0), 0)} kg</td>
                             <td></td>
                             <td className="py-1.5 text-right tabular-nums text-primary">€{cost.min}–€{cost.max}</td>
