@@ -167,9 +167,10 @@ export async function generateContract({ type, clientLocation, data }) {
           return '<w:tr>' + vals.map((v, i) => buildCell(v, colWidths[i])).join('') + '</w:tr>'
         }).join('')
 
-        // Confirmation row (preserve original "Der Kunde bestätigt..." cells)
+        // Confirmation row: add gridSpan so Word doesn't warp the 4-column grid
+        // Confirm cells span 2 grid columns each (2600+1000 and 2200+3955)
         const confirmRow = confirmCells.length > 0
-          ? '<w:tr>' + confirmCells.join('') + '</w:tr>'
+          ? '<w:tr>' + confirmCells.map(c => c.replace(/<w:tcPr>/, '<w:tcPr><w:gridSpan w:val="2"/>')).join('') + '</w:tr>'
           : ''
 
         outXml = outXml.substring(0, trS) + headerRow + dataRows + confirmRow + outXml.substring(trE)
