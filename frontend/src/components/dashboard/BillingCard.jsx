@@ -100,13 +100,13 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
           ) : (
             <>
             {/* Column Headers */}
-            <div className="flex items-center gap-5 px-4 py-2 text-[10px] text-gray-400 font-medium border-b border-gray-100 flex-wrap">
-              <span className="min-w-[140px]">合同周期 / 合同号</span>
+            <div className="grid px-4 py-2 text-[10px] text-gray-500 font-bold border-b border-gray-200" style={{gridTemplateColumns:'180px 120px 160px 140px 110px 1fr'}}>
+              <span>合同周期 / 合同号</span>
               <span>年费</span>
               <span>申报费</span>
               <span>年终结算</span>
               <span>截止日期</span>
-              <span className="ml-auto">操作</span>
+              <span>操作</span>
             </div>
             {sorted.map((c, ri) => {
             const pkg = pkgByContract[c.id] || []
@@ -132,8 +132,8 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
               <div key={c.id} className={`border border-gray-100 rounded-lg ${ri % 2 ? 'bg-gray-50/50' : ''}`}>
                 {/* ── Row Summary ── */}
                 <div className="px-4 py-3">
-                  {/* Line 1: Period + fee summary + bank info */}
-                  <div className="flex items-center gap-8 flex-wrap">
+                  {/* Line 1: Grid aligned with headers */}
+                  <div className="grid items-center" style={{gridTemplateColumns:'180px 120px 160px 140px 110px 1fr'}}>
                     <span className="text-xs font-semibold text-gray-700">{c.start_date?.slice(0, 10) || '—'} – {c.end_date?.slice(0, 10) || '—'}</span>
                     <span className="text-xs text-gray-700">
                       年费 <span className={`font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
@@ -157,31 +157,32 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
 
                     {isPendingAR && (
                       <button onClick={() => setExpandedBank(expandedBank === c.id ? null : c.id)}
-                        className="ml-auto text-xs text-primary hover:underline flex-shrink-0">
+                        className="text-xs text-primary hover:underline">
                         {expandedBank === c.id ? '▲' : '▼'} 银行信息
                       </button>
                     )}
                   </div>
 
                   {/* Line 2: Contract number + actions */}
-                  <div className="flex items-center gap-4 mt-1.5 flex-wrap">
-                    <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-xs text-gray-400 hover:text-primary transition-colors" title="点击复制">{c.contract_number}</button>
-
+                  <div className="grid items-center mt-1" style={{gridTemplateColumns:'180px 120px 160px 140px 110px 1fr'}}>
+                    <button onClick={() => navigator.clipboard.writeText(c.contract_number)} className="text-[10px] text-gray-400 hover:text-primary transition-colors text-left" title="点击复制">{c.contract_number}</button>
+                    <span></span><span></span><span></span><span></span>
+                    <div className="flex items-center gap-2">
                     {isPendingAR && (
                       <button onClick={() => handleNotify(c.id)} disabled={notifyingId === c.id}
                         className="text-[10px] bg-primary text-white px-2 py-0.5 rounded hover:bg-primary-light disabled:opacity-50 transition-colors">
                         {notifyingId === c.id ? '...' : '通知已转账'}
                       </button>
                     )}
-
                     <button onClick={() => toggleDetail(detailKey)}
-                      className="ml-auto flex items-center gap-1 text-xs text-gray-400 hover:text-primary transition-colors px-2 py-1 rounded hover:bg-gray-100">
+                      className="text-[10px] text-gray-400 hover:text-primary transition-colors px-1.5 py-0.5 rounded hover:bg-gray-100 whitespace-nowrap">
                       明细 <span className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▼</span>
                     </button>
 
                     <label className="cursor-pointer text-xs text-gray-400 hover:text-primary transition-colors">
                       📤 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id)} disabled={uploadingCid === c.id} className="hidden" />
                     </label>
+                    </div>
                   </div>
                 </div>
 
