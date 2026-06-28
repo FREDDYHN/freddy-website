@@ -179,9 +179,17 @@ export default function Admin() {
                         {(c.status === 'pending_payment' || c.status === 'signed') && (
                           <button onClick={() => confirmPay(c.id)} className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200">💰 确认收款</button>
                         )}
-                        <label className="text-xs px-2 py-1 border border-gray-200 text-gray-500 rounded cursor-pointer hover:bg-gray-100 text-center">
-                          📤 上传盖章<input type="file" accept=".pdf,.doc,.docx,.jpg,.png" onChange={e => adminUp(c.id, c.client_id, e)} className="hidden" />
-                        </label>
+                        <div className="flex gap-1">
+                          <label className="text-[10px] px-1.5 py-0.5 border border-gray-200 text-gray-500 rounded cursor-pointer hover:bg-gray-100">
+                            📤 盖章<input type="file" accept=".pdf,.doc,.docx,.jpg,.png" onChange={e => adminUp(c.id, c.client_id, e)} className="hidden" />
+                          </label>
+                          <label className="text-[10px] px-1.5 py-0.5 border border-gray-200 text-gray-500 rounded cursor-pointer hover:bg-gray-100">
+                            🧾 发票<input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => adminUp(c.id, c.client_id, e)} className="hidden" />
+                          </label>
+                        </div>
+                        {c.upload_count > 0 && (
+                          <span className="text-[10px] text-blue-500">{c.upload_count}件凭证</span>
+                        )}
                       </div>
                     </td>
                   </tr>
