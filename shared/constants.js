@@ -67,16 +67,35 @@ export const EUR_CNY_RATE = 7.8
 //  PACKAGING MATERIALS
 // ══════════════════════════════════════════════
 
+// Source: 回收费价目单_2026 / EASY-LIZE China 网站 2025
 export const PACKAGING_MATERIALS = [
-  { key: 'glass',       label: '玻璃 / Glas',                dualSystemMin: 0.02, dualSystemMax: 0.05 },
-  { key: 'paper',       label: '纸/纸板 / Papier/Pappe',     dualSystemMin: 0.02, dualSystemMax: 0.15 },
-  { key: 'ferrous',     label: '黑色金属 / Eisenmetalle',    dualSystemMin: 0.15, dualSystemMax: 0.40 },
-  { key: 'aluminium',   label: '铝 / Aluminium',             dualSystemMin: 0.15, dualSystemMax: 0.40 },
-  { key: 'plastics',    label: '塑料 / Kunststoffe',         dualSystemMin: 0.30, dualSystemMax: 0.80 },
-  { key: 'composites',  label: '复合材料 / Verbunde',        dualSystemMin: 0.20, dualSystemMax: 0.50 },
-  { key: 'cartons',     label: '饮料纸盒 / Getränkekarton',  dualSystemMin: 0.15, dualSystemMax: 0.35 },
-  { key: 'other',       label: '其他 / Sonstige',            dualSystemMin: 0.02, dualSystemMax: 0.50 },
+  { key: 'glass',      label: '玻璃 / Glas',                minFee: 23.90, tiers: [{ toKg: 49.999, rate: 0.24 }, { toKg: 99.999, rate: 0.17 }, { toKg: Infinity, rate: 0.12 }] },
+  { key: 'paper',      label: '纸/纸板 / Papier/Pappe',     minFee: 23.90, tiers: [{ toKg: 49.999, rate: 0.33 }, { toKg: 99.999, rate: 0.27 }, { toKg: 999.999, rate: 0.25 }, { toKg: Infinity, rate: 0.22 }] },
+  { key: 'ferrous',    label: '黑色金属 / Eisenmetalle',    minFee: 23.90, tiers: [{ toKg: Infinity, rate: 0.99 }] },
+  { key: 'aluminium',  label: '铝 / Aluminium',             minFee: 23.90, tiers: [{ toKg: Infinity, rate: 0.99 }] },
+  { key: 'plastics',   label: '塑料 / Kunststoffe',         minFee: 23.90, tiers: [{ toKg: Infinity, rate: 0.999 }] },
+  { key: 'cartons',    label: '饮料纸盒 / Getränkekarton',  minFee: 23.90, tiers: [{ toKg: Infinity, rate: 0.999 }] },
+  { key: 'composites', label: '其他复合包装 / Sonstige Verbunde', minFee: 23.90, tiers: [{ toKg: Infinity, rate: 0.999 }] },
+  { key: 'other',      label: '其他 / Sonstige Materialien', minFee: 23.90, tiers: [{ toKg: 99.999, rate: 0.1999 }, { toKg: 199.999, rate: 0.13 }, { toKg: Infinity, rate: 0.11 }] },
 ]
+
+/** Get per-kg rate for a material at a given total kg (tiered pricing) */
+export function getRecyclingRate(materialKey, totalKg) {
+  const mat = PACKAGING_MATERIALS.find(m => m.key === materialKey)
+  if (!mat) return 0
+  for (const t of mat.tiers) {
+    if (totalKg <= t.toKg) return t.rate
+  }
+  return mat.tiers[mat.tiers.length - 1].rate
+}
+
+/** Calculate recycling fee for one material: max(kg * rate, minFee) */
+export function calcMaterialFee(materialKey, totalKg) {
+  const mat = PACKAGING_MATERIALS.find(m => m.key === materialKey)
+  if (!mat || totalKg <= 0) return 0
+  const rate = getRecyclingRate(materialKey, totalKg)
+  return Math.max(mat.minFee, Math.round(totalKg * rate * 100) / 100)
+}
 
 // ══════════════════════════════════════════════
 //  REMINDER

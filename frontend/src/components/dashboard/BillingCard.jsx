@@ -1,25 +1,22 @@
 import { useState } from 'react'
-import { PACKAGING_MATERIALS } from '@shared/constants.js'
+import { PACKAGING_MATERIALS, getRecyclingRate, calcMaterialFee } from '@shared/constants.js'
 
 const MAT_NAME = Object.fromEntries(PACKAGING_MATERIALS.map(m => [m.key, m.label]))
-const MAT_RATE = Object.fromEntries(PACKAGING_MATERIALS.map(m => [m.key, { min: m.min, max: m.max }]))
-
-function matCost(materialKey, kg) {
-  const rate = MAT_RATE[materialKey]
-  if (!rate || !kg) return null
-  return { min: Math.round(rate.min * kg), max: Math.round(rate.max * kg) }
-}
 
 function totalCost(items) {
-  if (!items || items.length === 0) return { min: 0, max: 0 }
-  let min = 0, max = 0
+  if (!items || items.length === 0) return 0
+  // Group by material key and sum kg
+  const byMat = {}
   for (const item of items) {
     const mk = item.material_type || item.material_key
     const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0
-    const c = matCost(mk, kg)
-    if (c) { min += c.min; max += c.max }
+    byMat[mk] = (byMat[mk] || 0) + kg
   }
-  return { min, max }
+  let total = 0
+  for (const [mk, kg] of Object.entries(byMat)) {
+    total += calcMaterialFee(mk, kg)
+  }
+  return total
 }
 
 export default function BillingCard({ contracts, packaging, payments, invoices, uploads, bankInfo, onNotifyPaid, onUpload }) {
@@ -128,7 +125,7 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                       className="flex items-center gap-2 min-w-[240px] text-left hover:bg-gray-100 rounded px-2 py-1 transition-colors">
                       <span className="text-xs text-gray-500">包装申报（回收费预缴）</span>
                       <span className="text-xs font-medium text-gray-700">{pkg.length}种 · {pkg.reduce((s, i) => s + (parseFloat(i.estimated_quantity_kg || i.kg) || 0), 0)}kg</span>
-                      <span className="text-xs text-gray-500">预估€{cost.min}–€{cost.max}</span>
+                      <span className="text-xs text-gray-500">预估€{cost.toFixed(2)}</span>
                       {prepaidPayment?.status === 'paid'
                         ? <span className="text-[10px] text-green-600">€{prepaidPayment.amount_eur} ✓</span>
                         : <span className="text-[10px] text-yellow-600">待缴</span>}
@@ -198,27 +195,33 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                           </tr>
                         </thead>
                         <tbody>
-                          {pkg.map((item, i) => {
-                            const mk = item.material_type || item.material_key
-                            const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0
-                            const rate = MAT_RATE[mk]
-                            const mc = matCost(mk, kg)
-                            return (
-                              <tr key={i} className="border-b border-gray-50">
-                                <td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || item.material || mk}</td>
-                                <td className="py-1 text-gray-500">{item.packaging_category || item.category || '—'}</td>
-                                <td className="py-1 text-right tabular-nums font-medium">{kg}</td>
-                                <td className="py-1 text-right text-gray-400">{rate ? `€${rate.min}–€${rate.max}` : '—'}</td>
-                                <td className="py-1 text-right tabular-nums text-gray-500">{mc ? `€${mc.min}–€${mc.max}` : '—'}</td>
+                          {/* Pre-compute total kg per material for tier lookup */}
+                          {(() => {
+                            const matKg = {}
+                            pkg.forEach(item => { const mk = item.material_type || item.material_key; matKg[mk] = (matKg[mk] || 0) + (parseFloat(item.estimated_quantity_kg || item.kg) || 0) })
+                            return pkg.map((item, i) => {
+                              const mk = item.material_type || item.material_key
+                              const kg = parseFloat(item.estimated_quantity_kg || item.kg) || 0
+                              const rate = getRecyclingRate(mk, matKg[mk] || 0)
+                              const itemFee = Math.round(kg * rate * 100) / 100
+                              return (
+                                <tr key={i} className="border-b border-gray-50">
+                                  <td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || item.material || mk}</td>
+                                  <td className="py-1 text-gray-500">{item.packaging_category || item.category || '—'}</td>
+                                  <td className="py-1 text-right tabular-nums font-medium">{kg}</td>
+                                  <td className="py-1 text-right text-gray-400">€{rate.toFixed(4)}</td>
+                                  <td className="py-1 text-right tabular-nums text-gray-500">€{itemFee.toFixed(2)}</td>
+                                </tr>
+                              )
+                            }).concat(
+                              <tr key="_tot" className="font-semibold">
+                                <td colSpan={2} className="py-1.5 text-gray-400">合计（含最低消费 €23.90/材料）</td>
+                                <td className="py-1.5 text-right tabular-nums">{pkg.reduce((s, i) => s + (parseFloat(i.estimated_quantity_kg || i.kg) || 0), 0)} kg</td>
+                                <td></td>
+                                <td className="py-1.5 text-right tabular-nums text-primary">€{cost.toFixed(2)}</td>
                               </tr>
                             )
-                          })}
-                          <tr className="font-semibold">
-                            <td colSpan={2} className="py-1.5 text-gray-400">合计</td>
-                            <td className="py-1.5 text-right tabular-nums">{pkg.reduce((s, i) => s + (parseFloat(i.estimated_quantity_kg || i.kg) || 0), 0)} kg</td>
-                            <td></td>
-                            <td className="py-1.5 text-right tabular-nums text-primary">€{cost.min}–€{cost.max}</td>
-                          </tr>
+                          })()}
                         </tbody>
                       </table>
                       {prepaidPayment?.status === 'paid' && (
@@ -249,8 +252,8 @@ export default function BillingCard({ contracts, packaging, payments, invoices, 
                                 const estK = parseFloat(item.estimated_quantity_kg || item.kg) || 0
                                 const actK = parseFloat(item.actual_quantity_kg) || 0
                                 const diff = actK - estK
-                                const rate = MAT_RATE[mk]
-                                const diffCost = rate && diff ? Math.round(rate.max * diff) : 0
+                                const rate = getRecyclingRate(mk, Math.max(estK, actK))
+                                const diffCost = rate && diff ? Math.round(rate * diff * 100) / 100 : 0
                                 return (
                                   <tr key={i} className="border-b border-gray-50">
                                     <td className="py-1 font-medium text-gray-700">{MAT_NAME[mk] || mk}</td>

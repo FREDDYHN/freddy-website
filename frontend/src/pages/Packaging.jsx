@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { PACKAGING_MATERIALS, AR_TIERS } from '@shared/constants.js'
 
 export default function Packaging() {
-  const materials = PACKAGING_MATERIALS.map(m => ({ name: m.label, min: m.dualSystemMin.toFixed(2), max: m.dualSystemMax.toFixed(2) }))
+  const materials = PACKAGING_MATERIALS.map(m => ({ name: m.label, rate: m.tiers[0].rate.toFixed(2), minFee: m.minFee.toFixed(2) }))
   const tiers = Object.values(AR_TIERS)
   const faqs = [
     { q: '什么是德国包装法 (VerpackG)？', a: '德国包装法规定在德国市场销售包装产品的所有生产商、进口商和电商卖家必须履行包装回收和再生利用义务。自2022年7月起，所有类型包装均须在LUCID包装品登记处注册。' },
@@ -51,8 +51,8 @@ export default function Packaging() {
         <h2 className="text-xl font-bold text-center mb-6">双元系统费用参考</h2>
         <div className="bg-white border border-gray-100 rounded-lg overflow-hidden mb-12">
           <table className="w-full text-sm">
-            <thead><tr className="bg-primary text-white"><th className="p-3 text-left">材料类别</th><th className="p-3 text-right">最低 €/kg</th><th className="p-3 text-right">最高 €/kg</th></tr></thead>
-            <tbody>{materials.map((m, i) => <tr key={i} className={i % 2 ? 'bg-gray-50' : ''}><td className="p-3">{m.name}</td><td className="p-3 text-right">€{m.min}</td><td className="p-3 text-right">€{m.max}</td></tr>)}</tbody>
+            <thead><tr className="bg-primary text-white"><th className="p-3 text-left">材料类别</th><th className="p-3 text-right">单价 €/kg</th><th className="p-3 text-right">最低净额 €</th></tr></thead>
+            <tbody>{materials.map((m, i) => <tr key={i} className={i % 2 ? 'bg-gray-50' : ''}><td className="p-3">{m.name}</td><td className="p-3 text-right">€{m.rate}</td><td className="p-3 text-right">€{m.minFee}</td></tr>)}</tbody>
           </table>
         </div>
 
