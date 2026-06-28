@@ -148,12 +148,14 @@ export async function generateContract({ type, clientLocation, data }) {
         // Column widths for the 4 data columns
         const colWidths = ['2600', '1000', '2200', '3955']
 
+        function escXml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+
         function buildCell(val, colW) {
           return '<w:tc>' +
             tcPr.replace(/<w:tcW w:w="[^"]*"/, '<w:tcW w:w="' + colW + '"') +
             paraTpl.replace(
               /<w:t[^>]*>[^<]*<\/w:t>/,
-              '<w:t xml:space="preserve">' + val + '</w:t>'
+              '<w:t xml:space="preserve">' + escXml(val) + '</w:t>'
             ) +
             '</w:tc>'
         }

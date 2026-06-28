@@ -90,7 +90,7 @@ router.post('/', async (req, res) => {
     let contractTier
     if (isPackaging) {
       annualFee = AR_TIER_FEES_EUR[tier] || AR_TIER_FEES_EUR.basic
-      contractTier = tier || 'standard'
+      contractTier = tier || 'basic'
     } else if (svcType === 'weee') {
       annualFee = calcWeeeFee(device_categories, parseInt(brand_count) || 1, year_type)
       contractTier = 'weee'

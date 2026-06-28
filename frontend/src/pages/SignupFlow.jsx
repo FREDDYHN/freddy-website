@@ -81,7 +81,8 @@ export default function SignupFlow() {
   // Packaging
   const [ni, setNi] = useState({ material: 'plastics', category: 'B2C', kg: '', example: '' })
   const addItem = () => {
-    if (!ni.kg || parseFloat(ni.kg) <= 0) { setErrors({ kg: '请输入有效的重量' }); return }
+    const kgVal = parseFloat(ni.kg)
+    if (!ni.kg || isNaN(kgVal) || kgVal <= 0) { setErrors({ kg: '请输入有效的重量' }); return }
     setErrors({})
     const newItem = { material: MATERIALS.find(m => m.key === ni.material)?.label || ni.material, material_key: ni.material, category: ni.category, kg: parseFloat(ni.kg), example: ni.example.trim() }
     // Capture ni values before async state update, then reset both atomically
