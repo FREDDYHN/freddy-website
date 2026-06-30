@@ -23,6 +23,7 @@ export default function Admin() {
   const [feeSubmitting, setFeeSubmitting] = useState(false)
   const [search, setSearch] = useState('')
 
+
   const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}` } : {} }
 
   const load = async (p = 1) => {
@@ -48,10 +49,6 @@ export default function Admin() {
     } catch (e) { /* optional */ }
   }
 
-  useEffect(() => { load(); loadApps() }, [])
-
-  const confirmPay = async (id) => { if (!confirm('确认该客户已完成付款？合同将自动激活并开具发票。')) return; try { const r = await fetch('/api/admin/payments/confirm', { method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' }, body: JSON.stringify({ contract_id: id }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); alert('✅ 已确认，合同已激活，发票已开具'); load(page) } catch (e) { alert('❌ ' + e.message) } }
-
   const setRecyclingFee = async () => {
     if (!feeModal || !feeAmount) return
     setFeeSubmitting(true)
@@ -64,11 +61,74 @@ export default function Admin() {
     setFeeSubmitting(false)
   }
 
-  const adminUp = async (cid, clid, e) => { const f = e.target.files?.[0]; if (!f) return; try { const fd = new FormData(); fd.append('file', f); fd.append('client_id', clid); fd.append('contract_id', cid); fd.append('file_type', 'admin_stamped'); const r = await fetch('/api/admin/uploads', { method: 'POST', headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }, body: fd }); const d = await r.json(); if (!r.ok) throw new Error(d.error); alert('✅ 盖章合同已上传') } catch (e) { alert('❌ ' + e.message) }; e.target.value = '' }
+  /** Download a protected URL with admin auth token */
+  const authDownload = async (url, filename) => {
+    try {
+      const r = await fetch(url, { headers: ah() })
+      if (!r.ok) throw new Error(`下载失败 (${r.status})`)
+      const blob = await r.blob()
+      const objUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = objUrl; a.download = filename || ''; document.body.appendChild(a)
+      a.click(); a.remove(); URL.revokeObjectURL(objUrl)
+    } catch (e) { alert('❌ 下载失败: ' + e.message) }
+  }
 
   const exportCSV = async () => { try { const r = await fetch('/api/admin/clients/export', { headers: ah() }); if (!r.ok) throw new Error('Export failed'); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `freddy-clients-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(u) } catch (e) { alert('导出失败') } }
 
-  // Filter by business line
+  useEffect(() => { load(); loadApps() }, [])
+
+  const [reviewedUploads, setReviewedUploads] = useState({})
+
+  const reviewUpload = async (uploadId, fileType, contractId, status) => {
+    try {
+      const r = await fetch(`/api/admin/uploads/${uploadId}/review`, {
+        method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      const d = await r.json()
+      if (r.ok) {
+        setReviewedUploads(prev => ({ ...prev, [uploadId]: status }))
+        if (status === 'approved' && (fileType === 'bank_proof' || fileType === 'proof_annual_fee')) {
+          setContracts(prev => prev.map(c => c.id === contractId ? { ...c, status: 'active' } : c))
+        }
+      } else {
+        alert('操作失败：' + (d.error || '未知错误'))
+      }
+    } catch (e) { alert('请求失败：' + e.message) }
+  }
+
+  /** Render upload file links for a contract's file type(s) */
+  const uploadLinks = (c, ...types) => {
+    const files = types.flatMap(t => c._uploads?.[t] || [])
+    if (!files.length) return null
+    return (
+      <div className="mt-1 space-y-1">
+        {files.map(u => {
+          const reviewStatus = reviewedUploads[u.id] || u.status
+          const isApproved = reviewStatus === 'approved'
+          return (
+            <div key={u.id}>
+              <div className="flex items-center gap-1">
+                <button onClick={() => authDownload(`/api/uploads/${u.id}/download`, u.original_name)}
+                  className={`text-[10px] hover:underline text-left truncate max-w-[110px] ${isApproved ? 'text-green-600 font-medium' : 'text-blue-600'}`}
+                  title={u.original_name}>
+                  {isApproved ? '✅ ' : '📄 '}{(u.original_name || '').length > 14 ? (u.original_name || '').slice(0, 12) + '…' : u.original_name}
+                </button>
+                <button onClick={async () => { if(confirm('删除此凭证？')){ try { const r=await fetch(`/api/admin/uploads/${u.id}`,{method:'DELETE',headers:ah()}); if(r.ok) load(page) }catch{} }}}
+                  className="text-[11px] text-gray-300 hover:text-red-500 flex-shrink-0 leading-none">🗑</button>
+              </div>
+              {reviewStatus !== 'approved' && (
+                <button onClick={() => reviewUpload(u.id, u.file_type, c.id, 'approved')}
+                  className="text-[9px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded hover:bg-green-200 font-medium mt-0.5">确认</button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   const pkgContracts = contracts.filter(c => ['basic', 'standard', 'premium'].includes(c.tier))
   const weeeContracts = contracts.filter(c => c.tier === 'weee')
   const batteryContracts = contracts.filter(c => c.tier === 'battery')
@@ -76,25 +136,21 @@ export default function Admin() {
   const currentList = tab === 'packaging' ? pkgContracts : tab === 'weee' ? weeeContracts : batteryContracts
   const appList = applications.filter(a => a.type === tab)
 
-  if (loading && !stats) return <div className="max-w-7xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
-  if (error === 'login_required') return <div className="max-w-7xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-extrabold mb-4">需要管理员登录</h1></div>
-  if (error) return <div className="max-w-7xl mx-auto px-4 py-16 text-center"><h1 className="text-xl font-bold mb-4 text-red-600">加载失败</h1><p className="text-gray-400 mb-4">{error}</p><button onClick={() => load(page)} className="px-4 py-2 border rounded-md text-sm">重试</button></div>
+  if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
+  if (error === 'login_required') return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-extrabold mb-4">需要管理员登录</h1></div>
+  if (error) return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-xl font-bold mb-4 text-red-600">加载失败</h1><p className="text-gray-400 mb-4">{error}</p><button onClick={() => load(page)} className="px-4 py-2 border rounded-md text-sm">重试</button></div>
   if (!stats) return null
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-extrabold text-gray-800">管理后台</h1>
-        <div className="flex gap-2">
-          <button onClick={exportCSV} className="px-3 py-2 border border-green-300 text-green-700 rounded-md text-sm hover:bg-green-50">📥 导出CSV</button>
+        <div className="flex items-center gap-4">
+          {[{ l: '总客户', v: stats.total_clients }, { l: '活跃合同', v: stats.active_contracts }, { l: '待付款', v: stats.pending_payments, w: stats.pending_payments > 0 }, { l: '年收入 €', v: (stats.annual_revenue_eur || 0).toFixed(0) }].map((s, i) => (
+            <div key={i} className="flex items-center gap-1.5"><span className="text-xs text-gray-400">{s.l}</span><span className={`text-sm font-bold ${s.w ? 'text-red-600' : 'text-gray-700'}`}>{s.v}</span></div>
+          ))}
+          <button onClick={exportCSV} className="px-3 py-1.5 border border-green-300 text-green-700 rounded-md text-xs hover:bg-green-50">📥</button>
         </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[{ l: '总客户', v: stats.total_clients }, { l: '活跃合同', v: stats.active_contracts }, { l: '待付款', v: stats.pending_payments, w: stats.pending_payments > 0 }, { l: '年收入 €', v: (stats.annual_revenue_eur || 0).toFixed(0) }].map((s, i) => (
-          <div key={i} className="bg-white border border-gray-100 rounded-lg p-4"><p className="text-xs text-gray-400 mb-1">{s.l}</p><p className={`text-2xl font-bold ${s.w ? 'text-red-600' : 'text-primary'}`}>{s.v}</p></div>
-        ))}
       </div>
 
       {/* Tabs */}
@@ -126,33 +182,28 @@ export default function Admin() {
         <div className="overflow-x-auto">
           {currentList.length === 0 ? <p className="p-8 text-center text-sm text-gray-400">暂无数据</p> : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-left"><tr><th className="p-3 font-medium">合同编号</th><th className="p-3 font-medium">公司</th><th className="p-3 font-medium">套餐</th><th className="p-3 font-medium">年费</th><th className="p-3 font-medium">回收费预缴</th><th className="p-3 font-medium">年终结算</th><th className="p-3 font-medium">状态</th><th className="p-3 font-medium">LUCID</th><th className="p-3 font-medium w-44">操作</th></tr></thead>
+              <thead className="bg-gray-50 text-left"><tr><th className="p-3 font-bold text-gray-700">基本信息</th><th className="p-3 font-bold text-gray-700">授权代表年费</th><th className="p-3 font-bold text-gray-700">预申报费</th><th className="p-3 font-bold text-gray-700">年终结算</th><th className="p-3 font-bold text-gray-700">状态</th><th className="p-3 font-bold text-gray-700">LUCID</th><th className="p-3 font-bold text-gray-700 w-44">操作</th></tr></thead>
               <tbody>
                 {currentList.map(c => {
-                  // Find related payments
-                  const hasPrepaid = c._prepaid_paid // set by backend or fetch separately
-                  const hasSettlement = c._settlement_paid
                   return (
                   <tr key={c.id} className="border-t border-gray-50 hover:bg-gray-50">
-                    <td className="p-3 font-mono text-xs">{c.contract_number}</td>
-                    <td className="p-3">{c.company_name}<br /><span className="text-xs text-gray-400">{c.contact_email}</span></td>
-                    <td className="p-3"><span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{c.tier?.toUpperCase()}</span></td>
-                    <td className="p-3">
-                      <span className="font-medium">€{c.annual_fee_eur}</span>
-                      {(c.status === 'pending_payment' || c.status === 'signed') && (
-                        <div className="mt-1">
-                          {c.upload_count > 0 ? (
-                            <a href={`/api/uploads?contract_id=${c.id}`} target="_blank" className="text-[10px] text-yellow-600 hover:underline">
-                              📋 查看付款凭证 ({c.upload_count})
-                            </a>
-                          ) : (
-                            <span className="text-[10px] text-gray-300">查看付款凭证</span>
-                          )}
-                        </div>
-                      )}
-                      {c.status === 'active' && <div className="text-[10px] text-green-500 mt-1">已付款 ✓</div>}
+                    <td className="p-3 align-top">
+                      <p className="text-sm font-semibold text-gray-800">{c.company_name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{c.contact_email}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{c.contact_name || '—'}{c.contact_phone ? ` · ${c.contact_phone}` : ''}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        <span className="font-mono text-[11px] text-gray-600">{c.contract_number}</span>
+                        <span className="mx-1.5 text-gray-300">/</span>
+                        <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[10px]">{c.tier?.toUpperCase()}</span>
+                      </p>
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 align-top">
+                      <span className={`text-xs font-semibold ${c.status === 'pending_payment' ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
+                      {c.status === 'pending_payment' && <span className="text-yellow-600 text-xs font-semibold ml-1">待付</span>}
+                      {c.status === 'active' && <span className="text-green-600 text-xs font-semibold ml-1">✓</span>}
+                      {uploadLinks(c, 'bank_proof', 'proof_annual_fee')}
+                    </td>
+                    <td className="p-3 align-top">
                       {c.prepaid_status === 'paid' ? (
                         <span className="text-xs text-green-600 font-medium">€{c.prepaid_amount} ✓</span>
                       ) : c.prepaid_amount ? (
@@ -161,8 +212,12 @@ export default function Admin() {
                         <button onClick={() => { setFeeModal({ contractId: c.id, type: 'prepaid' }); setFeeAmount('') }}
                           className="text-xs text-primary hover:underline">💰 设置费用</button>
                       )}
+                      {uploadLinks(c, 'proof_prepaid')}
+                      {!uploadLinks(c, 'proof_prepaid') && (
+                        <div className="mt-1"><span className="text-[10px] text-gray-300">暂无凭证</span></div>
+                      )}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 align-top">
                       {c.settlement_status === 'paid' ? (
                         <span className="text-xs text-green-600 font-medium">€{c.settlement_amount} ✓</span>
                       ) : c.settlement_amount ? (
@@ -171,27 +226,14 @@ export default function Admin() {
                         <button onClick={() => { setFeeModal({ contractId: c.id, type: 'settlement' }); setFeeAmount('') }}
                           className="text-xs text-primary hover:underline">📋 设置结算</button>
                       )}
+                      {uploadLinks(c, 'proof_settlement')}
+                      {!uploadLinks(c, 'proof_settlement') && (
+                        <div className="mt-1"><span className="text-[10px] text-gray-300">暂无凭证</span></div>
+                      )}
                     </td>
-                    <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded ${STATUS_CLS[c.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_MAP[c.status] || c.status}</span></td>
-                    <td className="p-3">{c.lucid_confirmed ? '✅' : '⚠️'}</td>
-                    <td className="p-3">
-                      <div className="flex flex-col gap-1">
-                        {(c.status === 'pending_payment' || c.status === 'signed') && (
-                          <button onClick={() => confirmPay(c.id)} className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200">💰 确认收款</button>
-                        )}
-                        <div className="flex gap-1">
-                          <label className="text-[10px] px-1.5 py-0.5 border border-gray-200 text-gray-500 rounded cursor-pointer hover:bg-gray-100">
-                            📤 盖章<input type="file" accept=".pdf,.doc,.docx,.jpg,.png" onChange={e => adminUp(c.id, c.client_id, e)} className="hidden" />
-                          </label>
-                          <label className="text-[10px] px-1.5 py-0.5 border border-gray-200 text-gray-500 rounded cursor-pointer hover:bg-gray-100">
-                            🧾 发票<input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => adminUp(c.id, c.client_id, e)} className="hidden" />
-                          </label>
-                        </div>
-                        {c.upload_count > 0 && (
-                          <span className="text-[10px] text-blue-500">{c.upload_count}件凭证</span>
-                        )}
-                      </div>
-                    </td>
+                    <td className="p-3 align-top"><span className={`text-xs px-2 py-0.5 rounded ${STATUS_CLS[c.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_MAP[c.status] || c.status}</span></td>
+                    <td className="p-3 align-top">{c.lucid_confirmed ? '✅' : '⚠️'}</td>
+                    <td className="p-3 align-top"></td>
                   </tr>
                 )})}
               </tbody>

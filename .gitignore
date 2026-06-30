@@ -5,3 +5,9 @@ projects/~$回收费价目单_2026.xlsx
 _unpacked/
 projects/contracts/LIVANTO/*backup*
 ~*
+uploads/
+database/data.db-shm
+database/data.db-wal
+database/data.db
+projects/contracts/LIVANTO/_tmp_template/
+projects/generated/

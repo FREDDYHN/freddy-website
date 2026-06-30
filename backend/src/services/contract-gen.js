@@ -116,9 +116,50 @@ export async function generateContract({ type, clientLocation, data }) {
   }
   const processedBuf = headerModified ? headerZip.generate({ type: 'nodebuffer' }) : outBuf
 
+  // Post-process: insert contract number at top-right of first page body
+  const bodyZip = new PizZip(processedBuf)
+  let bodyXml = bodyZip.files['word/document.xml'].asText()
+  const contractNo = data.contract_number || ''
+  if (contractNo) {
+    // Build a right-aligned paragraph: "合同编号：XXX  |  Vertragsnummer: XXX"
+    const escXml = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    const topRightPara =
+      '<w:p>' +
+        '<w:pPr>' +
+          '<w:jc w:val="right"/>' +
+          '<w:spacing w:after="120"/>' +
+          '<w:rPr>' +
+            '<w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="宋体" w:cs="Times New Roman"/>' +
+            '<w:b/>' +
+            '<w:sz w:val="20"/>' +
+            '<w:szCs w:val="20"/>' +
+            '<w:color w:val="1A237E"/>' +
+          '</w:rPr>' +
+        '</w:pPr>' +
+        '<w:r>' +
+          '<w:rPr>' +
+            '<w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="宋体" w:cs="Times New Roman"/>' +
+            '<w:b/>' +
+            '<w:sz w:val="20"/>' +
+            '<w:szCs w:val="20"/>' +
+            '<w:color w:val="1A237E"/>' +
+          '</w:rPr>' +
+          '<w:t xml:space="preserve">' + escXml(`合同编号：${contractNo}  |  Vertragsnummer: ${contractNo}`) + '</w:t>' +
+        '</w:r>' +
+      '</w:p>'
+    // Insert right after <w:body>
+    const bodyTag = '<w:body>'
+    const bodyIdx = bodyXml.indexOf(bodyTag)
+    if (bodyIdx >= 0) {
+      bodyXml = bodyXml.substring(0, bodyIdx + bodyTag.length) + topRightPara + bodyXml.substring(bodyIdx + bodyTag.length)
+      bodyZip.file('word/document.xml', bodyXml)
+      console.log(`[contract-gen] Inserted contract number at top-right of first page body: ${contractNo}`)
+    }
+  }
+
   // Post-process: fill Anlage B table rows from packaging_items array
   if (pkgItems.length > 0) {
-    const outZip = new PizZip(processedBuf)
+    const outZip = new PizZip(bodyZip.generate({ type: 'nodebuffer' }))
     let outXml = outZip.files['word/document.xml'].asText()
     const marker = outXml.indexOf('PACKAGING_DATA')
     if (marker > 0) {
@@ -200,7 +241,7 @@ export async function generateContract({ type, clientLocation, data }) {
     }
     await writeFile(outPath, outZip.generate({ type: 'nodebuffer', compression: 'DEFLATE' }))
   } else {
-    await writeFile(outPath, processedBuf)
+    await writeFile(outPath, bodyZip.generate({ type: 'nodebuffer', compression: 'DEFLATE' }))
   }
   console.log(`[contract-gen] Generated: ${outPath}`)
   return outPath

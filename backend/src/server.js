@@ -12,6 +12,8 @@ import contractsRoutes from './routes/contracts.js'
 import formsRoutes from './routes/forms.js'
 import profileRoutes from './routes/profile.js'
 import uploadsRoutes from './routes/uploads.js'
+import notificationsRoutes from './routes/notifications.js'
+import adminNotificationsRoutes from './routes/admin-notifications.js'
 import { authMiddleware, adminMiddleware } from './auth.js'
 import { checkReminders } from './services/reminders.js'
 import { generateContract } from './services/contract-gen.js'
@@ -66,6 +68,8 @@ app.use('/api/contracts', contractsRoutes)
 app.use('/api/forms', formsRoutes)
 app.use('/api/profile', profileRoutes)
 app.use('/api/uploads', uploadsRoutes)
+app.use('/api/notifications', notificationsRoutes)
+app.use('/api/admin', adminNotificationsRoutes)
 
 // Serve generated contract files (auth + ownership verified)
 app.get('/api/contracts/:id/download', authMiddleware, async (req, res) => {
@@ -129,8 +133,12 @@ app.get('/api/dashboard', authMiddleware, async (req, res) => {
        ORDER BY id DESC`,
       clientId
     )
+    const unread = await db.get(
+      'SELECT COUNT(*) as cnt FROM notifications WHERE client_id = ? AND is_read = 0',
+      clientId
+    )
 
-    res.json({ success: true, data: { client, contracts, packaging, payments, invoices, reminders, recycling_fees: recyclingFees } })
+    res.json({ success: true, data: { client, contracts, packaging, payments, invoices, reminders, recycling_fees: recyclingFees, unread_notifications: unread.cnt } })
   } catch (e) {
     console.error('[server] dashboard error:', e)
     res.status(500).json({ error: e.message })
@@ -167,30 +175,42 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
 
     const [rows, countRow] = await Promise.all([
       db.all(
-        'SELECT c.*, cl.company_name, cl.contact_email FROM contracts c JOIN clients cl ON c.client_id = cl.id ORDER BY c.id DESC LIMIT ? OFFSET ?',
+        'SELECT c.*, cl.company_name, cl.contact_name, cl.contact_email, cl.contact_phone FROM contracts c JOIN clients cl ON c.client_id = cl.id ORDER BY c.id DESC LIMIT ? OFFSET ?',
         perPage, offset
       ),
       db.get('SELECT COUNT(*) as total FROM contracts'),
     ])
 
-    // Enrich with payment info
+    // Enrich with payment info + uploads (batch query to avoid N+1)
+    const contractIds = rows.map(r => r.id)
+    const [allPayments, allUploads] = await Promise.all([
+      contractIds.length > 0
+        ? db.all(`SELECT * FROM payments WHERE contract_id IN (${contractIds.map(() => '?').join(',')}) ORDER BY id DESC`, ...contractIds)
+        : [],
+      contractIds.length > 0
+        ? db.all(`SELECT * FROM uploads WHERE contract_id IN (${contractIds.map(() => '?').join(',')}) ORDER BY uploaded_at DESC`, ...contractIds)
+        : [],
+    ])
+
+    const paymentsByContract = {}
+    for (const p of allPayments) {
+      if (!paymentsByContract[p.contract_id]) paymentsByContract[p.contract_id] = []
+      paymentsByContract[p.contract_id].push(p)
+    }
+    const uploadsByContract = {}
+    for (const u of allUploads) {
+      if (!uploadsByContract[u.contract_id]) uploadsByContract[u.contract_id] = {}
+      if (!uploadsByContract[u.contract_id][u.file_type]) uploadsByContract[u.contract_id][u.file_type] = []
+      uploadsByContract[u.contract_id][u.file_type].push(u)
+    }
+
     for (const row of rows) {
-      const prepaid = await db.get(
-        `SELECT amount_eur, status FROM payments WHERE contract_id = ? AND payment_type = 'recycling_prepaid' ORDER BY id DESC LIMIT 1`,
-        row.id
-      )
+      const pms = paymentsByContract[row.id] || []
+      const prepaid = pms.find(p => p.payment_type === 'recycling_prepaid')
       if (prepaid) { row.prepaid_amount = prepaid.amount_eur; row.prepaid_status = prepaid.status }
-      const settlement = await db.get(
-        `SELECT amount_eur, status FROM payments WHERE contract_id = ? AND payment_type = 'recycling_settlement' ORDER BY id DESC LIMIT 1`,
-        row.id
-      )
+      const settlement = pms.find(p => p.payment_type === 'recycling_settlement')
       if (settlement) { row.settlement_amount = settlement.amount_eur; row.settlement_status = settlement.status }
-      // Check for uploaded payment proofs
-      const proofs = await db.get(
-        'SELECT COUNT(*) as cnt FROM uploads WHERE contract_id = ? AND file_type IN (\'signed_contract\', \'bank_proof\')',
-        row.id
-      )
-      if (proofs) row.upload_count = proofs.cnt
+      row._uploads = uploadsByContract[row.id] || {}
     }
 
     res.json({
@@ -416,28 +436,6 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
     })
   } catch (e) {
     console.error('[server] contract-gen error:', e)
-    res.status(500).json({ error: e.message })
-  }
-})
-
-// ── Client: Notify payment (client self-reports bank transfer) ──
-app.post('/api/payments/notify', authMiddleware, async (req, res) => {
-  try {
-    const db = await getDb()
-    const { contract_id } = req.body
-    if (!contract_id) return res.status(400).json({ error: 'contract_id required' })
-
-    const contract = await db.get('SELECT * FROM contracts WHERE id = ?', contract_id)
-    if (!contract) return res.status(404).json({ error: 'Contract not found' })
-    if (req.user.client_id !== contract.client_id) return res.status(403).json({ error: 'Access denied' })
-    if (contract.status !== 'pending_payment') return res.status(400).json({ error: 'Contract is not awaiting payment' })
-
-    // Persist notification in DB for audit trail
-    await db.run("UPDATE payments SET client_notified_at = datetime('now') WHERE contract_id = ? AND status = 'pending'", contract_id)
-    console.log(`[server] Client ${req.user.email} reported payment for contract ${contract.contract_number} (id=${contract_id})`)
-    res.json({ success: true, message: '已通知管理员，核对到账后将激活合同。' })
-  } catch (e) {
-    console.error('[server] payment notify error:', e)
     res.status(500).json({ error: e.message })
   }
 })

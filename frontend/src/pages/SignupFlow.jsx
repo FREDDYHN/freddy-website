@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { PACKAGING_MATERIALS, AR_TIERS, WEEE_PRICES, BATTERY_PRICES, EMAIL_RE, WEEE_STARTING_PRICE, BATTERY_STARTING_PRICE } from '@shared/constants.js'
+import { PACKAGING_MATERIALS, AR_TIERS, WEEE_PRICES, BATTERY_PRICES, EMAIL_RE } from '@shared/constants.js'
 
 const MATERIALS = PACKAGING_MATERIALS
 
@@ -51,6 +51,11 @@ export default function SignupFlow() {
     password: '', password_confirm: '', packaging_items: [], tier: urlTier,
     device_categories: [], brand_count: '1', year_type: 'first',
   })
+  const [countryCode, setCountryCode] = useState('+86')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [showPw, setShowPw] = useState(false)
+
+  const COUNTRY_CODES = ['+86', '+49', '+33', '+39', '+34', '+31', '+44', '+1', '+81', '+82', '+852', '+886']
 
   const update = (k, v) => { setForm(f => ({ ...f, [k]: v })); if (errors[k]) setErrors(e => { const n = {...e}; delete n[k]; return n }) }
   const fe = (k) => errors[k] ? <p className="text-red-500 text-xs mt-1">{errors[k]}</p> : null
@@ -65,7 +70,7 @@ export default function SignupFlow() {
       if (!form.legal_representative_en.trim()) e.legal_representative_en = '请输入法定代表人（英文）'
       if (!form.contact_person.trim()) e.contact_person = '请输入联系人（中文）'
       if (!form.contact_person_en.trim()) e.contact_person_en = '请输入联系人（英文）'
-      if (!form.contact_phone.trim()) e.contact_phone = '请输入手机号'
+      if (!phoneNumber.trim()) e.contact_phone = '请输入手机号'
       if (!form.wechat_id.trim()) e.wechat_id = '请输入微信号'
       if (!form.contact_email.trim()) e.contact_email = '请输入邮箱'
       else if (!EMAIL_RE.test(form.contact_email)) e.contact_email = '邮箱格式不正确'
@@ -94,7 +99,7 @@ export default function SignupFlow() {
 
   const buildBody = () => {
     const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: form.legal_representative_en.trim(), contact_person: form.contact_person.trim(), contact_person_en: form.contact_person_en.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), password: form.password, tier: form.tier }
-    if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material, category: p.category, estimated_kg: p.kg, example: p.example || '' }))
+    if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material_key, category: p.category, estimated_kg: p.kg, example: p.example || '' }))
     else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
     return body
   }
@@ -256,7 +261,14 @@ export default function SignupFlow() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">手机号 *</label>
-              <input value={form.contact_phone} onChange={e => update('contact_phone', e.target.value)} className={`${inputCls} ${errCls('contact_phone', errors)}`} placeholder="+86 139xxxxxxxx" />
+              <div className="flex gap-2">
+                <select value={countryCode} onChange={e => { setCountryCode(e.target.value); update('contact_phone', e.target.value + ' ' + phoneNumber) }}
+                  className="border border-gray-400 rounded-md px-3 py-2 text-sm bg-white w-24 flex-shrink-0 focus:outline-none focus:border-primary">
+                  {COUNTRY_CODES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <input value={phoneNumber} onChange={e => { setPhoneNumber(e.target.value); update('contact_phone', countryCode + ' ' + e.target.value) }}
+                  className={`${inputCls} flex-1`} placeholder="139xxxxxxxx" />
+              </div>
               {fe('contact_phone')}
             </div>
             <div>
@@ -280,7 +292,10 @@ export default function SignupFlow() {
           <div className="grid grid-cols-2 gap-3">
             <div>
             <label className="block text-xs font-semibold mb-1 text-gray-500">Passwort / 登录密码 *</label>
-            <input type="password" value={form.password} onChange={e => update('password', e.target.value)} className={`${inputCls} ${errCls('password', errors)}`} placeholder="至少6位字母数字组合" />
+            <div className="relative">
+              <input type={showPw ? 'text' : 'password'} value={form.password} onChange={e => update('password', e.target.value)} className={`${inputCls} pr-10 ${errCls('password', errors)}`} placeholder="至少6位字母数字组合" />
+              <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600">{showPw ? '隐藏' : '显示'}</button>
+            </div>
             {fe('password')}
             </div>
             <div></div>
@@ -288,7 +303,10 @@ export default function SignupFlow() {
           <div className="grid grid-cols-2 gap-3">
             <div>
             <label className="block text-xs font-semibold mb-1 text-gray-500">Passwort / 确认密码 *</label>
-            <input type="password" value={form.password_confirm} onChange={e => { const v = e.target.value; update('password_confirm', v); if (v && form.password !== v) setErrors(prev => ({...prev, password_confirm: '两次密码输入不一致'})); else if (form.password === v) setErrors(prev => { const n = {...prev}; delete n.password_confirm; return n }) }} className={`${inputCls} ${errCls('password_confirm', errors)}`} placeholder="请再次输入密码" />
+            <div className="relative">
+              <input type={showPw ? 'text' : 'password'} value={form.password_confirm} onChange={e => { const v = e.target.value; update('password_confirm', v); if (v && form.password !== v) setErrors(prev => ({...prev, password_confirm: '两次密码输入不一致'})); else if (form.password === v) setErrors(prev => { const n = {...prev}; delete n.password_confirm; return n }) }} className={`${inputCls} pr-10 ${errCls('password_confirm', errors)}`} placeholder="请再次输入密码" />
+              <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600">{showPw ? '隐藏' : '显示'}</button>
+            </div>
             {fe('password_confirm')}
             </div>
             <div></div>
@@ -403,37 +421,37 @@ export default function SignupFlow() {
       {step === STEPS.length - 1 && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           <h2 className="font-bold text-lg">信息确认</h2>
-          <div className="bg-gray-50 rounded-lg p-4 text-sm">
-            <div><span className="inline-block w-40 text-gray-400">服务</span><span className="font-medium">{cfg.label}</span></div>
-            <div><span className="inline-block w-40 text-gray-400">公司（英文）</span><span className="font-medium text-xs">{form.company_name_en}</span></div>
-            <div><span className="inline-block w-40 text-gray-400">公司（中文）</span><span className="font-medium">{form.company_name}</span></div>
-            {form.registered_address_en && <div><span className="inline-block w-40 text-gray-400">地址（英文）</span><span className="font-medium text-xs">{form.registered_address_en}</span></div>}
-            <div><span className="inline-block w-40 text-gray-400">地址（中文）</span><span className="font-medium text-xs">{form.registered_address}</span></div>
-            {form.uscc && <div><span className="inline-block w-40 text-gray-400">信用代码</span><span className="font-medium text-xs">{form.uscc}</span></div>}
-            {form.legal_representative_en && <div><span className="inline-block w-40 text-gray-400">法定代表人（拼音）</span><span className="font-medium text-xs">{form.legal_representative_en}</span></div>}
-            <div><span className="inline-block w-40 text-gray-400">法定代表人（中文）</span><span className="font-medium">{form.legal_representative}</span></div>
-            <div><span className="inline-block w-40 text-gray-400">联系人（拼音）</span><span className="font-medium text-xs">{form.contact_person_en}</span></div>
-            <div><span className="inline-block w-40 text-gray-400">联系人（中文）</span><span className="font-medium">{form.contact_person}</span></div>
+          <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
+            <div><span className="inline-block w-40 text-gray-400">服务</span><span className="font-bold">{cfg.label}</span></div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              <div><span className="text-gray-400 text-xs">公司（英文）</span><p className="font-medium text-xs">{form.company_name_en}</p></div>
+              <div><span className="text-gray-400 text-xs">公司（中文）</span><p className="font-medium">{form.company_name}</p></div>
+              {form.registered_address_en && <div><span className="text-gray-400 text-xs">地址（英文）</span><p className="font-medium text-xs">{form.registered_address_en}</p></div>}
+              <div><span className="text-gray-400 text-xs">地址（中文）</span><p className="font-medium text-xs">{form.registered_address}</p></div>
+              {form.uscc && <div><span className="text-gray-400 text-xs">信用代码</span><p className="font-medium text-xs">{form.uscc}</p></div>}
+              <div><span className="text-gray-400 text-xs">法定代表人（英文）</span><p className="font-medium text-xs">{form.legal_representative_en || '—'}</p></div>
+              <div><span className="text-gray-400 text-xs">法定代表人（中文）</span><p className="font-medium">{form.legal_representative}</p></div>
+              <div><span className="text-gray-400 text-xs">联系人（英文）</span><p className="font-medium text-xs">{form.contact_person_en}</p></div>
+              <div><span className="text-gray-400 text-xs">联系人（中文）</span><p className="font-medium">{form.contact_person}</p></div>
+            </div>
             <div><span className="inline-block w-40 text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>
             <div><span className="inline-block w-40 text-gray-400">手机</span><span className="font-medium">{form.contact_phone}</span></div>
             <div><span className="inline-block w-40 text-gray-400">微信</span><span className="font-medium">{form.wechat_id}</span></div>
             {isPkg && <>
                 <div><span className="inline-block w-40 text-gray-400">套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div>
                 <div className="mt-3">
-                  <span className="inline-block w-40 text-gray-400 align-top">包装预申报</span>
-                  <div className="inline-block">
-                    <div className="grid text-xs text-gray-400 mb-1" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr'}}>
-                      <span>材料类别</span><span>类别</span><span>预估年量</span><span>产品举例</span>
-                    </div>
-                    {form.packaging_items.map((item, i) => (
-                      <div key={i} className="grid text-sm mb-0.5" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr'}}>
-                        <span className="font-medium">{item.material}</span>
-                        <span className="text-gray-500">{item.category}</span>
-                        <span className="tabular-nums">{item.kg} kg</span>
-                        <span className="text-gray-500 truncate">{item.example || '—'}</span>
-                      </div>
-                    ))}
+                  <span className="text-gray-400 text-xs">包装预申报</span>
+                  <div className="grid text-xs text-gray-400 mt-1 mb-1" style={{gridTemplateColumns:'2fr 0.8fr 0.8fr 1.2fr'}}>
+                    <span>材料类别</span><span className="pl-4">类别</span><span className="pl-4">预估年量</span><span className="pl-4">产品举例</span>
                   </div>
+                  {form.packaging_items.map((item, i) => (
+                    <div key={i} className="grid text-sm mb-0.5" style={{gridTemplateColumns:'2fr 0.8fr 0.8fr 1.2fr'}}>
+                      <span className="font-medium">{item.material}</span>
+                      <span className="text-gray-500 pl-4">{item.category}</span>
+                      <span className="tabular-nums pl-4">{item.kg} kg</span>
+                      <span className="text-gray-500 truncate pl-4">{item.example || '—'}</span>
+                    </div>
+                  ))}
                 </div>
               </>}
             {isWeee && <div><span className="inline-block w-40 text-gray-400">设备类别</span><span className="font-medium">{form.device_categories.length} 类</span></div>}

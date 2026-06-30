@@ -112,7 +112,20 @@ CREATE TABLE IF NOT EXISTS uploads (
     stored_path TEXT NOT NULL,
     file_size INTEGER,
     mime_type TEXT,
+    status TEXT DEFAULT 'pending',
+    review_comment TEXT,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL REFERENCES clients(id),
+    contract_id INTEGER REFERENCES contracts(id),
+    type TEXT NOT NULL DEFAULT 'admin_message',
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    is_read INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_contracts_client ON contracts(client_id);
@@ -123,3 +136,5 @@ CREATE INDEX IF NOT EXISTS idx_uploads_client ON uploads(client_id);
 CREATE INDEX IF NOT EXISTS idx_uploads_contract ON uploads(contract_id);
 CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(contact_email);
 CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(company_name);
+CREATE INDEX IF NOT EXISTS idx_notifications_client ON notifications(client_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(client_id) WHERE is_read = 0;

@@ -37,8 +37,10 @@ export default function NavBar() {
         </nav>
           {user ? (
             <>
-              <Link to="/dashboard" className="hidden md:block text-[13px] text-gray-500 hover:text-primary px-2">面板</Link>
-              {user.role === 'admin' && <Link to="/admin" className="hidden md:block text-[13px] text-gray-500 hover:text-primary px-2">管理</Link>}
+              {user.role === 'admin'
+                ? <Link to="/admin" className="hidden md:block text-[13px] text-gray-500 hover:text-primary px-2">管理</Link>
+                : <Link to="/dashboard" className="hidden md:block text-[13px] text-gray-500 hover:text-primary px-2">面板</Link>
+              }
               <button onClick={() => { sessionStorage.clear(); window.dispatchEvent(new Event('auth:expired')) }}
                 className="text-[13px] text-gray-400 px-3 py-1.5 border border-gray-200 rounded-md hover:bg-gray-50">退出</button>
             </>

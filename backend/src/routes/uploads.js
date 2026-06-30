@@ -12,10 +12,16 @@ const uploadsDir = join(rootPath, 'uploads')
 
 if (!existsSync(uploadsDir)) mkdirSync(uploadsDir, { recursive: true })
 
+/** Decode Latin-1 misinterpreted UTF-8 filenames (Windows multer bug) */
+function fixEncoding(name) {
+  try { return Buffer.from(name, 'latin1').toString('utf8') } catch { return name }
+}
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
   filename: (_req, file, cb) => {
-    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2,8)}-${file.originalname.replace(/[^a-zA-Z0-9._\-一-龥]/g, '_')}`
+    const decoded = fixEncoding(file.originalname)
+    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2,8)}-${decoded.replace(/[^a-zA-Z0-9._\-一-鿿㐀-䶿()（）]/g, '_')}`
     cb(null, safeName)
   },
 })
@@ -37,7 +43,7 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
       req.user.client_id,
       contract_id || null,
       file_type || 'other',
-      req.file.originalname,
+      fixEncoding(req.file.originalname),
       req.file.filename,
       req.file.size,
       req.file.mimetype

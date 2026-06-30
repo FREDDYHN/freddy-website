@@ -31,7 +31,7 @@ function getTransport() {
   return transporter
 }
 
-async function send({ to, subject, html }) {
+export async function send({ to, subject, html }) {
   const t = getTransport()
   if (t) {
     try {
