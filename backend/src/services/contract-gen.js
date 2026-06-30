@@ -15,13 +15,8 @@ import { readFile, writeFile, mkdir, access } from 'fs/promises'
 import { constants } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
-import { execFile } from 'child_process'
-import { promisify } from 'util'
 import Docxtemplater from 'docxtemplater'
 import PizZip from 'pizzip'
-import mammoth from 'mammoth'
-
-const execFileP = promisify(execFile)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootPath = join(__dirname, '..', '..', '..')
@@ -248,47 +243,8 @@ export async function generateContract({ type, clientLocation, data }) {
   } else {
     await writeFile(outPath, bodyZip.generate({ type: 'nodebuffer', compression: 'DEFLATE' }))
   }
-  console.log(`[contract-gen] Generated DOCX: ${outPath}`)
-
-  // Convert to PDF via mammoth + wkhtmltopdf (LibreOffice 24.2 has docx compat issues)
-  const pdfPath = outPath.replace(/\.docx$/i, '.pdf')
-  try {
-    // Step 1: docx → HTML via mammoth
-    const docxBuf = await readFile(outPath)
-    const { value: html } = await mammoth.convertToHtml({ buffer: docxBuf })
-
-    // Step 2: Wrap in clean print-styled page
-    const fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<style>
-  @page { size: A4; margin: 20mm; }
-  body { font-family: "DejaVu Sans", "Noto Sans SC", sans-serif; font-size: 11pt; line-height: 1.6; color: #222; }
-  table { border-collapse: collapse; width: 100%; margin: 8px 0; }
-  td, th { border: 1px solid #ccc; padding: 4px 8px; font-size: 10pt; }
-  h1 { font-size: 16pt; } h2 { font-size: 13pt; } h3 { font-size: 11pt; }
-  p { margin: 4px 0; }
-</style></head><body>${html}</body></html>`
-
-    const htmlPath = outPath.replace(/\.docx$/i, '.html')
-    await writeFile(htmlPath, fullHtml, 'utf-8')
-
-    // Step 2: HTML → PDF via wkhtmltopdf
-    await execFileP('wkhtmltopdf', [
-      '--page-size', 'A4',
-      '--margin-top', '20mm',
-      '--margin-bottom', '20mm',
-      '--margin-left', '15mm',
-      '--margin-right', '15mm',
-      '--encoding', 'UTF-8',
-      htmlPath, pdfPath,
-    ], { timeout: 30000 })
-
-    console.log(`[contract-gen] Converted to PDF via mammoth+wkhtmltopdf: ${pdfPath}`)
-  } catch (e) {
-    console.warn(`[contract-gen] PDF conversion failed, falling back to DOCX: ${e.message}`)
-    return outPath
-  }
-
-  return pdfPath
+  console.log(`[contract-gen] Generated: ${outPath}`)
+  return outPath
 }
 
 /**
