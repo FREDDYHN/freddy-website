@@ -51,7 +51,15 @@ app.use(express.json({ limit: '1mb' }))
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootPath = pathJoin(__dirname, '..', '..')
 const distPath = pathJoin(rootPath, 'frontend', 'dist')
-app.use(express.static(distPath, { maxAge: '1y', immutable: true }))
+app.use(express.static(distPath, {
+  maxAge: '1y',
+  immutable: true,
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+    }
+  },
+}))
 
 // Serve public contract templates + registration form templates
 app.use('/projects', express.static(pathJoin(rootPath, 'projects', 'contracts'), { maxAge: '7d' }))
