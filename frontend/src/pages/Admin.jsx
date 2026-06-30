@@ -318,13 +318,15 @@ export default function Admin() {
                           html += `<p><span>服务等级</span> <b>${e(tierName)}</b></p>`
                           html += `<p><span>截止日期</span> ${c.end_date?.slice(0,10)||'-'}</p>`
                           html += `<p><span>状态</span> <span class="${c.status==='active'?'g':'y'}">${c.status==='active'?'已付款':'待付款'}</span></p>`
-                          html += `<p><span>金额</span> <b class="b">€${c.annual_fee_eur}</b></p></div>`
+                          html += `<p><span>金额</span> <b class="b">€${c.annual_fee_eur}</b></p>`
+                          html += `<p style="font-size:10px;color:#888">≈ ¥${Math.round(c.annual_fee_eur * (rateInfo.rate||8.10))} (CNY 折算参考价)</p></div>`
                           // Prepaid
                           html += '<div><h3>回收费预申报</h3><table>'
                           rows.forEach(r => { html += `<tr><td>${e(r.label)}</td><td class="num">${r.kg}kg</td><td class="num">€${r.rate}</td><td class="num">€${r.fee.toFixed(2)}</td></tr>` })
                           html += `<tr><td colspan="3">小计 · ${totalKg}kg</td><td class="num"><b>€${subtotal.toFixed(2)}</b></td></tr>`
                           if(prepaidCalc>subtotal) html += `<tr><td colspan="3" class="y">取起步价</td><td class="num y"><b>€${prepaidCalc.toFixed(2)}</b></td></tr>`
                           html += `</table><p class="b">预申报费 €${prepaidDisplay.toFixed(2)} ${c.prepaid_status==='paid'?'✓':''}</p>`
+                          html += `<p style="font-size:10px;color:#888">≈ ¥${Math.round(prepaidDisplay * (rateInfo.rate||8.10))}</p>`
                           if(prepaidOverride) html += `<p class="s">报价表 €${prepaidCalc.toFixed(2)}</p>`
                           html += '</div>' // close prepaid
                           html += '</div>' // close 2-col grid
@@ -352,6 +354,7 @@ export default function Admin() {
                             if(penaltyApplies) html += '<p class="r">+ 惩罚金 (合同 §5(3) 20%附加费) <b>€'+penaltyAmt.toFixed(2)+'</b></p>'
                             if(refundApplies && Math.abs(rawDiff) > prepaidCalc * 0.1) html += '<p class="y">退款上限10%: 仅退 €'+Math.abs(refundCapped).toFixed(2)+'</p>'
                             html += '<p class="b" style="font-size:14px">'+(settleAmt>0?'补缴合计':'退款合计')+' €'+settleDisplay.toFixed(2)+' '+(c.settlement_status==='paid'?'✓ 已付清':'')+'</p>'
+                            html += '<p style="font-size:10px;color:#888">≈ ¥'+Math.round(settleDisplay * (rateInfo.rate||8.10))+' (CNY 折算参考价)</p>'
                             if(settleOverride) html += '<p class="s">公式值 €'+settleAmt.toFixed(2)+'</p>'
                             html += '</div>'
                           } else { html += '<p style="color:#999">暂无实际数据</p>' }
@@ -375,6 +378,7 @@ export default function Admin() {
                       <span className={`text-xs font-semibold ${c.status === 'pending_payment' ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
                       {c.status === 'pending_payment' && <span className="text-yellow-600 text-xs font-semibold ml-1">待付</span>}
                       {c.status === 'active' && <span className="text-green-600 text-xs font-semibold ml-1">✓</span>}
+                      <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{Math.round(c.annual_fee_eur * (rateInfo.rate||8.10))}</div>
                       {uploadLinks(c, 'bank_proof', 'proof_annual_fee')}
                     </td>
                     <td className="p-3 align-top">
@@ -386,6 +390,7 @@ export default function Admin() {
                         <button onClick={() => { setFeeModal({ contractId: c.id, type: 'prepaid' }); setFeeAmount('') }}
                           className="text-xs text-primary hover:underline">💰 设置费用</button>
                       )}
+                      {c.prepaid_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{Math.round(c.prepaid_amount * (rateInfo.rate||8.10))}</div>}
                       {uploadLinks(c, 'proof_prepaid')}
                       {!uploadLinks(c, 'proof_prepaid') && (
                         <div className="mt-1"><span className="text-[10px] text-gray-300">暂无凭证</span></div>
@@ -400,6 +405,7 @@ export default function Admin() {
                         <button onClick={() => { setFeeModal({ contractId: c.id, type: 'settlement' }); setFeeAmount('') }}
                           className="text-xs text-primary hover:underline">📋 设置结算</button>
                       )}
+                      {c.settlement_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{Math.round(c.settlement_amount * (rateInfo.rate||8.10))}</div>}
                       {uploadLinks(c, 'proof_settlement')}
                       {!uploadLinks(c, 'proof_settlement') && (
                         <div className="mt-1"><span className="text-[10px] text-gray-300">暂无凭证</span></div>
