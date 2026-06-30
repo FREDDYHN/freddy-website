@@ -255,13 +255,23 @@ export default function Admin() {
                           const penaltyAmt = penaltyApplies ? rawDiff * 0.2 : 0
                           const refundCapped = refundApplies ? -Math.min(Math.abs(rawDiff), prepaidCalc * 0.1) : 0
                           const settleAmt = hasAnyActuals ? (penaltyApplies ? rawDiff * 1.2 : refundApplies ? refundCapped : rawDiff) : 0
+                          // Build per-material settlement rows for detail table
+                          const settleRows = []; const allMatKeys = new Set([...Object.keys(byMat), ...Object.keys(actByMat)]);
+                          const rowByMat = {}; rows.forEach(r => { const mk2 = Object.keys(byMat).find(k => (PACKAGING_MATERIALS.find(m => m.key === k)?.label || '') === r.label); if (mk2) rowByMat[mk2] = r });
+                          allMatKeys.forEach(mk => {
+                            const mat = PACKAGING_MATERIALS.find(m => m.key === mk);
+                            const estKg = byMat[mk] || 0, actKg = actByMat[mk] || 0;
+                            const estFee = calcMaterialFee(mk, estKg), actFeeM = calcMaterialFee(mk, actKg);
+                            const rate = mat ? getRecyclingRate(mk, Math.max(estKg, actKg)) : 0;
+                            settleRows.push({ label: (mat ? mat.label : mk), estKg, actKg, exKg: actKg - estKg, rate, estFee, actFeeM, diff: actFeeM - estFee });
+                          })
                           const e = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
                           const tierName = c.tier==='basic'?'基础 €89/年':c.tier==='standard'?'标准 €159/年':'高级 €249/年'
                           const prepaidDisplay = c.prepaid_amount || prepaidCalc
                           const settleDisplay = c.settlement_amount || Math.abs(settleAmt)
                           const prepaidOverride = c.prepaid_amount > 0 && Math.abs(c.prepaid_amount - prepaidCalc) > 0.01
                           const settleOverride = c.settlement_amount > 0 && hasAnyActuals && Math.abs(c.settlement_amount - settleAmt) > 0.01
-                          let html = `<html><head><meta charset="UTF-8"><title>缴费明细 - ${e(c.company_name)}</title><style>body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;padding:24px;max-width:960px;margin:0 auto;color:#333;font-size:13px}h2{font-size:16px;margin-bottom:4px}.sub{color:#888;font-size:12px;margin-bottom:16px}h3{font-size:13px;margin:16px 0 8px;color:#555}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:4px 8px;text-align:left}th{color:#888;font-weight:400;border-bottom:1px solid #e0e0e0}td{border-bottom:1px solid #f0f0f0}.ar{font-size:12px}.ar p{margin:3px 0}.num{text-align:right;font-variant-numeric:tabular-nums}.r{color:#c00}.g{color:#0a0}.b{font-weight:700;color:#1a3a5f}.s{text-decoration:line-through;color:#999}.y{color:#b8860b}.grid{display:grid;grid-template-columns:180px 1fr 1fr;gap:24px}</style></head><body>`
+                          let html = `<html><head><meta charset="UTF-8"><title>缴费明细 - ${e(c.company_name)}</title><style>body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;padding:24px;max-width:960px;margin:0 auto;color:#333;font-size:13px}h2{font-size:16px;margin-bottom:4px}.sub{color:#888;font-size:12px;margin-bottom:16px}h3{font-size:13px;margin:16px 0 8px;color:#555}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:4px 8px;text-align:left}th{color:#888;font-weight:400;border-bottom:1px solid #e0e0e0}td{border-bottom:1px solid #f0f0f0}.ar{font-size:12px}.ar p{margin:3px 0}.num{text-align:right;font-variant-numeric:tabular-nums}.r{color:#c00}.g{color:#0a0}.b{font-weight:700;color:#1a3a5f}.s{text-decoration:line-through;color:#999}.y{color:#b8860b}.grid{display:grid;grid-template-columns:180px 1fr;gap:24px}.settle-section{margin-top:20px}.bank-section{margin-top:20px;padding-top:16px;border-top:2px solid #e0e0e0}.bank-section h3{font-size:12px;color:#555;margin-bottom:6px}.bank-section p{font-size:11px;color:#888;margin:2px 0;line-height:1.6}.tbl{width:100%;border-collapse:collapse;font-size:12px}.tbl th{color:#666;font-weight:500;border-bottom:2px solid #ccc;padding:5px 8px;text-align:right}.tbl th:first-child{text-align:left}.tbl td{padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right}.tbl td:first-child{text-align:left}.tbl .total-row td{border-top:2px solid #ccc;font-weight:700}</style></head><body>`
                           html += `<h2>${e(c.company_name)}</h2><p class="sub">${e(c.contract_number)} · ${e(tierName)}</p>`
                           html += '<div class="grid">'
                           // AR
@@ -277,20 +287,46 @@ export default function Admin() {
                           if(prepaidCalc>subtotal) html += `<tr><td colspan="3" class="y">取起步价</td><td class="num y"><b>€${prepaidCalc.toFixed(2)}</b></td></tr>`
                           html += `</table><p class="b">预申报费 €${prepaidDisplay.toFixed(2)} ${c.prepaid_status==='paid'?'✓':''}</p>`
                           if(prepaidOverride) html += `<p class="s">报价表 €${prepaidCalc.toFixed(2)}</p>`
-                          html += '</div>'
-                          // Settlement
-                          html += '<div><h3>年终结算</h3>'
+                          html += '</div>' // close prepaid
+                          html += '</div>' // close 2-col grid
+                          // ═══ Settlement — full-width detailed table ═══
+                          html += '<div class="settle-section"><h3>年终结算 — 材料明细对比</h3>'
                           if(hasAnyActuals){
-                            html += `<p>实际费 <b>€${actFee.toFixed(2)}</b></p>`
-                            html += `<p>预申报费 €${prepaidCalc.toFixed(2)}</p>`
-                            html += `<p>基础差额 <span class="${rawDiff>0?'r':'g'}">${rawDiff>0?'+':''}€${rawDiff.toFixed(2)}</span></p>`
-                            if(penaltyApplies) html += `<p class="r">+ 惩罚金 (20%附加费 §5(3)) <b>€${penaltyAmt.toFixed(2)}</b></p>`
-                            if(refundApplies && Math.abs(rawDiff) > prepaidCalc * 0.1) html += `<p class="y">退款上限10%: 仅退€${Math.abs(refundCapped).toFixed(2)}</p>`
-
-                            html += `<p class="b">${settleAmt>0?'补缴合计':'退款合计'} €${settleDisplay.toFixed(2)} ${c.settlement_status==='paid'?'✓':''}</p>`
-                            if(settleOverride) html += `<p class="s">公式 €${settleAmt.toFixed(2)}</p>`
+                            html += '<table class="tbl"><thead><tr><th>材料类别</th><th>申报量(kg)</th><th>实际量(kg)</th><th>超额(kg)</th><th>费率(€/kg)</th><th>差额(€)</th></tr></thead><tbody>'
+                            settleRows.forEach(r => {
+                              html += '<tr><td>'+e(r.label)+'</td><td>'+r.estKg.toFixed(1)+'</td><td>'+r.actKg.toFixed(1)+'</td>'
+                              html += '<td class="'+(r.exKg>0?'r':r.exKg<0?'g':'')+'">'+(r.exKg>0?'+':'')+r.exKg.toFixed(1)+'</td>'
+                              html += '<td>€'+r.rate.toFixed(4)+'</td>'
+                              html += '<td class="'+(r.diff>0?'r':r.diff<0?'g':'')+'">'+(r.diff>0?'+':'')+'€'+r.diff.toFixed(2)+'</td></tr>'
+                            })
+                            const totalActKg = settleRows.reduce((s,r)=>s+r.actKg,0)
+                            const totalExKg = settleRows.reduce((s,r)=>s+r.exKg,0)
+                            const totalRawDiff2 = settleRows.reduce((s,r)=>s+r.diff,0)
+                            html += '<tr class="total-row"><td><b>合计</b></td><td><b>'+totalKg.toFixed(1)+'</b></td><td><b>'+totalActKg.toFixed(1)+'</b></td>'
+                            html += '<td class="'+(totalExKg>0?'r':'g')+'"><b>'+(totalExKg>0?'+':'')+totalExKg.toFixed(1)+'</b></td><td></td>'
+                            html += '<td class="'+(totalRawDiff2>0?'r':'g')+'"><b>'+(totalRawDiff2>0?'+':'')+'€'+totalRawDiff2.toFixed(2)+'</b></td></tr>'
+                            html += '</tbody></table>'
+                            // Summary box
+                            html += '<div style="margin-top:12px;padding:12px;background:#f8f9fa;border-radius:6px;font-size:12px">'
+                            html += '<p>申报费总计 <b>€'+prepaidCalc.toFixed(2)+'</b> &nbsp;|&nbsp; 实际费总计 <b>€'+actFee.toFixed(2)+'</b></p>'
+                            html += '<p>基础差额 <span class="'+(rawDiff>0?'r':'g')+'"><b>'+(rawDiff>0?'+':'')+'€'+rawDiff.toFixed(2)+'</b></span></p>'
+                            if(penaltyApplies) html += '<p class="r">+ 惩罚金 (合同 §5(3) 20%附加费) <b>€'+penaltyAmt.toFixed(2)+'</b></p>'
+                            if(refundApplies && Math.abs(rawDiff) > prepaidCalc * 0.1) html += '<p class="y">退款上限10%: 仅退 €'+Math.abs(refundCapped).toFixed(2)+'</p>'
+                            html += '<p class="b" style="font-size:14px">'+(settleAmt>0?'补缴合计':'退款合计')+' €'+settleDisplay.toFixed(2)+' '+(c.settlement_status==='paid'?'✓ 已付清':'')+'</p>'
+                            if(settleOverride) html += '<p class="s">公式值 €'+settleAmt.toFixed(2)+'</p>'
+                            html += '</div>'
                           } else { html += '<p style="color:#999">暂无实际数据</p>' }
-                          html += '</div></div></body></html>'
+                          html += '</div>'
+                          // ═══ Bank Info ═══
+                          html += '<div class="bank-section"><h3>银行转账信息</h3>'
+                          html += '<table style="font-size:11px;color:#666;line-height:1.8"><tr><td style="padding-right:20px;white-space:nowrap">开户行：</td><td>中国银行股份有限公司淮南分行</td></tr>'
+                          html += '<tr><td>银行地址：</td><td>安徽省淮南市龙湖路21号</td></tr>'
+                          html += '<tr><td>银行代码：</td><td>BKCHCNBJ780</td></tr>'
+                          html += '<tr><td>户名：</td><td>福瑞笛（上海）信息咨询有限公司淮南分公司</td></tr>'
+                          html += '<tr><td>账号：</td><td><b>181276312093</b></td></tr>'
+                          html += '<tr><td>附言：</td><td>EPR-'+e(c.contract_number||'')+'</td></tr></table>'
+                          html += '<p style="font-size:10px;color:#999;margin-top:6px">请在转账附言中注明合同编号，以便快速确认到账。</p></div>'
+                          html += '</body></html>'
                           const w = window.open('','_blank','width=1020,height=700')
                           if(w){ w.document.write(html); w.document.close() }
                         }} className="text-[10px] text-gray-400 hover:text-primary mt-1">📊 缴费明细</button>

@@ -57,7 +57,15 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     var actByMat = {}; pkg.forEach(function(item){ var mk = item.material_type || item.material_key; var ak = parseFloat(item.actual_quantity_kg) || 0; if(ak > 0) actByMat[mk] = (actByMat[mk] || 0) + ak })
     var actFee = 0; Object.entries(actByMat).forEach(function(_ref2){ var mk = _ref2[0], kg = _ref2[1]; actFee += calcMaterialFee(mk, kg) }); actFee = applyFloorFee(actFee, 28.90)
     var hasAnyActuals = Object.keys(actByMat).length > 0
-    var rawDiff = actFee - prepaidCalc; var penaltyApplies = rawDiff > prepaidCalc * 0.2 && prepaidCalc > 0; var refundApplies = rawDiff < 0; var penaltyAmt = penaltyApplies ? rawDiff * 0.2 : 0; var refundCapped = refundApplies ? -Math.min(Math.abs(rawDiff), prepaidCalc * 0.1) : 0; var settleAmt = hasAnyActuals ? (penaltyApplies ? rawDiff * 1.2 : refundApplies ? refundCapped : rawDiff) : 0
+    var rawDiff = actFee - prepaidCalc; var penaltyApplies = rawDiff > prepaidCalc * 0.2 && prepaidCalc > 0; var refundApplies = rawDiff < 0; var penaltyAmt = penaltyApplies ? rawDiff * 0.2 : 0; var refundCapped = refundApplies ? -Math.min(Math.abs(rawDiff), prepaidCalc * 0.1) : 0; var settleAmt = hasAnyActuals ? (penaltyApplies ? rawDiff * 1.2 : refundApplies ? refundCapped : rawDiff) : 0;
+    var settleRows = []; var allMats = new Set(); Object.keys(byMat).forEach(function(k){ allMats.add(k) }); Object.keys(actByMat).forEach(function(k){ allMats.add(k) });
+    allMats.forEach(function(mk){
+      var mat = PACKAGING_MATERIALS.find(function(m){ return m.key === mk });
+      var estKg = byMat[mk] || 0, actKg = actByMat[mk] || 0;
+      var rate = mat ? (function getR(mk, kg){ var m2 = PACKAGING_MATERIALS.find(function(x){ return x.key === mk }); if(!m2) return 0; for(var i=0;i<m2.tiers.length;i++){ if(kg<=m2.tiers[i].toKg) return m2.tiers[i].rate } return m2.tiers[m2.tiers.length-1].rate })(mk, Math.max(estKg, actKg)) : 0;
+      var estFee = calcMaterialFee(mk, estKg), actFee1 = calcMaterialFee(mk, actKg);
+      settleRows.push({ label: (mat ? mat.label : mk), estKg: estKg, actKg: actKg, exKg: actKg - estKg, rate: rate, diff: actFee1 - estFee });
+    })
     var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
     var tierName = c.tier==='basic'?'基础 €89/年':c.tier==='standard'?'标准 €159/年':'高级 €249/年'
     var prepaidDisplay = prepaidPayment?.amount_eur || prepaidCalc
@@ -69,7 +77,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     h += 'h2{font-size:16px;margin:0 0 4px}.sub{color:#888;font-size:12px;margin-bottom:16px}h3{font-size:13px;margin:16px 0 8px;color:#555}'
     h += 'table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:4px 8px}th{color:#888;font-weight:400;border-bottom:1px solid #e0e0e0}td{border-bottom:1px solid #f0f0f0}'
     h += '.num{text-align:right}.r{color:#c00}.g{color:#0a0}.b{font-weight:700;color:#1a3a5f}.s{text-decoration:line-through;color:#999}.y{color:#b8860b}'
-    h += '.grid{display:grid;grid-template-columns:180px 1fr 1fr;gap:24px}</style></head><body>'
+    h += '.grid{display:grid;grid-template-columns:180px 1fr;gap:24px}.settle-section{margin-top:20px}.bank-section{margin-top:20px;padding-top:16px;border-top:2px solid #e0e0e0}.bank-section h3{font-size:12px;color:#555;margin-bottom:6px}.bank-section p{font-size:11px;color:#888;margin:2px 0;line-height:1.6}.tbl{width:100%;border-collapse:collapse;font-size:12px}.tbl th{color:#666;font-weight:500;border-bottom:2px solid #ccc;padding:5px 8px;text-align:right}.tbl th:first-child{text-align:left}.tbl td{padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right}.tbl td:first-child{text-align:left}.tbl .total-row td{border-top:2px solid #ccc;font-weight:700}</style></head><body>'
     h += '<h2>'+esc(c.company_name||'')+'</h2><p class="sub">'+esc(c.contract_number)+' · '+esc(tierName)+' · '+(c.start_date?.slice(0,10)||'-')+' - '+(c.end_date?.slice(0,10)||'-')+'</p>'
     h += '<div class="grid">'
     h += '<div><h3>授权代表年费</h3><p>服务等级 <b>'+esc(tierName)+'</b></p><p>截止日期 '+(c.end_date?.slice(0,10)||'-')+'</p><p>状态 <span class="'+(c.status==='active'?'g':'y')+'">'+(c.status==='active'?'已付款':'待付款')+'</span></p><p>金额 <b class="b">€'+c.annual_fee_eur+'</b></p></div>'
@@ -79,16 +87,41 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     if(prepaidCalc>subtotal) h += '<tr><td colspan="3" class="y">取起步价</td><td class="num y"><b>€'+prepaidCalc.toFixed(2)+'</b></td></tr>'
     h += '</table><p class="b">预申报费 €'+prepaidDisplay.toFixed(2)+' '+(prepaidPayment?.status==='paid'?'✓':'')+'</p>'
     if(prepaidOverride) h += '<p class="s">报价表 €'+prepaidCalc.toFixed(2)+'</p>'
-    h += '</div><div><h3>年终结算</h3>'
+    h += '</div>' // close prepaid div
+    h += '</div>' // close grid
+    h += '<div class="settle-section"><h3>年终结算 — 材料明细对比</h3>'
     if(hasAnyActuals){
-      h += '<p>实际费 <b>€'+actFee.toFixed(2)+'</b></p><p>预申报费 €'+prepaidCalc.toFixed(2)+'</p>'
-      h += '<p>基础差额 <span class="'+(rawDiff>0?'r':'g')+'">'+(rawDiff>0?'+':'')+'€'+rawDiff.toFixed(2)+'</span></p>'
-      if(penaltyApplies) h += '<p class="r">+ 惩罚金 (20%附加费 §5(3)) <b>€'+penaltyAmt.toFixed(2)+'</b></p>'
-      if(refundApplies && Math.abs(rawDiff) > prepaidCalc * 0.1) h += '<p class="y">退款上限10%: 仅退€'+Math.abs(refundCapped).toFixed(2)+'</p>'
-      h += '<p class="b">'+(settleAmt>0?'补缴合计':'退款合计')+' €'+settleDisplay.toFixed(2)+' '+(settlementPayment?.status==='paid'?'✓':'')+'</p>'
-      if(settleOverride) h += '<p class="s">公式 €'+settleAmt.toFixed(2)+'</p>'
+      h += '<table class="tbl"><thead><tr><th>材料类别</th><th>申报量(kg)</th><th>实际量(kg)</th><th>超额(kg)</th><th>费率(€/kg)</th><th>差额(€)</th></tr></thead><tbody>'
+      settleRows.forEach(function(r){
+        h += '<tr><td>'+esc(r.label)+'</td><td>'+r.estKg.toFixed(1)+'</td><td>'+r.actKg.toFixed(1)+'</td>'
+        h += '<td class="'+(r.exKg>0?'r':r.exKg<0?'g':'')+'">'+(r.exKg>0?'+':'')+r.exKg.toFixed(1)+'</td>'
+        h += '<td>€'+r.rate.toFixed(4)+'</td>'
+        h += '<td class="'+(r.diff>0?'r':r.diff<0?'g':'')+'">'+(r.diff>0?'+':'')+'€'+r.diff.toFixed(2)+'</td></tr>'
+      })
+      var totalActKg = settleRows.reduce(function(s,r){ return s+r.actKg }, 0)
+      var totalExKg = settleRows.reduce(function(s,r){ return s+r.exKg }, 0)
+      var totalRawDiff = settleRows.reduce(function(s,r){ return s+r.diff }, 0)
+      h += '<tr class="total-row"><td><b>合计</b></td><td><b>'+totalKg.toFixed(1)+'</b></td><td><b>'+totalActKg.toFixed(1)+'</b></td><td class="'+(totalExKg>0?'r':'g')+'"><b>'+(totalExKg>0?'+':'')+totalExKg.toFixed(1)+'</b></td><td></td><td class="'+(totalRawDiff>0?'r':'g')+'"><b>'+(totalRawDiff>0?'+':'')+'€'+totalRawDiff.toFixed(2)+'</b></td></tr>'
+      h += '</tbody></table>'
+      h += '<div style="margin-top:12px;padding:12px;background:#f8f9fa;border-radius:6px;font-size:12px">'
+      h += '<p>申报费总计 <b>€'+prepaidCalc.toFixed(2)+'</b> &nbsp;|&nbsp; 实际费总计 <b>€'+actFee.toFixed(2)+'</b></p>'
+      h += '<p>基础差额 <span class="'+(rawDiff>0?'r':'g')+'"><b>'+(rawDiff>0?'+':'')+'€'+rawDiff.toFixed(2)+'</b></span></p>'
+      if(penaltyApplies) h += '<p class="r">+ 惩罚金 (合同 §5(3) 20%附加费) <b>€'+penaltyAmt.toFixed(2)+'</b></p>'
+      if(refundApplies && Math.abs(rawDiff) > prepaidCalc * 0.1) h += '<p class="y">退款上限10%: 仅退 €'+Math.abs(refundCapped).toFixed(2)+'</p>'
+      h += '<p class="b" style="font-size:14px">'+(settleAmt>0?'补缴合计':'退款合计')+' €'+settleDisplay.toFixed(2)+' '+(settlementPayment?.status==='paid'?'✓ 已付清':'')+'</p>'
+      if(settleOverride) h += '<p class="s">公式值 €'+settleAmt.toFixed(2)+'</p>'
+      h += '</div>'
     } else { h += '<p style="color:#999">暂无实际数据</p>' }
-    h += '</div></div></body></html>'
+    h += '</div>'
+    h += '<div class="bank-section"><h3>银行转账信息</h3>'
+    h += '<table style="font-size:11px;color:#666;line-height:1.8"><tr><td style="padding-right:20px;white-space:nowrap">开户行：</td><td>中国银行股份有限公司淮南分行</td></tr>'
+    h += '<tr><td>银行地址：</td><td>安徽省淮南市龙湖路21号</td></tr>'
+    h += '<tr><td>银行代码：</td><td>BKCHCNBJ780</td></tr>'
+    h += '<tr><td>户名：</td><td>福瑞笛（上海）信息咨询有限公司淮南分公司</td></tr>'
+    h += '<tr><td>账号：</td><td><b>181276312093</b></td></tr>'
+    h += '<tr><td>附言：</td><td>EPR-'+(c.contract_number||'')+'</td></tr></table>'
+    h += '<p style="font-size:10px;color:#999;margin-top:6px">请在转账附言中注明合同编号，以便快速确认到账。</p></div>'
+    h += '</body></html>'
     var w = window.open('','_blank','width=1020,height=700')
     if(w){ w.document.write(h); w.document.close() }
   }
