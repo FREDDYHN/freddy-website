@@ -59,17 +59,25 @@ export default function About() {
         </section>
 
         <section>
-          <h2 className="text-xl font-bold mb-4">客户评价</h2>
-          <div className="grid md:grid-cols-2 gap-4">
+          <h2 className="text-xl font-bold mb-4">成功案例</h2>
+          <p className="text-sm text-gray-500 mb-4">以下为 WEEE Return GmbH 代理完成的 EAR 注册确认函（Registrierungsbescheid），均为真实客户案例。</p>
+          <div className="grid md:grid-cols-3 gap-3 text-xs">
             {[
-              { name: '案例征集中', role: '', text: '您的成功故事将展示在这里。联系我们分享您的合规经验。' },
-              { name: '案例征集中', role: '', text: '您的成功故事将展示在这里。联系我们分享您的合规经验。' },
+              { name: 'SysMed', doc: 'WEEE', file: 'SysMed WEEE-Registrierungsbescheid.pdf' },
+              { name: 'ATT', doc: 'WEEE', file: 'ATTWEEE_Registrierungsbescheid_Elektrogeräte.pdf' },
+              { name: 'ATT', doc: '电池法', file: 'ATT电池法_Registrierungsbescheid_Batterien.pdf' },
+              { name: 'Laijimi', doc: 'WEEE', file: 'Laijimi_WEEE_Registrierungsbescheid.pdf' },
+              { name: 'Laijimi', doc: '电池法', file: 'Laijimi_电池法_Registrierungsbescheid(1).pdf' },
+              { name: 'PIZZICS', doc: 'WEEE', file: 'PIZZICS_WEEE_Registrierungsbescheid.pdf' },
+              { name: '山西 Guaner', doc: 'WEEE', file: '山西guanerWEEE-Registrierungsbescheid_CANTOBE_Kleingeräte.pdf' },
+              { name: '山西 Guaner', doc: '电池法', file: '山西guaner电池法-Registrierungsbescheid_CANTOBE_Gerätebatterien.pdf' },
+              { name: '有朵云', doc: 'WEEE', file: '有朵云WEEE_Registrierungsbescheid_Lahoomu_Großgeräte.pdf' },
             ].map((c, i) => (
-              <div key={i} className="border border-gray-200 rounded-lg p-5">
-                <p className="text-gray-500 text-xs italic mb-3">"{c.text}"</p>
-                <p className="font-semibold text-sm">{c.name}</p>
-                {c.role && <p className="text-gray-400 text-xs">{c.role}</p>}
-              </div>
+              <a key={i} href={`/cases/WEEE Return下号文件/${c.file}`} target="_blank"
+                className="border border-gray-200 rounded-lg p-3 hover:border-primary hover:bg-primary/5 transition-colors">
+                <p className="font-semibold text-gray-700">{c.name}</p>
+                <p className="text-gray-400 mt-0.5">{c.doc} · EAR 注册确认函</p>
+              </a>
             ))}
           </div>
         </section>
