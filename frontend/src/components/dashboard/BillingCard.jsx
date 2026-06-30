@@ -57,7 +57,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     var actByMat = {}; pkg.forEach(function(item){ var mk = item.material_type || item.material_key; var ak = parseFloat(item.actual_quantity_kg) || 0; if(ak > 0) actByMat[mk] = (actByMat[mk] || 0) + ak })
     var actFee = 0; Object.entries(actByMat).forEach(function(_ref2){ var mk = _ref2[0], kg = _ref2[1]; actFee += calcMaterialFee(mk, kg) }); actFee = applyFloorFee(actFee, 28.90)
     var hasAnyActuals = Object.keys(actByMat).length > 0
-    var settleAmt = hasAnyActuals ? (function(){ var diff = actFee - prepaidCalc; if(diff > prepaidCalc * 0.2 && prepaidCalc > 0) return diff * 1.2; else if(diff < 0) return -Math.min(Math.abs(diff), prepaidCalc * 0.1); return diff })() : 0
+    var rawDiff = actFee - prepaidCalc; var penaltyApplies = rawDiff > prepaidCalc * 0.2 && prepaidCalc > 0; var refundApplies = rawDiff < 0; var penaltyAmt = penaltyApplies ? rawDiff * 0.2 : 0; var refundCapped = refundApplies ? -Math.min(Math.abs(rawDiff), prepaidCalc * 0.1) : 0; var settleAmt = hasAnyActuals ? (penaltyApplies ? rawDiff * 1.2 : refundApplies ? refundCapped : rawDiff) : 0
     var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
     var tierName = c.tier==='basic'?'基础 €89/年':c.tier==='standard'?'标准 €159/年':'高级 €249/年'
     var prepaidDisplay = prepaidPayment?.amount_eur || prepaidCalc
@@ -82,8 +82,10 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     h += '</div><div><h3>年终结算</h3>'
     if(hasAnyActuals){
       h += '<p>实际费 <b>€'+actFee.toFixed(2)+'</b></p><p>预申报费 €'+prepaidCalc.toFixed(2)+'</p>'
-      h += '<p>差额 <span class="'+(settleAmt>0?'r':'g')+'">'+(settleAmt>0?'+':'')+'€'+settleAmt.toFixed(2)+'</span></p>'
-      h += '<p class="b">'+(settleAmt>0?'补缴':'退款')+' €'+settleDisplay.toFixed(2)+' '+(settlementPayment?.status==='paid'?'✓':'')+'</p>'
+      h += '<p>基础差额 <span class="'+(rawDiff>0?'r':'g')+'">'+(rawDiff>0?'+':'')+'€'+rawDiff.toFixed(2)+'</span></p>'
+      if(penaltyApplies) h += '<p class="r">+ 惩罚金 (20%附加费 §5(3)) <b>€'+penaltyAmt.toFixed(2)+'</b></p>'
+      if(refundApplies && Math.abs(rawDiff) > prepaidCalc * 0.1) h += '<p class="y">退款上限10%: 仅退€'+Math.abs(refundCapped).toFixed(2)+'</p>'
+      h += '<p class="b">'+(settleAmt>0?'补缴合计':'退款合计')+' €'+settleDisplay.toFixed(2)+' '+(settlementPayment?.status==='paid'?'✓':'')+'</p>'
       if(settleOverride) h += '<p class="s">公式 €'+settleAmt.toFixed(2)+'</p>'
     } else { h += '<p style="color:#999">暂无实际数据</p>' }
     h += '</div></div></body></html>'

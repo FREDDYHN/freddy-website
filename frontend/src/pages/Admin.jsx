@@ -249,7 +249,12 @@ export default function Admin() {
                           const actByMat = {}; pkg.forEach(item => { const mk = item.material_type || item.material_key; const ak = parseFloat(item.actual_quantity_kg) || 0; if (ak > 0) actByMat[mk] = (actByMat[mk] || 0) + ak })
                           let actFee = 0; Object.entries(actByMat).forEach(([mk, kg]) => { actFee += calcMaterialFee(mk, kg) }); actFee = applyFloorFee(actFee, 28.90)
                           const hasAnyActuals = Object.keys(actByMat).length > 0
-                          const settleAmt = hasAnyActuals ? (() => { const diff = actFee - prepaidCalc; if (diff > prepaidCalc * 0.2 && prepaidCalc > 0) return diff * 1.2; else if (diff < 0) return -Math.min(Math.abs(diff), prepaidCalc * 0.1); return diff })() : 0
+                          const rawDiff = actFee - prepaidCalc
+                          const penaltyApplies = rawDiff > prepaidCalc * 0.2 && prepaidCalc > 0
+                          const refundApplies = rawDiff < 0
+                          const penaltyAmt = penaltyApplies ? rawDiff * 0.2 : 0
+                          const refundCapped = refundApplies ? -Math.min(Math.abs(rawDiff), prepaidCalc * 0.1) : 0
+                          const settleAmt = hasAnyActuals ? (penaltyApplies ? rawDiff * 1.2 : refundApplies ? refundCapped : rawDiff) : 0
                           const e = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
                           const tierName = c.tier==='basic'?'基础 €89/年':c.tier==='standard'?'标准 €159/年':'高级 €249/年'
                           const prepaidDisplay = c.prepaid_amount || prepaidCalc
@@ -278,8 +283,11 @@ export default function Admin() {
                           if(hasAnyActuals){
                             html += `<p>实际费 <b>€${actFee.toFixed(2)}</b></p>`
                             html += `<p>预申报费 €${prepaidCalc.toFixed(2)}</p>`
-                            html += `<p>差额 <span class="${settleAmt>0?'r':'g'}">${settleAmt>0?'+':''}€${settleAmt.toFixed(2)}</span></p>`
-                            html += `<p class="b">${settleAmt>0?'补缴':'退款'} €${settleDisplay.toFixed(2)} ${c.settlement_status==='paid'?'✓':''}</p>`
+                            html += `<p>基础差额 <span class="${rawDiff>0?'r':'g'}">${rawDiff>0?'+':''}€${rawDiff.toFixed(2)}</span></p>`
+                            if(penaltyApplies) html += `<p class="r">+ 惩罚金 (20%附加费 §5(3)) <b>€${penaltyAmt.toFixed(2)}</b></p>`
+                            if(refundApplies && Math.abs(rawDiff) > prepaidCalc * 0.1) html += `<p class="y">退款上限10%: 仅退€${Math.abs(refundCapped).toFixed(2)}</p>`
+
+                            html += `<p class="b">${settleAmt>0?'补缴合计':'退款合计'} €${settleDisplay.toFixed(2)} ${c.settlement_status==='paid'?'✓':''}</p>`
                             if(settleOverride) html += `<p class="s">公式 €${settleAmt.toFixed(2)}</p>`
                           } else { html += '<p style="color:#999">暂无实际数据</p>' }
                           html += '</div></div></body></html>'
