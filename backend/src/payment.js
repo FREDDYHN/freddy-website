@@ -153,7 +153,7 @@ async function markPaid(tradeNo) {
     if (p.status === 'paid') { await db.run('ROLLBACK'); return p }
     await db.run("UPDATE payments SET status='paid', paid_at=datetime('now') WHERE out_trade_no=?", tradeNo)
     if (p.contract_id) {
-      await db.run("UPDATE contracts SET status='active', paid_confirmed_at=datetime('now'), activated_at=datetime('now') WHERE id=? AND status='pending_payment'", p.contract_id)
+      await db.run("UPDATE contracts SET status='active', paid_confirmed_at=datetime('now'), activated_at=datetime('now'), start_date=date('now'), end_date=date('now','+1 year') WHERE id=? AND status='pending_payment'", p.contract_id)
     }
     const existing = await db.get('SELECT id FROM invoices WHERE payment_id = ?', p.id)
     if (!existing) {
@@ -202,7 +202,7 @@ async function createAlipayOrder(tradeNo, cny, desc) {
     biz_content: JSON.stringify({
       out_trade_no: tradeNo,
       product_code: 'FAST_INSTANT_TRADE_PAY',
-      total_amount: (cny / EUR_CNY_RATE).toFixed(2),
+      total_amount: cny.toFixed(2),
       subject: desc,
     }),
   }

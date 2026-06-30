@@ -79,8 +79,15 @@ router.post('/login', async (req, res) => {
     }
 
     const { email, password } = req.body
+    const login = (email || '').trim()
+    if (!login || !password) return res.status(400).json({ error: 'Email/phone and password required' })
     const db = await getDb()
-    const user = await db.get('SELECT * FROM users WHERE email = ?', email)
+    // Search by email OR phone (join with clients for phone lookup)
+    const user = await db.get(
+      `SELECT u.* FROM users u LEFT JOIN clients cl ON u.client_id = cl.id
+       WHERE u.email = ? OR cl.contact_phone = ?`,
+      login, login
+    )
     if (!user) return res.status(401).json({ error: 'Invalid credentials' })
 
     const valid = await bcryptjs.compare(password, user.password_hash)

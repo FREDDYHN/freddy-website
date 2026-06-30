@@ -15,6 +15,8 @@ import Admin from './pages/Admin.jsx'
 import ApplyForm from './pages/ApplyForm.jsx'
 import Login from './pages/Login.jsx'
 import Profile from './pages/Profile.jsx'
+import About from './pages/About.jsx'
+import Contact from './pages/Contact.jsx'
 import Privacy from './pages/Privacy.jsx'
 import Terms from './pages/Terms.jsx'
 
@@ -51,8 +53,11 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/apply" element={<ApplyForm />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="*" element={<div className="max-w-6xl mx-auto px-4 py-20 text-center"><h1 className="text-4xl font-extrabold mb-4">404</h1><p className="text-gray-400 mb-6">页面未找到</p><a href="/" className="text-primary hover:underline font-medium">返回首页</a></div>} />
         </Routes>
       </main>
       <Footer />

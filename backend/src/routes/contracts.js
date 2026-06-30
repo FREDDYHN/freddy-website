@@ -105,6 +105,11 @@ router.post('/', async (req, res) => {
     // 1. Create or reuse client (by email)
     let clientId
     const existingClient = await db.get('SELECT id FROM clients WHERE contact_email = ?', contact_email)
+    // Check phone uniqueness
+    if (contact_phone) {
+      const phoneExists = await db.get('SELECT id FROM clients WHERE contact_phone = ? AND contact_email != ?', contact_phone, contact_email)
+      if (phoneExists) return res.status(400).json({ error: '该手机号已被注册，请使用其他手机号' })
+    }
     if (existingClient) {
       clientId = existingClient.id
       // Update existing client with latest info

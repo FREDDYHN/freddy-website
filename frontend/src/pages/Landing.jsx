@@ -47,6 +47,34 @@ export default function Landing() {
           ))}
         </div>
       </section>
+
+      <section className="py-10 px-4 bg-white">
+        <div className="max-w-5xl mx-auto text-center mb-8">
+          <h2 className="text-2xl font-extrabold text-gray-800 mb-2">为什么选择福瑞笛</h2>
+          <p className="text-gray-400 text-sm">德中双实体 · 全流程中文服务 · 价格透明</p>
+        </div>
+        <div className="max-w-5xl mx-auto grid md:grid-cols-4 gap-5 text-center">
+          {[
+            { n: '德国', d: '本土授权代表' },
+            { n: '中文', d: '全流程服务' },
+            { n: '0', d: '隐藏费用' },
+            { n: '3+', d: '年行业经验' },
+          ].map((s, i) => (
+            <div key={i} className="p-5">
+              <p className="text-3xl font-extrabold text-primary mb-1">{s.n}</p>
+              <p className="text-xs text-gray-400">{s.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="py-12 px-4" style={{background:'#f4f2ef'}}>
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-2xl font-extrabold text-gray-800 mb-3">开始您的德国合规之旅</h2>
+          <p className="text-gray-400 text-sm mb-6">3 分钟完成签约，LIVANTO 授权代表即日生效</p>
+          <Link to="/signup/packaging?tier=basic" className="inline-block px-8 py-3 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary/90 transition-colors">立即签约 — €89/年起</Link>
+        </div>
+      </section>
     </div>
   )
 }

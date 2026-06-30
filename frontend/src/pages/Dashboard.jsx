@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import BillingCard from '../components/dashboard/BillingCard'
+import ContractCard from '../components/dashboard/ContractCard'
 import LucidCard from '../components/dashboard/LucidCard'
 import ClientInfoCard from '../components/dashboard/ClientInfoCard'
 import NotificationBell from '../components/dashboard/NotificationBell'
@@ -14,8 +15,6 @@ export default function Dashboard() {
   const [uploads, setUploads] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [bankInfo, setBankInfo] = useState(null)
-
   function authHeaders() {
     const t = sessionStorage.getItem('token')
     return t ? { Authorization: `Bearer ${t}` } : {}
@@ -33,16 +32,14 @@ export default function Dashboard() {
     Promise.all([
       fetch('/api/dashboard', { headers: h }),
       fetch('/api/uploads', { headers: h }),
-      fetch('/api/bank-info'),
-    ]).then(async ([dR, uR, bR]) => {
+    ]).then(async ([dR, uR]) => {
       if (!dR.ok) {
         if (dR.status === 401) { window.dispatchEvent(new Event('auth:expired')); return }
         throw new Error('Server error')
       }
-      const [d, u, b] = await Promise.all([dR.json(), uR.json(), bR.json()])
+      const [d, u] = await Promise.all([dR.json(), uR.json()])
       if (d.success) setData(d.data)
       if (u.success) setUploads(u.data)
-      setBankInfo(b)
     }).catch(e => { setError(e.message) }).finally(() => setLoading(false))
   }, [])
 
@@ -147,27 +144,24 @@ export default function Dashboard() {
         <div className="flex items-center gap-2">
           <NotificationBell initialCount={data.unread_notifications || 0} />
           <span className={`px-3 py-1 rounded-md text-sm font-medium ${sc[c.status] || ''}`}>{sl[c.status] || c.status}</span>
-          <button onClick={() => navigate('/profile')} className="px-3 py-1.5 border border-gray-200 rounded-md text-sm text-gray-500 hover:bg-gray-50 transition-colors">✏️ 编辑资料</button>
         </div>
       </div>
 
-      {/* Zone A — Billing & Declarations (top) */}
+      {/* Zone A — Contract + LUCID + Client Info */}
+      <div className="grid md:grid-cols-3 gap-6 items-start">
+        <ContractCard contract={c} uploads={uploads} onUpload={handleUpload} />
+        <LucidCard contract={c} onToggle={handleLucidToggle} />
+        <ClientInfoCard client={data.client} />
+      </div>
+
+      {/* Zone B — Billing & Declarations */}
       <BillingCard
         contracts={data.contracts}
         packaging={data.packaging}
         payments={data.payments}
-        invoices={data.invoices}
         uploads={uploads}
-        bankInfo={bankInfo}
         onUpload={handleUpload}
       />
-
-
-      {/* Zone D — LUCID + Client Info */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <LucidCard contract={c} onToggle={handleLucidToggle} />
-        <ClientInfoCard client={data.client} />
-      </div>
     </div>
   )
 }

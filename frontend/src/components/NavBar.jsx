@@ -7,6 +7,8 @@ const links = [
   { to: '/battery', label: '电池法' },
   { to: '/calculator', label: '费用计算器' },
   { to: '/faq', label: '常见问题' },
+  { to: '/about', label: '关于我们' },
+  { to: '/contact', label: '联系我们' },
 ]
 
 function useAuth() {
@@ -38,7 +40,7 @@ export default function NavBar() {
           {user ? (
             <>
               {user.role === 'admin'
-                ? <Link to="/admin" className="hidden md:block text-[13px] text-gray-500 hover:text-primary px-2">管理</Link>
+                ? <Link to="/admin" className="hidden md:block text-[13px] text-gray-500 hover:text-primary px-2">项目管理</Link>
                 : <Link to="/dashboard" className="hidden md:block text-[13px] text-gray-500 hover:text-primary px-2">面板</Link>
               }
               <button onClick={() => { sessionStorage.clear(); window.dispatchEvent(new Event('auth:expired')) }}

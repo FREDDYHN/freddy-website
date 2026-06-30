@@ -49,6 +49,11 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
       req.file.mimetype
     )
 
+    // If client uploaded signed contract, mark contract as signed
+    if (file_type === 'signed_contract' && contract_id) {
+      await db.run("UPDATE contracts SET signed_at = datetime('now') WHERE id = ? AND signed_at IS NULL", contract_id)
+    }
+
     res.status(201).json({
       success: true,
       file: {

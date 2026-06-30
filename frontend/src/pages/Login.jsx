@@ -17,7 +17,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!email || !EMAIL_RE.test(email)) return setError('请输入有效邮箱')
+    if (!email || (!EMAIL_RE.test(email) && !/^\+?[\d\s\-()]{7,20}$/.test(email))) return setError('请输入有效邮箱或手机号')
     if (!password) return setError('请输入密码')
     setLoading(true); setError('')
     try {
@@ -38,8 +38,8 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           {error && <p className="text-red-500 text-sm bg-red-50 p-2 rounded">{error}</p>}
           <div>
-            <label className="block text-sm font-medium mb-1">邮箱</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-primary" placeholder="your@email.com" />
+            <label className="block text-sm font-medium mb-1">邮箱或手机号</label>
+            <input type="text" value={email} onChange={e => setEmail(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-primary" placeholder="邮箱或手机号" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">密码</label>

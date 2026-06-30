@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import bcryptjs from 'bcryptjs'
 import multer from 'multer'
 import { existsSync } from 'fs'
 import { rename } from 'fs/promises'
@@ -175,7 +176,7 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
 
     const [rows, countRow] = await Promise.all([
       db.all(
-        'SELECT c.*, cl.company_name, cl.contact_name, cl.contact_email, cl.contact_phone FROM contracts c JOIN clients cl ON c.client_id = cl.id ORDER BY c.id DESC LIMIT ? OFFSET ?',
+        'SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email, cl.contact_phone, cl.registered_address, cl.uscc, cl.legal_representative, cl.wechat_id, cl.lucid_registration_number FROM contracts c JOIN clients cl ON c.client_id = cl.id ORDER BY c.id DESC LIMIT ? OFFSET ?',
         perPage, offset
       ),
       db.get('SELECT COUNT(*) as total FROM contracts'),
@@ -183,12 +184,15 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
 
     // Enrich with payment info + uploads (batch query to avoid N+1)
     const contractIds = rows.map(r => r.id)
-    const [allPayments, allUploads] = await Promise.all([
+    const [allPayments, allUploads, allPackaging] = await Promise.all([
       contractIds.length > 0
         ? db.all(`SELECT * FROM payments WHERE contract_id IN (${contractIds.map(() => '?').join(',')}) ORDER BY id DESC`, ...contractIds)
         : [],
       contractIds.length > 0
         ? db.all(`SELECT * FROM uploads WHERE contract_id IN (${contractIds.map(() => '?').join(',')}) ORDER BY uploaded_at DESC`, ...contractIds)
+        : [],
+      contractIds.length > 0
+        ? db.all(`SELECT * FROM packaging_data WHERE contract_id IN (${contractIds.map(() => '?').join(',')})`, ...contractIds)
         : [],
     ])
 
@@ -211,6 +215,7 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
       const settlement = pms.find(p => p.payment_type === 'recycling_settlement')
       if (settlement) { row.settlement_amount = settlement.amount_eur; row.settlement_status = settlement.status }
       row._uploads = uploadsByContract[row.id] || {}
+      row._packaging = allPackaging.filter(p => p.contract_id === row.id)
     }
 
     res.json({
@@ -263,13 +268,15 @@ app.get('/api/admin/clients/search', authMiddleware, adminMiddleware, async (req
     if (q) {
       const like = `%${q}%`
       rows = await db.all(
-        `SELECT * FROM clients WHERE company_name LIKE ? OR contact_name LIKE ? OR contact_email LIKE ?
-         ORDER BY id DESC LIMIT ? OFFSET ?`,
-        like, like, like, perPage, offset
+        `SELECT cl.*, c.id as contract_id, c.contract_number, c.tier, c.annual_fee_eur, c.status as contract_status, c.start_date, c.end_date, c.lucid_confirmed
+         FROM clients cl LEFT JOIN contracts c ON c.client_id = cl.id
+         WHERE cl.company_name LIKE ? OR cl.company_name_en LIKE ? OR cl.contact_name LIKE ? OR cl.contact_email LIKE ? OR cl.contact_phone LIKE ? OR cl.legal_representative LIKE ? OR c.contract_number LIKE ?
+         ORDER BY cl.id DESC LIMIT ? OFFSET ?`,
+        like, like, like, like, like, like, like, perPage, offset
       )
       countRow = await db.get(
-        `SELECT COUNT(*) as total FROM clients WHERE company_name LIKE ? OR contact_name LIKE ? OR contact_email LIKE ?`,
-        like, like, like
+        `SELECT COUNT(*) as total FROM clients cl LEFT JOIN contracts c ON c.client_id = cl.id WHERE cl.company_name LIKE ? OR cl.company_name_en LIKE ? OR cl.contact_name LIKE ? OR cl.contact_email LIKE ? OR cl.contact_phone LIKE ? OR cl.legal_representative LIKE ? OR c.contract_number LIKE ?`,
+        like, like, like, like, like, like, like
       )
     } else {
       rows = await db.all('SELECT * FROM clients ORDER BY id DESC LIMIT ? OFFSET ?', perPage, offset)
@@ -469,6 +476,34 @@ app.post('/api/admin/payments/confirm', authMiddleware, adminMiddleware, async (
     }
   } catch (e) {
     console.error('[server] admin payment confirm error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ── Public: Contact form ──
+app.post('/api/contact', async (req, res) => {
+  try {
+    const { name, email, message } = req.body
+    if (!name || !email || !message) return res.status(400).json({ error: 'All fields required' })
+    console.log(`[contact] ${name} <${email}>: ${message}`)
+    res.json({ success: true })
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
+// ── Admin: Reset client password ──
+app.post('/api/admin/reset-password', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const { client_id } = req.body
+    if (!client_id) return res.status(400).json({ error: 'client_id required' })
+    const user = await db.get('SELECT * FROM users WHERE client_id = ?', client_id)
+    if (!user) return res.status(404).json({ error: 'User not found' })
+    const newPw = Math.random().toString(36).slice(2, 10)
+    const hash = await bcryptjs.hash(newPw, 10)
+    await db.run('UPDATE users SET password_hash = ? WHERE client_id = ?', hash, client_id)
+    res.json({ success: true, new_password: newPw })
+  } catch (e) {
+    console.error('[server] reset password error:', e)
     res.status(500).json({ error: e.message })
   }
 })
