@@ -60,7 +60,7 @@ export async function closeDb() {
 export async function seedAdmin() {
   const d = await getDb()
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@freddy-epr.com'
-  const adminPass = process.env.ADMIN_PASS || 'freddy2026'
+  const adminPass = process.env.ADMIN_PASS || 'Admin918'
 
   const existing = await d.get('SELECT id FROM users WHERE email = ?', adminEmail)
   if (!existing) {
