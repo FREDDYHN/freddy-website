@@ -11,3 +11,6 @@ database/data.db-wal
 database/data.db
 projects/contracts/LIVANTO/_tmp_template/
 projects/generated/
+*.bak*
+*.orig*
+projects/generated/
