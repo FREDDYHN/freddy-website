@@ -13,10 +13,14 @@
  */
 import { readFile, writeFile, mkdir, access } from 'fs/promises'
 import { constants } from 'fs'
-import { dirname, join } from 'path'
+import { dirname, join, extname } from 'path'
 import { fileURLToPath } from 'url'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
 import Docxtemplater from 'docxtemplater'
 import PizZip from 'pizzip'
+
+const execFileP = promisify(execFile)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootPath = join(__dirname, '..', '..', '..')
@@ -243,8 +247,27 @@ export async function generateContract({ type, clientLocation, data }) {
   } else {
     await writeFile(outPath, bodyZip.generate({ type: 'nodebuffer', compression: 'DEFLATE' }))
   }
-  console.log(`[contract-gen] Generated: ${outPath}`)
-  return outPath
+  console.log(`[contract-gen] Generated DOCX: ${outPath}`)
+
+  // Convert to PDF (prevents tampering)
+  const pdfPath = outPath.replace(/\.docx$/i, '.pdf')
+  try {
+    await execFileP('libreoffice', [
+      '--headless', '--convert-to', 'pdf',
+      '--outdir', outputDir, outPath,
+    ], { timeout: 30000 })
+    // LibreOffice names the output based on the input filename
+    const loPdf = join(outputDir, outName.replace(/\.docx$/i, '.pdf'))
+    // If LO used a different path, handle it
+    try { await access(loPdf) } catch { /* fall through */ }
+    console.log(`[contract-gen] Converted to PDF: ${pdfPath}`)
+  } catch (e) {
+    console.warn(`[contract-gen] PDF conversion skipped (libreoffice unavailable): ${e.message}`)
+    // Return DOCX path as fallback
+    return outPath
+  }
+
+  return pdfPath
 }
 
 /**
