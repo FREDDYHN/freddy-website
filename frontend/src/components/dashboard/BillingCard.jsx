@@ -213,23 +213,21 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                       </label>
                     </span>
                     <span className="flex flex-col">
-                      <span className="h-[18px] flex items-center">
-                        {settlementPayment?.status === 'paid' && settlementPayment.amount_eur > 0 ? (
-                          <span className="flex flex-col">
-                            <span className="font-semibold text-green-600 text-xs">€{settlementPayment.amount_eur} ✓</span>
-                            <span className="text-[9px] text-gray-350">≈ ¥{Math.round(settlementPayment.amount_eur * rate)}</span>
-                          </span>
-                        ) : settlementPayment && settlementPayment.amount_eur > 0 ? (
-                          <span className="flex flex-col">
-                            <span className="font-semibold text-yellow-600 text-xs">€{settlementPayment.amount_eur} 待缴</span>
-                            <span className="text-[9px] text-gray-350">≈ ¥{Math.round(settlementPayment.amount_eur * rate)}</span>
-                          </span>
-                        ) : pkg.some(p => p.submitted_at) ? (
-                          (() => { const actByMat = {}; pkg.forEach(item => { const mk = item.material_type || item.material_key; const ak = parseFloat(item.actual_quantity_kg) || 0; if (ak > 0) actByMat[mk] = (actByMat[mk] || 0) + ak }); let af = 0; Object.entries(actByMat).forEach(([mk, kg]) => { af += calcMaterialFee(mk, kg) }); af = applyFloorFee(af, 28.90); const s = calcTotalSettlement(cost, af); return s.amount > 0 ? <span className="flex flex-col"><span className="font-semibold text-red-500 text-xs">补缴 €{s.amount.toFixed(2)}</span><span className="text-[9px] text-gray-350">≈ ¥{Math.round(s.amount * rate)}</span></span> : s.amount < 0 ? <span className="flex flex-col"><span className="font-semibold text-green-600 text-xs">退 €{Math.abs(s.amount).toFixed(2)}</span><span className="text-[9px] text-gray-350">≈ ¥{Math.round(Math.abs(s.amount) * rate)}</span></span> : <span className="text-blue-500 text-xs">已申报</span> })()
-                        ) : (
-                          <button onClick={() => setActualsCid(c.id)} className="text-primary hover:underline font-semibold text-xs">申报实际量</button>
-                        )}
-                      </span>
+                      {settlementPayment?.status === 'paid' && settlementPayment.amount_eur > 0 ? (
+                        <>
+                        <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">€{settlementPayment.amount_eur} ✓</span>
+                        <span className="text-[9px] text-gray-350 mt-0.5">≈ ¥{Math.round(settlementPayment.amount_eur * rate)}</span>
+                        </>
+                      ) : settlementPayment && settlementPayment.amount_eur > 0 ? (
+                        <>
+                        <span className="text-xs text-yellow-600 font-semibold h-[18px] flex items-center">€{settlementPayment.amount_eur} 待缴</span>
+                        <span className="text-[9px] text-gray-350 mt-0.5">≈ ¥{Math.round(settlementPayment.amount_eur * rate)}</span>
+                        </>
+                      ) : pkg.some(p => p.submitted_at) ? (
+                        (() => { const actByMat = {}; pkg.forEach(item => { const mk = item.material_type || item.material_key; const ak = parseFloat(item.actual_quantity_kg) || 0; if (ak > 0) actByMat[mk] = (actByMat[mk] || 0) + ak }); let af = 0; Object.entries(actByMat).forEach(([mk, kg]) => { af += calcMaterialFee(mk, kg) }); af = applyFloorFee(af, 28.90); const s = calcTotalSettlement(cost, af); return s.amount > 0 ? <><span className="text-xs text-red-500 font-semibold h-[18px] flex items-center">补缴 €{s.amount.toFixed(2)}</span><span className="text-[9px] text-gray-350 mt-0.5">≈ ¥{Math.round(s.amount * rate)}</span></> : s.amount < 0 ? <><span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">退 €{Math.abs(s.amount).toFixed(2)}</span><span className="text-[9px] text-gray-350 mt-0.5">≈ ¥{Math.round(Math.abs(s.amount) * rate)}</span></> : <span className="text-xs text-blue-500 h-[18px] flex items-center">已申报</span> })()
+                      ) : (
+                        <button onClick={() => setActualsCid(c.id)} className="text-primary hover:underline font-semibold text-xs h-[18px] flex items-center">申报实际量</button>
+                      )}
                       <label className="cursor-pointer text-[10px] text-gray-400 hover:text-primary mt-0.5">
                         上传付款凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_settlement')} disabled={uploadingCid === c.id} className="hidden" />
                       </label>
