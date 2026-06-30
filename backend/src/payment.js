@@ -7,9 +7,9 @@
  */
 import crypto from 'crypto'
 import { Router } from 'express'
-import { getDb } from './db.js'
+import { getDb, getRate } from './db.js'
 import { authMiddleware, adminMiddleware } from './auth.js'
-import { AR_TIER_FEES_EUR, EUR_CNY_RATE } from '../../shared/constants.js'
+import { AR_TIER_FEES_EUR } from '../../shared/constants.js'
 
 const SIMULATION_MODE = !process.env.WECHAT_MCH_ID && !process.env.ALIPAY_APP_ID
 
@@ -34,7 +34,10 @@ function genTradeNo() {
   return 'EPR' + Date.now().toString(36).toUpperCase() + crypto.randomBytes(3).toString('hex').toUpperCase()
 }
 
-function eurToCny(eur) { return Math.round(eur * EUR_CNY_RATE * 100) / 100 }
+async function eurToCny(eur) {
+  const rate = await getRate()
+  return Math.round(eur * rate * 100) / 100
+}
 
 // ══════════════════════════════════════════════
 //  Signature Verification Helpers
@@ -104,7 +107,8 @@ async function createPayment({ clientId, contractId, tier, method, amountEur }) 
   method = method || 'wechat'
   const db = await getDb()
   const eur = amountEur || AR_TIER_FEES_EUR[tier] || 89
-  const cny = eurToCny(eur)
+  const rate = await getRate()
+  const cny = Math.round(eur * rate * 100) / 100
   const tradeNo = genTradeNo()
   let qr = null, url = null
 
@@ -138,10 +142,10 @@ async function createPayment({ clientId, contractId, tier, method, amountEur }) 
   }
 
   await db.run(
-    "INSERT INTO payments (client_id,contract_id,payment_type,amount_cny,amount_eur,payment_method,out_trade_no,qr_code_url,pay_url,status) VALUES (?,?,'contract_fee',?,?,?,?,?,?,'pending')",
-    clientId, contractId, cny, eur, method, tradeNo, qr, url
+    "INSERT INTO payments (client_id,contract_id,payment_type,amount_cny,amount_eur,payment_method,out_trade_no,qr_code_url,pay_url,status,rate_used,rate_locked_at) VALUES (?,?,'contract_fee',?,?,?,?,?,?,'pending',?,datetime('now'))",
+    clientId, contractId, cny, eur, method, tradeNo, qr, url, rate
   )
-  return { outTradeNo: tradeNo, cnyAmount: cny, eurAmount: eur, payUrl: url, qrCodeUrl: qr }
+  return { outTradeNo: tradeNo, cnyAmount: cny, eurAmount: eur, payUrl: url, qrCodeUrl: qr, rateUsed: rate }
 }
 
 async function markPaid(tradeNo) {
@@ -236,7 +240,10 @@ router.get('/:tradeNo/qr', async (req, res) => {
     const bank = m === 'bank'
       ? '<p style="color:#666;margin-bottom:16px">请转账至 FREDDY 对公账户。附言/备注: ' + p.out_trade_no + '</p><p style="color:#999;font-size:12px">对公账户信息请联系客服获取。</p>'
       : ''
-    res.send('<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FREDDY Pay</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f8f9fa;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#fff;border-radius:12px;padding:40px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);max-width:400px;width:90%}h2{color:#1e3a5f;margin-bottom:8px}.amount{font-size:36px;font-weight:700;color:#c8a44e;margin:16px 0}.method{color:#666;margin-bottom:24px}.btn{display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;margin:8px}</style></head><body><div class="card"><h2>FREDDY</h2><p>EPR Compliance</p><div class="amount">CNY ' + p.amount_cny + '</div><p class="method">' + (labels[m] || m) + '</p>' + bank + simBtn + '<p style="color:#999;font-size:12px;margin-top:16px">Order: ' + p.out_trade_no + '</p></div></body></html>')
+    const rateLine = p.rate_used
+      ? '<p style="color:#888;font-size:13px;margin-top:-8px">EUR 定价 <b>€' + p.amount_eur + '</b> &nbsp;·&nbsp; CNY 折算参考价 <b>' + Number(p.rate_used).toFixed(2) + '</b></p>'
+      : ''
+    res.send('<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FREDDY Pay</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f8f9fa;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#fff;border-radius:12px;padding:40px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);max-width:400px;width:90%}h2{color:#1e3a5f;margin-bottom:8px}.amount{font-size:36px;font-weight:700;color:#c8a44e;margin:16px 0}.method{color:#666;margin-bottom:24px}.btn{display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;margin:8px}</style></head><body><div class="card"><h2>FREDDY</h2><p>EPR Compliance</p><div class="amount">CNY ' + p.amount_cny + '</div>' + rateLine + '<p class="method">' + (labels[m] || m) + '</p>' + bank + simBtn + '<p style="color:#999;font-size:12px;margin-top:16px">Order: ' + p.out_trade_no + '</p></div></body></html>')
   } catch (e) {
     console.error('[payment] QR page error:', e)
     res.status(500).send('Server error')

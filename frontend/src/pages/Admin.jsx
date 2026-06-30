@@ -25,8 +25,19 @@ export default function Admin() {
   const [search, setSearch] = useState('')
   const [infoModal, setInfoModal] = useState(null)
   const [showPending, setShowPending] = useState(false)
+  const [rateInfo, setRateInfo] = useState({ rate: 8.10, updated_at: null })
+  const [rateModal, setRateModal] = useState(false)
+  const [rateNew, setRateNew] = useState('')
+  const [rateSubmitting, setRateSubmitting] = useState(false)
 
   const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}` } : {} }
+
+  const fetchRate = async () => {
+    try {
+      const r = await fetch('/api/admin/rate', { headers: ah() })
+      if (r.ok) { const d = await r.json(); setRateInfo(d) }
+    } catch {}
+  }
 
   const load = async (p = 1) => {
     setLoading(true); setError(null)
@@ -95,7 +106,29 @@ export default function Admin() {
 
   const exportCSV = async () => { try { const r = await fetch('/api/admin/clients/export', { headers: ah() }); if (!r.ok) throw new Error('Export failed'); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `freddy-clients-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(u) } catch (e) { alert('导出失败') } }
 
-  useEffect(() => { load(); loadApps() }, [])
+  useEffect(() => { load(); loadApps(); fetchRate() }, [])
+
+  const saveRate = async () => {
+    if (!rateNew) return
+    setRateSubmitting(true)
+    try {
+      const r = await fetch('/api/admin/rate', { method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' }, body: JSON.stringify({ rate: parseFloat(rateNew) }) })
+      const d = await r.json()
+      if (r.ok) { setRateInfo({ rate: d.rate, updated_at: new Date().toISOString() }); setRateModal(false) }
+      else alert('失败: ' + d.error)
+    } catch (e) { alert('请求失败') }
+    setRateSubmitting(false)
+  }
+
+  const triggerFetch = async () => {
+    try {
+      setRateSubmitting(true)
+      const r = await fetch('/api/admin/rate/fetch', { method: 'POST', headers: ah() })
+      if (r.ok) { const d = await r.json(); setRateInfo({ rate: d.rate, updated_at: new Date().toISOString() }); alert('✅ 已从 ECB 抓取最新汇率: ' + d.rate) }
+      else { const d = await r.json(); alert('抓取失败: ' + d.error) }
+    } catch { alert('请求失败') }
+    setRateSubmitting(false)
+  }
 
   const [reviewedUploads, setReviewedUploads] = useState({})
 
@@ -185,6 +218,12 @@ export default function Admin() {
             <div key={i} className="flex items-center gap-1.5"><span className="text-xs text-gray-400">{s.l}</span><span className={`text-sm font-bold ${s.w ? 'text-red-600' : 'text-gray-700'}`}>{s.v}</span></div>
           ))}
           <button onClick={exportCSV} className="px-3 py-1.5 border border-green-300 text-green-700 rounded-md text-xs hover:bg-green-50">📥</button>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-md">
+            <span className="text-xs text-amber-700">EUR/CNY</span>
+            <span className="text-sm font-bold text-amber-800">{(rateInfo.rate||8.10).toFixed(2)}</span>
+            <button onClick={() => { setRateModal(true); setRateNew(String(rateInfo.rate||8.10)) }} className="text-[10px] text-amber-600 hover:text-amber-800 underline">调</button>
+            <button onClick={triggerFetch} disabled={rateSubmitting} className="text-[10px] text-amber-500 hover:text-amber-700" title="从 ECB 抓取">↻</button>
+          </div>
         </div>
       </div>
 
@@ -446,6 +485,32 @@ export default function Admin() {
               {infoModal.wechat_id && <div className="flex justify-between"><span className="text-gray-400">微信</span><span className="font-medium">{infoModal.wechat_id}</span></div>}
               {infoModal.legal_representative && <div className="flex justify-between"><span className="text-gray-400">法定代表人</span><span className="font-medium">{infoModal.legal_representative}</span></div>}
               {infoModal.lucid_registration_number && <div className="flex justify-between"><span className="text-gray-400">LUCID号</span><span className="font-mono font-medium">{infoModal.lucid_registration_number}</span></div>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rate Modal */}
+      {rateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setRateModal(false)}>
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6 space-y-4" onClick={e => e.stopPropagation()}>
+            <h3 className="font-bold text-lg">💱 设置 EUR/CNY 折算价</h3>
+            <p className="text-xs text-gray-400">ECB 自动抓取 银行现汇卖出价 + 0.25。也可手动修改。<br/>上次更新: {rateInfo.updated_at ? new Date(rateInfo.updated_at).toLocaleString('zh-CN') : '—'}</p>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">CNY 折算参考价</label>
+              <input type="number" step="0.01" min="0" value={rateNew} onChange={e => setRateNew(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-lg font-bold focus:outline-none focus:border-primary" placeholder="8.10" autoFocus />
+              <p className="text-[10px] text-gray-400 mt-1">公式: ECB 中间价 × 1.015 (银行点差) + 0.25 (FREDDY)</p>
+            </div>
+            <div className="flex justify-between pt-2">
+              <button onClick={triggerFetch} disabled={rateSubmitting} className="px-3 py-2 text-xs text-amber-600 hover:bg-amber-50 rounded-md">🔄 从ECB抓取</button>
+              <div className="flex gap-3">
+                <button onClick={() => setRateModal(false)} className="px-4 py-2 border border-gray-200 rounded-md text-sm text-gray-500">取消</button>
+                <button onClick={saveRate} disabled={rateSubmitting || !rateNew}
+                  className="px-5 py-2 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary-light disabled:opacity-50">
+                  {rateSubmitting ? '提交中...' : '✅ 保存'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

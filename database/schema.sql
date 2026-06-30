@@ -138,3 +138,13 @@ CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(contact_email);
 CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(company_name);
 CREATE INDEX IF NOT EXISTS idx_notifications_client ON notifications(client_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(client_id) WHERE is_read = 0;
+
+-- Platform settings (key-value)
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Default exchange rate (EUR/CNY 现汇卖出价 + 0.25)
+INSERT OR IGNORE INTO settings (key, value) VALUES ('eur_cny_rate', '8.10');

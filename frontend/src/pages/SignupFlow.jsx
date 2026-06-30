@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { PACKAGING_MATERIALS, AR_TIERS, WEEE_PRICES, BATTERY_PRICES, EMAIL_RE } from '@shared/constants.js'
 
@@ -33,6 +33,8 @@ const btnCls = 'px-6 py-2.5 bg-primary text-white rounded-md text-sm font-semibo
 const btnGhostCls = 'px-5 py-2.5 border border-gray-200 rounded-md text-sm text-gray-500 hover:bg-gray-50 transition-colors'
 
 export default function SignupFlow() {
+  const [rate, setRate] = useState(8.10)
+  useEffect(() => { fetch('/api/rate').then(r => r.json()).then(d => d.rate && setRate(d.rate)).catch(() => {}) }, [])
   const { type } = useParams()
   const serviceType = type === 'weee' ? 'weee' : type === 'battery' ? 'battery' : 'packaging'
   const cfg = SVC[serviceType]; const STEPS = cfg.steps
@@ -408,6 +410,7 @@ export default function SignupFlow() {
               {!isWeee && <><Row k="基础服务费" v={`€${BATTERY_PRICES.baseFee}`} />{parseInt(form.brand_count) > 1 && <Row k={`额外品牌 ×${parseInt(form.brand_count) - 1}`} v={`€${Math.max(0, parseInt(form.brand_count) - 1) * (BATTERY_PRICES.extraBrand || 49)}`} />}{form.year_type === 'first' && <Row k="首年授权费" v={`€${BATTERY_PRICES.authFirstYear || 50.76}`} />}</>}
             </div>
             <div className="border-t pt-2 mt-2 flex justify-between font-bold text-base"><span>预估年费</span><span className="text-primary">€{reviewFee}</span></div>
+            <div className="flex justify-end"><span className="text-[11px] text-gray-400">≈ ¥{Math.round(reviewFee * rate)} (CNY 折算参考价)</span></div>
           </div>
           <p className="text-xs text-gray-400">* 最终费用以合同为准</p>
           <div className="flex">

@@ -6,7 +6,8 @@ import { existsSync } from 'fs'
 import { rename } from 'fs/promises'
 import { fileURLToPath } from 'url'
 import { dirname, join as pathJoin } from 'path'
-import { getDb, seedAdmin, closeDb } from './db.js'
+import { getDb, getRate, setRate, seedAdmin, closeDb } from './db.js'
+import { startRateFetcher, fetchAndSave } from './services/rate-fetcher.js'
 import paymentRoutes from './payment.js'
 import authRoutes from './auth.js'
 import contractsRoutes from './routes/contracts.js'
@@ -540,6 +541,49 @@ app.post('/api/admin/uploads', authMiddleware, adminMiddleware, adminUpload.sing
   }
 })
 
+// ── Exchange Rate ──
+// Public: get current settlement rate
+app.get('/api/rate', async (_req, res) => {
+  try {
+    const d = await getDb()
+    const row = await d.get("SELECT value, updated_at FROM settings WHERE key = 'eur_cny_rate'")
+    res.json({
+      rate: parseFloat(row?.value) || 8.10,
+      updated_at: row?.updated_at || null,
+    })
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
+// Admin: get rate detail
+app.get('/api/admin/rate', authMiddleware, adminMiddleware, async (_req, res) => {
+  try {
+    const d = await getDb()
+    const row = await d.get("SELECT value, updated_at FROM settings WHERE key = 'eur_cny_rate'")
+    res.json({
+      rate: parseFloat(row?.value) || 8.10,
+      updated_at: row?.updated_at || null,
+    })
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
+// Admin: set rate manually
+app.post('/api/admin/rate', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { rate } = req.body
+    if (!rate || isNaN(rate) || rate <= 0) return res.status(400).json({ error: 'Invalid rate' })
+    const newRate = await setRate(parseFloat(rate), 'manual')
+    res.json({ success: true, rate: newRate })
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
+// Admin: trigger rate fetch now
+app.post('/api/admin/rate/fetch', authMiddleware, adminMiddleware, async (_req, res) => {
+  try {
+    const newRate = await fetchAndSave()
+    res.json({ success: true, rate: newRate })
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
 // ── Bank Transfer Info (public) ──
 app.get('/api/bank-info', (_req, res) => {
   res.json({
@@ -583,6 +627,7 @@ app.get('*', (req, res) => {
 async function start() {
   await getDb()
   await seedAdmin()
+  startRateFetcher()
   const server = app.listen(PORT, () => {
     console.log(`[server] Freddy EPR Platform running on http://localhost:${PORT}`)
     console.log(`[server] CORS origins: ${ALLOWED_ORIGINS.join(', ')}`)

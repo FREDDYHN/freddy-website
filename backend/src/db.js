@@ -57,6 +57,24 @@ export async function closeDb() {
   }
 }
 
+// ═══ Exchange Rate ═══
+export async function getRate() {
+  const d = await getDb()
+  const row = await d.get("SELECT value FROM settings WHERE key = 'eur_cny_rate'")
+  return parseFloat(row?.value) || 8.10
+}
+
+export async function setRate(rate, source) {
+  const d = await getDb()
+  await d.run(
+    "INSERT INTO settings (key, value, updated_at) VALUES ('eur_cny_rate', ?, datetime('now')) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at",
+    String(rate)
+  )
+  const label = source || 'manual'
+  console.log(`[db] EUR/CNY rate updated: ${rate} (source: ${label})`)
+  return rate
+}
+
 export async function seedAdmin() {
   const d = await getDb()
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@freddy-epr.com'

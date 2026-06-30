@@ -1,7 +1,10 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { PACKAGING_MATERIALS, AR_TIERS } from '@shared/constants.js'
 
 export default function Packaging() {
+  const [rate, setRate] = useState(8.10)
+  useEffect(() => { fetch('/api/rate').then(r => r.json()).then(d => d.rate && setRate(d.rate)).catch(() => {}) }, [])
   const materials = PACKAGING_MATERIALS.map(m => ({ name: m.label, rate: m.tiers[0].rate.toFixed(2), minFee: m.minFee.toFixed(2) }))
   const tiers = Object.values(AR_TIERS)
   const faqs = [
@@ -29,7 +32,8 @@ export default function Packaging() {
                 </div>
                 <div className="p-5 flex flex-col flex-1">
                   <ul className="text-sm text-gray-500 space-y-1.5 flex-1 mb-3">{feats.map((f, j) => <li key={j} className="flex gap-1.5"><span className="text-green-500">✓</span>{f}</li>)}</ul>
-                  <p className="text-2xl font-extrabold text-primary mb-3 text-right">€{t.feeEur}<span className="text-sm text-gray-400 font-normal">/年</span></p>
+                  <p className="text-2xl font-extrabold text-primary mb-1 text-right">€{t.feeEur}<span className="text-sm text-gray-400 font-normal">/年</span></p>
+                  <p className="text-xs text-gray-400 mb-3 text-right">≈ ¥{Math.round(t.feeEur * rate)} <span className="text-gray-300">(CNY 折算参考价)</span></p>
                   <Link to={`/signup/packaging?tier=${t.key}`} className="block text-center py-2 rounded-md text-sm font-semibold border-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors">选择</Link>
                 </div>
               </div>
