@@ -222,7 +222,7 @@ export default function Admin() {
             <span className="text-xs text-amber-700">EUR/CNY</span>
             <span className="text-sm font-bold text-amber-800">{(rateInfo.rate||8.10).toFixed(2)}</span>
             <button onClick={() => { setRateModal(true); setRateNew(String(rateInfo.rate||8.10)) }} className="text-[10px] text-amber-600 hover:text-amber-800 underline">调</button>
-            <button onClick={triggerFetch} disabled={rateSubmitting} className="text-[10px] text-amber-500 hover:text-amber-700" title="从 ECB 抓取">↻</button>
+            <button onClick={triggerFetch} disabled={rateSubmitting} className="text-[10px] text-amber-500 hover:text-amber-700" title="从中行抓取">↻</button>
           </div>
         </div>
       </div>
@@ -501,15 +501,15 @@ export default function Admin() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setRateModal(false)}>
           <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6 space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="font-bold text-lg">💱 设置 EUR/CNY 折算价</h3>
-            <p className="text-xs text-gray-400">ECB 自动抓取 银行现汇卖出价 + 0.25。也可手动修改。<br/>上次更新: {rateInfo.updated_at ? new Date(rateInfo.updated_at).toLocaleString('zh-CN') : '—'}</p>
+            <p className="text-xs text-gray-400">中国银行现汇卖出价 + 0.25，每日 9:00/14:00 自动抓取。<br/>上次更新: {rateInfo.updated_at ? new Date(rateInfo.updated_at).toLocaleString('zh-CN') : '—'}</p>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">CNY 折算价</label>
               <input type="number" step="0.01" min="0" value={rateNew} onChange={e => setRateNew(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-lg font-bold focus:outline-none focus:border-primary" placeholder="8.10" autoFocus />
-              <p className="text-[10px] text-gray-400 mt-1">公式: ECB 中间价 × 1.015 (银行点差) + 0.25 (FREDDY)</p>
+              <p className="text-[10px] text-gray-400 mt-1">公式: 中国银行现汇卖出价 + 0.25 (FREDDY) · 自动抓取 BOC</p>
             </div>
             <div className="flex justify-between pt-2">
-              <button onClick={triggerFetch} disabled={rateSubmitting} className="px-3 py-2 text-xs text-amber-600 hover:bg-amber-50 rounded-md">🔄 从ECB抓取</button>
+              <button onClick={triggerFetch} disabled={rateSubmitting} className="px-3 py-2 text-xs text-amber-600 hover:bg-amber-50 rounded-md">🔄 从中行抓取</button>
               <div className="flex gap-3">
                 <button onClick={() => setRateModal(false)} className="px-4 py-2 border border-gray-200 rounded-md text-sm text-gray-500">取消</button>
                 <button onClick={saveRate} disabled={rateSubmitting || !rateNew}
