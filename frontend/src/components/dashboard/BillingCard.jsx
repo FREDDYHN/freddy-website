@@ -82,7 +82,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     h += '.grid{display:grid;grid-template-columns:180px 1fr;gap:24px}.settle-section{margin-top:20px}.bank-section{margin-top:20px;padding-top:16px;border-top:2px solid #e0e0e0}.bank-section h3{font-size:12px;color:#555;margin-bottom:6px}.bank-section p{font-size:11px;color:#888;margin:2px 0;line-height:1.6}.tbl{width:100%;border-collapse:collapse;font-size:12px}.tbl th{color:#666;font-weight:500;border-bottom:2px solid #ccc;padding:5px 8px;text-align:right}.tbl th:first-child{text-align:left}.tbl td{padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right}.tbl td:first-child{text-align:left}.tbl .total-row td{border-top:2px solid #ccc;font-weight:700}</style></head><body>'
     h += '<h2>'+esc(c.company_name||'')+'</h2><p class="sub">'+esc(c.contract_number)+' · '+esc(tierName)+' · '+(c.start_date?.slice(0,10)||'-')+' - '+(c.end_date?.slice(0,10)||'-')+'</p>'
     h += '<div class="grid">'
-    h += '<div><h3>授权代表年费</h3><p>服务等级 <b>'+esc(tierName)+'</b></p><p>截止日期 '+(c.end_date?.slice(0,10)||'-')+'</p><p>状态 <span class="'+(c.status==='active'?'g':'y')+'">'+(c.status==='active'?'已付款':'待付款')+'</span></p><p>金额 <b class="b">€'+c.annual_fee_eur+'</b></p><p style="font-size:10px;color:#888">≈ ¥'+Math.round(c.annual_fee_eur * rate)+' (CNY 折算参考价)</p></div>'
+    h += '<div><h3>授权代表年费</h3><p>服务等级 <b>'+esc(tierName)+'</b></p><p>截止日期 '+(c.end_date?.slice(0,10)||'-')+'</p><p>状态 <span class="'+(c.status==='active'?'g':'y')+'">'+(c.status==='active'?'已付款':'待付款')+'</span></p><p>金额 <b class="b">€'+c.annual_fee_eur+'</b></p><p style="font-size:10px;color:#888">约 ¥'+Math.round(c.annual_fee_eur * rate)+'</p></div>'
     h += '<div><h3>回收费预申报</h3><table>'
     rows.forEach(function(r){ h += '<tr><td>'+esc(r.label)+'</td><td class="num">'+r.kg+'kg</td><td class="num">€'+r.rate+'</td><td class="num">€'+r.fee.toFixed(2)+'</td></tr>' })
     h += '<tr><td colspan="3">小计 · '+totalKg+'kg</td><td class="num"><b>€'+subtotal.toFixed(2)+'</b></td></tr>'
@@ -112,7 +112,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
       if(penaltyApplies) h += '<p class="r">+ 惩罚金 (合同 §5(3) 20%附加费) <b>€'+penaltyAmt.toFixed(2)+'</b></p>'
       if(refundApplies && Math.abs(rawDiff) > prepaidCalc * 0.1) h += '<p class="y">退款上限10%: 仅退 €'+Math.abs(refundCapped).toFixed(2)+'</p>'
       h += '<p class="b" style="font-size:14px">'+(settleAmt>0?'补缴合计':'退款合计')+' €'+settleDisplay.toFixed(2)+' '+(settlementPayment?.status==='paid'?'✓ 已付清':'')+'</p>'
-      h += '<p style="font-size:10px;color:#888">≈ ¥'+Math.round(settleDisplay * rate)+' (CNY 折算参考价)</p>'
+      h += '<p style="font-size:10px;color:#888">约 ¥'+Math.round(settleDisplay * rate)+'</p>'
       if(settleOverride) h += '<p class="s">公式值 €'+settleAmt.toFixed(2)+'</p>'
       h += '</div>'
     } else { h += '<p style="color:#999">暂无实际数据</p>' }

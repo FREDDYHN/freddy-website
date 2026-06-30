@@ -41,7 +41,7 @@ export default function Landing() {
                   {c.tag && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/20">{c.tag}</span>}
                 </div>
                 <p className="text-2xl font-extrabold" style={{ color: '#c8a44e' }}>{c.price}<span className="text-sm font-normal text-white/50 ml-0.5">{c.period}</span></p>
-                {c.priceEur && <p className="text-[10px] text-white/40 mt-0.5">≈ ¥{Math.round(c.priceEur * rate)} (CNY 折算参考价)</p>}
+                {c.priceEur && <p className="text-[10px] text-white/40 mt-0.5">≈ ¥{Math.round(c.priceEur * rate)}</p>}
               </div>
               <div className="p-4 flex-1">
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">授权代表职责</p>

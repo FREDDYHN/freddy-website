@@ -241,7 +241,7 @@ router.get('/:tradeNo/qr', async (req, res) => {
       ? '<p style="color:#666;margin-bottom:16px">请转账至 FREDDY 对公账户。附言/备注: ' + p.out_trade_no + '</p><p style="color:#999;font-size:12px">对公账户信息请联系客服获取。</p>'
       : ''
     const rateLine = p.rate_used
-      ? '<p style="color:#888;font-size:13px;margin-top:-8px">EUR 定价 <b>€' + p.amount_eur + '</b> &nbsp;·&nbsp; CNY 折算参考价 <b>' + Number(p.rate_used).toFixed(2) + '</b></p>'
+      ? '<p style="color:#888;font-size:13px;margin-top:-8px">应付 <b>¥' + p.amount_cny + '</b> &nbsp;·&nbsp; EUR 定价 €' + p.amount_eur + ' &nbsp;·&nbsp; 汇率 <b>' + Number(p.rate_used).toFixed(2) + '</b></p>'
       : ''
     res.send('<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FREDDY Pay</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f8f9fa;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#fff;border-radius:12px;padding:40px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);max-width:400px;width:90%}h2{color:#1e3a5f;margin-bottom:8px}.amount{font-size:36px;font-weight:700;color:#c8a44e;margin:16px 0}.method{color:#666;margin-bottom:24px}.btn{display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;margin:8px}</style></head><body><div class="card"><h2>FREDDY</h2><p>EPR Compliance</p><div class="amount">CNY ' + p.amount_cny + '</div>' + rateLine + '<p class="method">' + (labels[m] || m) + '</p>' + bank + simBtn + '<p style="color:#999;font-size:12px;margin-top:16px">Order: ' + p.out_trade_no + '</p></div></body></html>')
   } catch (e) {

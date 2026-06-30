@@ -410,7 +410,7 @@ export default function SignupFlow() {
               {!isWeee && <><Row k="基础服务费" v={`€${BATTERY_PRICES.baseFee}`} />{parseInt(form.brand_count) > 1 && <Row k={`额外品牌 ×${parseInt(form.brand_count) - 1}`} v={`€${Math.max(0, parseInt(form.brand_count) - 1) * (BATTERY_PRICES.extraBrand || 49)}`} />}{form.year_type === 'first' && <Row k="首年授权费" v={`€${BATTERY_PRICES.authFirstYear || 50.76}`} />}</>}
             </div>
             <div className="border-t pt-2 mt-2 flex justify-between font-bold text-base"><span>预估年费</span><span className="text-primary">€{reviewFee}</span></div>
-            <div className="flex justify-end"><span className="text-[11px] text-gray-400">≈ ¥{Math.round(reviewFee * rate)} (CNY 折算参考价)</span></div>
+            <div className="flex justify-end"><span className="text-[11px] text-gray-400">≈ ¥{Math.round(reviewFee * rate)}</span></div>
           </div>
           <p className="text-xs text-gray-400">* 最终费用以合同为准</p>
           <div className="flex">

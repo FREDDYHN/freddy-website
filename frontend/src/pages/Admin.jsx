@@ -319,7 +319,7 @@ export default function Admin() {
                           html += `<p><span>截止日期</span> ${c.end_date?.slice(0,10)||'-'}</p>`
                           html += `<p><span>状态</span> <span class="${c.status==='active'?'g':'y'}">${c.status==='active'?'已付款':'待付款'}</span></p>`
                           html += `<p><span>金额</span> <b class="b">€${c.annual_fee_eur}</b></p>`
-                          html += `<p style="font-size:10px;color:#888">≈ ¥${Math.round(c.annual_fee_eur * (rateInfo.rate||8.10))} (CNY 折算参考价)</p></div>`
+                          html += `<p style="font-size:10px;color:#888">约 ¥${Math.round(c.annual_fee_eur * (rateInfo.rate||8.10))}</p></div>`
                           // Prepaid
                           html += '<div><h3>回收费预申报</h3><table>'
                           rows.forEach(r => { html += `<tr><td>${e(r.label)}</td><td class="num">${r.kg}kg</td><td class="num">€${r.rate}</td><td class="num">€${r.fee.toFixed(2)}</td></tr>` })
@@ -354,7 +354,7 @@ export default function Admin() {
                             if(penaltyApplies) html += '<p class="r">+ 惩罚金 (合同 §5(3) 20%附加费) <b>€'+penaltyAmt.toFixed(2)+'</b></p>'
                             if(refundApplies && Math.abs(rawDiff) > prepaidCalc * 0.1) html += '<p class="y">退款上限10%: 仅退 €'+Math.abs(refundCapped).toFixed(2)+'</p>'
                             html += '<p class="b" style="font-size:14px">'+(settleAmt>0?'补缴合计':'退款合计')+' €'+settleDisplay.toFixed(2)+' '+(c.settlement_status==='paid'?'✓ 已付清':'')+'</p>'
-                            html += '<p style="font-size:10px;color:#888">≈ ¥'+Math.round(settleDisplay * (rateInfo.rate||8.10))+' (CNY 折算参考价)</p>'
+                            html += '<p style="font-size:10px;color:#888">约 ¥'+Math.round(settleDisplay * (rateInfo.rate||8.10))+'</p>'
                             if(settleOverride) html += '<p class="s">公式值 €'+settleAmt.toFixed(2)+'</p>'
                             html += '</div>'
                           } else { html += '<p style="color:#999">暂无实际数据</p>' }
@@ -503,7 +503,7 @@ export default function Admin() {
             <h3 className="font-bold text-lg">💱 设置 EUR/CNY 折算价</h3>
             <p className="text-xs text-gray-400">ECB 自动抓取 银行现汇卖出价 + 0.25。也可手动修改。<br/>上次更新: {rateInfo.updated_at ? new Date(rateInfo.updated_at).toLocaleString('zh-CN') : '—'}</p>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">CNY 折算参考价</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">CNY 折算价</label>
               <input type="number" step="0.01" min="0" value={rateNew} onChange={e => setRateNew(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-lg font-bold focus:outline-none focus:border-primary" placeholder="8.10" autoFocus />
               <p className="text-[10px] text-gray-400 mt-1">公式: ECB 中间价 × 1.015 (银行点差) + 0.25 (FREDDY)</p>
