@@ -1,4 +1,9 @@
-node_modules/\ndist/\ndatabase/data.db*\n*.pyc\n__pycache__/\n.env
+node_modules/
+dist/
+database/data.db*
+*.pyc
+__pycache__/
+.env
 freddy-epr-deploy.tar.gz
 projects/generated/
 projects/~$回收费价目单_2026.xlsx
@@ -10,7 +15,6 @@ database/data.db-shm
 database/data.db-wal
 database/data.db
 projects/contracts/LIVANTO/_tmp_template/
-projects/generated/
 *.bak*
 *.orig*
-projects/generated/
+outputs/*.pdf
