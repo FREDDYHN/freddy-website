@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import Admin from './pages/Admin.jsx'
 import ApplyForm from './pages/ApplyForm.jsx'
 import Login from './pages/Login.jsx'
+import SetPassword from './pages/SetPassword.jsx'
 import Profile from './pages/Profile.jsx'
 import About from './pages/About.jsx'
 import Contact from './pages/Contact.jsx'
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/signup" element={<SignupFlow />} />
           <Route path="/signup/:type" element={<SignupFlow />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/set-password/:token" element={<SetPassword />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<Admin />} />

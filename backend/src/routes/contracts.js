@@ -1,9 +1,10 @@
 import { Router } from 'express'
-import bcryptjs from 'bcryptjs'
 import { getDb } from '../db.js'
 import { authMiddleware } from '../auth.js'
 import { createPayment } from '../payment.js'
 import { generateContract, getContractUrl } from '../services/contract-gen.js'
+import { sendVerificationEmail } from '../services/email.js'
+import { rateLimit } from '../rate-limiter.js'
 import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES } from '../../../shared/constants.js'
 
 const router = Router()
@@ -69,13 +70,14 @@ function contractPeriod() {
 }
 
 // POST /api/contracts — Create new contract (public: called during signup flow)
-router.post('/', async (req, res) => {
+// Rate limited: 3 per 10 min per IP
+router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, res) => {
   const db = await getDb()
   await db.run('BEGIN IMMEDIATE')
   try {
     const { service_type, company_name, company_name_en, registered_address, registered_address_en, uscc, legal_representative, legal_representative_en,
             contact_person, contact_person_en, contact_email, contact_phone, wechat_id,
-            packaging_items, tier, password, device_categories, brand_count, year_type } = req.body
+            packaging_items, tier, device_categories, brand_count, year_type } = req.body
 
     if (!company_name || !contact_person || !contact_email || !registered_address || !contact_phone || !wechat_id) {
       await db.run('ROLLBACK')
@@ -131,7 +133,7 @@ router.post('/', async (req, res) => {
 
     const contractResult = await db.run(
       'INSERT INTO contracts (client_id, contract_number, tier, annual_fee_eur, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      clientId, contractNumber, contractTier, annualFee, startDate, endDate, 'pending_payment'
+      clientId, contractNumber, contractTier, annualFee, startDate, endDate, 'pending_verification'
     )
     const contractId = contractResult.lastID
 
@@ -155,19 +157,21 @@ router.post('/', async (req, res) => {
     // 4. Create payment
     const payment = await createPayment({ clientId, contractId, tier: contractTier, method: 'wechat', amountEur: annualFee })
 
-    // 5. Create user account if password provided (so client can log into Dashboard)
-    if (password) {
-      const existingUser = await db.get('SELECT id FROM users WHERE email = ?', contact_email)
-      if (!existingUser) {
-        const hash = await bcryptjs.hash(password, 10)
-        await db.run(
-          'INSERT INTO users (email, password_hash, role, client_id) VALUES (?, ?, ?, ?)',
-          contact_email, hash, 'client', clientId
-        )
-      }
+    // 5. Create user account (email_verified=0, password set later via verification email)
+    const existingUser = await db.get('SELECT id FROM users WHERE email = ?', contact_email)
+    if (!existingUser) {
+      await db.run(
+        "INSERT INTO users (email, password_hash, role, client_id, email_verified) VALUES (?, '', 'client', ?, 0)",
+        contact_email, clientId
+      )
     }
 
     await db.run('COMMIT')
+
+    // 6. Send verification email (non-blocking, after commit)
+    try {
+      await sendVerificationEmail({ email: contact_email, name: contact_person || company_name, contractNumber, clientId })
+    } catch (e) { console.error('[contracts] Verification email failed:', e.message) }
 
     // Generate contract DOCX for preview
     let download_url = null
@@ -203,6 +207,7 @@ router.post('/', async (req, res) => {
       end_date: endDate,
       payment,
       download_url,
+      message: '合同已创建。请查收验证邮件并设置登录密码。',
     })
   } catch (e) {
     await db.run('ROLLBACK')
@@ -246,13 +251,13 @@ router.post('/:id/sign', async (req, res) => {
     const contract = await db.get('SELECT status FROM contracts WHERE id = ?', req.params.id)
     if (!contract) return res.status(404).json({ error: 'Contract not found' })
     if (contract.status === 'signed') return res.status(409).json({ error: 'Contract already signed' })
-    if (contract.status !== 'pending_payment') {
+    if (contract.status !== 'pending_payment' && contract.status !== 'pending_verification') {
       return res.status(400).json({ error: `Cannot sign a contract with status: ${contract.status}` })
     }
 
     const ip = req.headers['x-forwarded-for'] || req.ip || req.socket?.remoteAddress || 'unknown'
     await db.run(
-      "UPDATE contracts SET status = 'signed', signed_at = datetime('now'), signed_ip = ? WHERE id = ? AND status = 'pending_payment'",
+      "UPDATE contracts SET status = 'signed', signed_at = datetime('now'), signed_ip = ? WHERE id = ? AND (status = 'pending_payment' OR status = 'pending_verification')",
       ip, req.params.id
     )
     res.json({ success: true, contract_id: parseInt(req.params.id), signed_at: new Date().toISOString(), signer_name: signer_name.trim() })

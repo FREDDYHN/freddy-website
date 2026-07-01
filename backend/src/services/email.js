@@ -113,3 +113,36 @@ export async function sendReminder({ email, name, contractNumber, daysLeft, type
 </div>`,
   })
 }
+
+// ═══ Email Verification ═══
+import jwt from 'jsonwebtoken'
+import { JWT_SECRET } from '../auth.js'
+
+const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'
+
+export async function sendVerificationEmail({ email, name, contractNumber, clientId }) {
+  const token = jwt.sign(
+    { email, client_id: clientId, purpose: 'verify-email', contract_number: contractNumber },
+    JWT_SECRET,
+    { expiresIn: '48h' }
+  )
+  const link = `${BASE_URL}/set-password/${token}`
+
+  await send({
+    to: email,
+    subject: `[FREDDY] 请设置登录密码 — 合同 ${contractNumber}`,
+    html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+<h2 style="color:#1e3a5f">FREDDY 福瑞笛 — 邮箱验证</h2>
+<p>${esc(name)}，您好！</p>
+<p>您的授权代表合同 <strong>${esc(contractNumber)}</strong> 已创建。</p>
+<p>请点击下方链接设置登录密码，完成后即可进入 Dashboard 管理您的合同：</p>
+<div style="margin:24px 0">
+  <a href="${link}" style="display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold">设置密码并登录</a>
+</div>
+<p style="color:#999;font-size:13px">或复制以下链接到浏览器打开：</p>
+<p style="color:#999;font-size:12px;word-break:break-all">${link}</p>
+<p style="margin-top:24px;color:#c0392b;font-size:13px">⚠ 此链接 48 小时内有效，过期后请重新提交申请。</p>
+<p style="margin-top:24px;color:#999;font-size:12px">此邮件由系统自动发送。如需帮助，请联系 zifeng.qian@outlook.com</p>
+</div>`,
+  })
+}

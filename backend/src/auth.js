@@ -5,6 +5,7 @@ import crypto from 'crypto'
 import { getDb } from './db.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_SECRET required in production') })() : crypto.randomBytes(32).toString('hex'))
+export { JWT_SECRET }
 const router = Router()
 
 // ─── Simple in-memory rate limiter for login ───
@@ -101,6 +102,49 @@ router.post('/login', async (req, res) => {
   } catch (e) {
     console.error('[auth] login error:', e)
     res.status(500).json({ error: 'Login failed' })
+  }
+})
+
+// ─── Verify Email & Set Password ───
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { token, password } = req.body
+    if (!token || !password) return res.status(400).json({ error: 'Token and password required' })
+    if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' })
+
+    let payload
+    try {
+      payload = jwt.verify(token, JWT_SECRET)
+    } catch {
+      return res.status(400).json({ error: '验证链接已过期或无效，请重新提交申请。' })
+    }
+
+    if (!payload.email || !payload.client_id || payload.purpose !== 'verify-email') {
+      return res.status(400).json({ error: 'Invalid verification token' })
+    }
+
+    const db = await getDb()
+    const user = await db.get('SELECT id, email_verified FROM users WHERE email = ? AND client_id = ?', payload.email, payload.client_id)
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    if (user.email_verified) {
+      // Already verified — just issue a login token
+      const loginToken = jwt.sign({ id: user.id, email: payload.email, role: 'client', client_id: payload.client_id }, JWT_SECRET, { expiresIn: '30d' })
+      return res.json({ token: loginToken, user: { id: user.id, email: payload.email, role: 'client', client_id: payload.client_id }, already_verified: true })
+    }
+
+    const hash = await bcryptjs.hash(password, 10)
+    await db.run('UPDATE users SET password_hash = ?, email_verified = 1 WHERE id = ?', hash, user.id)
+
+    // Activate all pending_verification contracts for this client
+    await db.run("UPDATE contracts SET status = 'pending_payment' WHERE client_id = ? AND status = 'pending_verification'", payload.client_id)
+
+    // Issue login token
+    const loginToken = jwt.sign({ id: user.id, email: payload.email, role: 'client', client_id: payload.client_id }, JWT_SECRET, { expiresIn: '30d' })
+    res.json({ token: loginToken, user: { id: user.id, email: payload.email, role: 'client', client_id: payload.client_id }, already_verified: false })
+  } catch (e) {
+    console.error('[auth] verify-email error:', e)
+    res.status(500).json({ error: 'Verification failed' })
   }
 })
 

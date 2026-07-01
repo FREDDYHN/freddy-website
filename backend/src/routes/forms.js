@@ -1,12 +1,13 @@
 import { Router } from 'express'
 import { getDb } from '../db.js'
 import { sendConfirmation } from '../services/email.js'
+import { rateLimit } from '../rate-limiter.js'
 import { WEEE_STARTING_PRICE, BATTERY_PRICES } from '../../../shared/constants.js'
 
 const router = Router()
 
-// POST /api/forms/weee — Submit WEEE registration
-router.post('/weee', async (req, res) => {
+// POST /api/forms/weee — Submit WEEE registration (rate limited: 5 per 30 min per IP)
+router.post('/weee', rateLimit('form-weee', 5, 30 * 60 * 1000), async (req, res) => {
   const db = await getDb()
   await db.run('BEGIN IMMEDIATE')
   try {
@@ -47,8 +48,8 @@ router.post('/weee', async (req, res) => {
   }
 })
 
-// POST /api/forms/battery — Submit Battery registration
-router.post('/battery', async (req, res) => {
+// POST /api/forms/battery — Submit Battery registration (rate limited: 5 per 30 min per IP)
+router.post('/battery', rateLimit('form-battery', 5, 30 * 60 * 1000), async (req, res) => {
   const db = await getDb()
   await db.run('BEGIN IMMEDIATE')
   try {

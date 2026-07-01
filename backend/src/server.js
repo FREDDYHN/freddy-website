@@ -20,6 +20,7 @@ import { authMiddleware, adminMiddleware } from './auth.js'
 import { checkReminders } from './services/reminders.js'
 import { generateContract } from './services/contract-gen.js'
 import { markPaid } from './payment.js'
+import { rateLimit } from './rate-limiter.js'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -162,7 +163,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
     const [clients, contracts, pending, revenue] = await Promise.all([
       db.get('SELECT COUNT(*) as cnt FROM clients'),
       db.get("SELECT COUNT(*) as cnt FROM contracts WHERE status = 'active'"),
-      db.get("SELECT COUNT(*) as cnt FROM payments WHERE status = 'pending'"),
+      db.get("SELECT COUNT(*) as cnt FROM payments p JOIN contracts c ON p.contract_id = c.id WHERE p.status = 'pending' AND c.status != 'pending_verification'"),
       db.get("SELECT COALESCE(SUM(amount_eur),0) as total FROM payments WHERE status = 'paid'"),
     ])
     res.json({
@@ -176,19 +177,22 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
 })
 
 // ── Admin Contracts (with pagination) ──
+// Default: exclude pending_verification. Pass ?include=all to see everything.
 app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const db = await getDb()
     const page = Math.max(1, parseInt(req.query.page) || 1)
     const perPage = Math.min(100, Math.max(10, parseInt(req.query.perPage) || 50))
     const offset = (page - 1) * perPage
+    const showAll = req.query.include === 'all'
 
+    const whereClause = showAll ? '' : "WHERE c.status != 'pending_verification'"
     const [rows, countRow] = await Promise.all([
       db.all(
-        'SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email, cl.contact_phone, cl.registered_address, cl.uscc, cl.legal_representative, cl.wechat_id, cl.lucid_registration_number FROM contracts c JOIN clients cl ON c.client_id = cl.id ORDER BY c.id DESC LIMIT ? OFFSET ?',
+        `SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email, cl.contact_phone, cl.registered_address, cl.uscc, cl.legal_representative, cl.wechat_id, cl.lucid_registration_number FROM contracts c JOIN clients cl ON c.client_id = cl.id ${whereClause} ORDER BY c.id DESC LIMIT ? OFFSET ?`,
         perPage, offset
       ),
-      db.get('SELECT COUNT(*) as total FROM contracts'),
+      db.get(`SELECT COUNT(*) as total FROM contracts c ${whereClause}`),
     ])
 
     // Enrich with payment info + uploads (batch query to avoid N+1)
@@ -489,8 +493,8 @@ app.post('/api/admin/payments/confirm', authMiddleware, adminMiddleware, async (
   }
 })
 
-// ── Public: Contact form ──
-app.post('/api/contact', async (req, res) => {
+// ── Public: Contact form (rate limited: 3 per 10 min per IP) ──
+app.post('/api/contact', rateLimit('contact-form', 3, 10 * 60 * 1000), async (req, res) => {
   try {
     const { name, email, message } = req.body
     if (!name || !email || !message) return res.status(400).json({ error: 'All fields required' })
@@ -598,6 +602,70 @@ app.get('/api/bank-info', (_req, res) => {
     reference_prefix: 'EPR-',
     note: '请在转账附言中注明合同编号或公司名称，以便我们快速确认到账。',
   })
+})
+
+// ── Admin: Toggle spam flag on contract ──
+app.post('/api/admin/contracts/:id/spam', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const contract = await db.get('SELECT id, is_spam FROM contracts WHERE id = ?', req.params.id)
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    const newVal = contract.is_spam ? 0 : 1
+    await db.run('UPDATE contracts SET is_spam = ? WHERE id = ?', newVal, req.params.id)
+    res.json({ success: true, contract_id: parseInt(req.params.id), is_spam: !!newVal })
+  } catch (e) {
+    console.error('[server] spam toggle error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ── Admin: Delete contract ──
+app.delete('/api/admin/contracts/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const contract = await db.get('SELECT id FROM contracts WHERE id = ?', req.params.id)
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    await db.run('DELETE FROM payments WHERE contract_id = ?', req.params.id)
+    await db.run('DELETE FROM packaging_data WHERE contract_id = ?', req.params.id)
+    await db.run('DELETE FROM uploads WHERE contract_id = ?', req.params.id)
+    await db.run('DELETE FROM notifications WHERE contract_id = ?', req.params.id)
+    await db.run('DELETE FROM reminders WHERE contract_id = ?', req.params.id)
+    await db.run('DELETE FROM invoices WHERE contract_id = ?', req.params.id)
+    await db.run('DELETE FROM contracts WHERE id = ?', req.params.id)
+    res.json({ success: true, contract_id: parseInt(req.params.id) })
+  } catch (e) {
+    console.error('[server] contract delete error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ── Admin: Toggle spam flag on application ──
+app.post('/api/admin/applications/:id/spam', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const app = await db.get('SELECT id, is_spam FROM applications WHERE id = ?', req.params.id)
+    if (!app) return res.status(404).json({ error: 'Application not found' })
+    const newVal = app.is_spam ? 0 : 1
+    await db.run('UPDATE applications SET is_spam = ? WHERE id = ?', newVal, req.params.id)
+    res.json({ success: true, application_id: parseInt(req.params.id), is_spam: !!newVal })
+  } catch (e) {
+    console.error('[server] application spam toggle error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ── Admin: Delete application ──
+app.delete('/api/admin/applications/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const app = await db.get('SELECT id FROM applications WHERE id = ?', req.params.id)
+    if (!app) return res.status(404).json({ error: 'Application not found' })
+    await db.run('DELETE FROM applications WHERE id = ?', req.params.id)
+    res.json({ success: true, application_id: parseInt(req.params.id) })
+  } catch (e) {
+    console.error('[server] application delete error:', e)
+    res.status(500).json({ error: e.message })
+  }
 })
 
 // ══════════════════════════════════════════════

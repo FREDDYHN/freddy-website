@@ -7,8 +7,8 @@ const TABS = [
   { key: 'battery', label: '🔋 电池法' },
 ]
 
-const STATUS_MAP = { active: '已激活', pending_payment: '待付款', signed: '已签署', expired: '已过期' }
-const STATUS_CLS = { active: 'bg-green-100 text-green-700', pending_payment: 'bg-yellow-100 text-yellow-700', signed: 'bg-blue-100 text-blue-700', expired: 'bg-red-100 text-red-700' }
+const STATUS_MAP = { active: '已激活', pending_payment: '待付款', pending_verification: '待验证', signed: '已签署', expired: '已过期' }
+const STATUS_CLS = { active: 'bg-green-100 text-green-700', pending_payment: 'bg-yellow-100 text-yellow-700', pending_verification: 'bg-gray-100 text-gray-500', signed: 'bg-blue-100 text-blue-700', expired: 'bg-red-100 text-red-700' }
 
 export default function Admin() {
   const [tab, setTab] = useState('packaging')
@@ -25,6 +25,8 @@ export default function Admin() {
   const [search, setSearch] = useState('')
   const [infoModal, setInfoModal] = useState(null)
   const [showPending, setShowPending] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('')
+  const [showAll, setShowAll] = useState(false)
   const [rateInfo, setRateInfo] = useState({ rate: 8.10, updated_at: null })
   const [rateModal, setRateModal] = useState(false)
   const [rateNew, setRateNew] = useState('')
@@ -39,12 +41,13 @@ export default function Admin() {
     } catch {}
   }
 
-  const load = async (p = 1) => {
+  const load = async (p = 1, includeAll = false) => {
     setLoading(true); setError(null)
     try {
+      const incParam = includeAll ? '&include=all' : ''
       const [sR, cR] = await Promise.all([
         fetch('/api/admin/stats', { headers: ah() }),
-        fetch(`/api/admin/contracts?page=${p}&perPage=50`, { headers: ah() }),
+        fetch(`/api/admin/contracts?page=${p}&perPage=50${incParam}`, { headers: ah() }),
       ])
       if (!sR.ok) { if (sR.status === 401) { sessionStorage.removeItem('token'); window.dispatchEvent(new Event('auth:expired')); throw new Error('login_required') } throw new Error('Admin required') }
       const [s, c] = await Promise.all([sR.json(), cR.json()])
@@ -105,6 +108,31 @@ export default function Admin() {
   }
 
   const exportCSV = async () => { try { const r = await fetch('/api/admin/clients/export', { headers: ah() }); if (!r.ok) throw new Error('Export failed'); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `freddy-clients-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(u) } catch (e) { alert('导出失败') } }
+
+  const toggleSpam = async (contractId) => {
+    try {
+      const r = await fetch(`/api/admin/contracts/${contractId}/spam`, { method: 'POST', headers: ah() })
+      if (r.ok) { const d = await r.json(); setContracts(prev => prev.map(c => c.id === contractId ? { ...c, is_spam: d.is_spam ? 1 : 0 } : c)) }
+    } catch {}
+  }
+
+  const deleteContract = async (contractId) => {
+    if (!confirm('⚠️ 确认删除此合同？合同相关的所有支付、上传、通知记录将一并删除。此操作不可撤销！')) return
+    try {
+      const r = await fetch(`/api/admin/contracts/${contractId}`, { method: 'DELETE', headers: ah() })
+      if (r.ok) { setContracts(prev => prev.filter(c => c.id !== contractId)); load(page) }
+      else { const d = await r.json(); alert('删除失败: ' + d.error) }
+    } catch { alert('请求失败') }
+  }
+
+  const deleteApplication = async (appId) => {
+    if (!confirm('确认删除此申请表？')) return
+    try {
+      const r = await fetch(`/api/admin/applications/${appId}`, { method: 'DELETE', headers: ah() })
+      if (r.ok) { setApplications(prev => prev.filter(a => a.id !== appId)) }
+      else { const d = await r.json(); alert('删除失败: ' + d.error) }
+    } catch { alert('请求失败') }
+  }
 
   useEffect(() => { load(); loadApps(); fetchRate() }, [])
 
@@ -186,22 +214,31 @@ export default function Admin() {
   const batteryContracts = contracts.filter(c => c.tier === 'battery')
 
   const currentList = (() => {
-    const list = tab === 'packaging' ? pkgContracts : tab === 'weee' ? weeeContracts : batteryContracts
-    if (!showPending) return list
-    return list.filter(c =>
-      c.status === 'pending_payment' ||
-      (c.upload_count > 0) ||
-      (c.signed_at && !c._uploads?.admin_stamped?.length)
-    )
+    let list = tab === 'packaging' ? pkgContracts : tab === 'weee' ? weeeContracts : batteryContracts
+    // Status filter (dropdown)
+    if (statusFilter) {
+      list = list.filter(c => c.status === statusFilter)
+    }
+    // Pending toggle
+    if (showPending) {
+      list = list.filter(c => {
+        const hasUploads = c._uploads && Object.keys(c._uploads).some(k => (c._uploads[k] || []).length > 0)
+        return c.status === 'pending_payment' ||
+          hasUploads ||
+          (c.signed_at && !c._uploads?.admin_stamped?.length)
+      })
+    }
+    return list
   })()
   const appList = applications.filter(a => a.type === tab)
   const pendingCount = (() => {
     const list = tab === 'packaging' ? pkgContracts : tab === 'weee' ? weeeContracts : batteryContracts
-    return list.filter(c =>
-      c.status === 'pending_payment' ||
-      (c.upload_count > 0) ||
-      (c.signed_at && !c._uploads?.admin_stamped?.length)
-    ).length
+    return list.filter(c => {
+      const hasUploads = c._uploads && Object.keys(c._uploads).some(k => (c._uploads[k] || []).length > 0)
+      return c.status === 'pending_payment' ||
+        hasUploads ||
+        (c.signed_at && !c._uploads?.admin_stamped?.length)
+    }).length
   })()
 
   if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
@@ -243,14 +280,22 @@ export default function Admin() {
         <div className="p-4 border-b border-gray-100">
           <div className="flex flex-wrap gap-3 justify-between items-center">
             <div className="flex gap-2">
-              <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ id: cl.contract_id||cl.id, client_id: cl.id, company_name: cl.company_name, contact_email: cl.contact_email, contact_name: cl.contact_name, contact_phone: cl.contact_phone, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, start_date: cl.start_date, end_date: cl.end_date, lucid_confirmed: !!cl.lucid_confirmed, _uploads:{}, _packaging:[] }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2">
+              <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ id: cl.contract_id||cl.id, client_id: cl.id, company_name: cl.company_name, contact_email: cl.contact_email, contact_name: cl.contact_name, contact_phone: cl.contact_phone, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, start_date: cl.start_date, end_date: cl.end_date, lucid_confirmed: !!cl.lucid_confirmed, is_spam: cl.is_spam||0, _uploads:{}, _packaging:[] }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
+                <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setShowPending(false) }}
+                  className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary">
+                  <option value="">全部状态</option>
+                  {Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
                 <button type="button" onClick={() => setShowPending(!showPending)}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                   🔔 待办 {pendingCount > 0 && `(${pendingCount})`}
                 </button>
+                <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer select-none">
+                  <input type="checkbox" checked={showAll} onChange={e => { setShowAll(e.target.checked); load(1, e.target.checked) }} className="w-3.5 h-3.5" /> 含待验证
+                </label>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="公司 / 手机号 / 联系人 / 法人 / 合同号后4位" className="border border-gray-300 rounded-md px-3 py-2 text-sm w-72 focus:outline-none focus:border-primary" />
                 <button type="submit" className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium">🔍 搜索</button>
-                <button type="button" onClick={() => { setSearch(''); load(1); setPage(1) }} className="px-4 py-2 border border-gray-200 rounded-md text-sm text-gray-500">重置</button>
+                <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); setShowAll(false); load(1, false); setPage(1) }} className="px-4 py-2 border border-gray-200 rounded-md text-sm text-gray-500">重置</button>
               </form>
             </div>
           </div>
@@ -413,11 +458,22 @@ export default function Admin() {
                     </td>
                     <td className="p-3 align-top">
                       <div className="space-y-1.5">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-wrap">
                           <span className="text-[10px] text-gray-400">状态</span>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_CLS[c.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_MAP[c.status] || c.status}</span>
                           <span className="text-[10px] text-gray-400">LUCID</span>
                           <span className="text-[10px]">{c.lucid_confirmed ? '✅ 已授权' : '⚠️ 待授权'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <button onClick={() => toggleSpam(c.id)}
+                            className={`text-[10px] px-1.5 py-0.5 rounded ${c.is_spam ? 'bg-red-100 text-red-600' : 'text-gray-400 hover:text-red-500'}`}
+                            title={c.is_spam ? '取消标记' : '标记为垃圾'}>
+                            {c.is_spam ? '🚫 已标记' : '🏴 垃圾'}
+                          </button>
+                          <button onClick={() => deleteContract(c.id)}
+                            className="text-[10px] text-gray-300 hover:text-red-500" title="删除合同">
+                            🗑 删除
+                          </button>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <button onClick={() => resetPassword(c.client_id)}
@@ -464,8 +520,8 @@ export default function Admin() {
         <div className="bg-white border border-gray-100 rounded-lg overflow-hidden">
           <div className="p-4 border-b border-gray-100"><h2 className="font-bold text-sm text-gray-700">申请表</h2></div>
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left"><tr><th className="p-3">ID</th><th className="p-3">客户</th><th className="p-3">类型</th><th className="p-3">状态</th><th className="p-3">日期</th></tr></thead>
-            <tbody>{appList.map(a => <tr key={a.id} className="border-t border-gray-50"><td className="p-3 font-mono text-xs">{a.id}</td><td className="p-3">{a.company_name || '—'}</td><td className="p-3">{a.type}</td><td className="p-3"><span className="text-xs px-2 py-0.5 rounded bg-gray-100">{a.status}</span></td><td className="p-3 text-xs text-gray-400">{a.created_at?.slice(0, 10)}</td></tr>)}</tbody>
+            <thead className="bg-gray-50 text-left"><tr><th className="p-3">ID</th><th className="p-3">客户</th><th className="p-3">类型</th><th className="p-3">状态</th><th className="p-3">日期</th><th className="p-3">操作</th></tr></thead>
+            <tbody>{appList.map(a => <tr key={a.id} className="border-t border-gray-50"><td className="p-3 font-mono text-xs">{a.id}</td><td className="p-3">{a.company_name || '—'}</td><td className="p-3">{a.type}</td><td className="p-3"><span className="text-xs px-2 py-0.5 rounded bg-gray-100">{a.status}</span></td><td className="p-3 text-xs text-gray-400">{a.created_at?.slice(0, 10)}</td><td className="p-3"><button onClick={() => deleteApplication(a.id)} className="text-[10px] text-gray-300 hover:text-red-500">🗑 删除</button></td></tr>)}</tbody>
           </table>
         </div>
       )}
