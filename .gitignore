@@ -18,3 +18,4 @@ projects/contracts/LIVANTO/_tmp_template/
 *.bak*
 *.orig*
 outputs/*.pdf
+node_modules/
