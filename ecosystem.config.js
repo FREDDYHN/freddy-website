@@ -2,14 +2,14 @@ module.exports = {
   apps: [
     {
       name: 'freddy-epr',
-      cwd: '/root/freddy-website/backend',
+      cwd: '/root/freddy-epr/backend',
       script: 'src/server.js',
       env: {
         NODE_ENV: 'production',
         PORT: 3002,
         BASE_URL: 'https://www.freddy-epr.com',
         JWT_SECRET: process.env.JWT_SECRET,
-        DB_PATH: '/root/freddy-website/database/data.db',
+        DB_PATH: '/root/freddy-epr/database/data.db',
         SMTP_HOST: process.env.SMTP_HOST || '',
         SMTP_PORT: process.env.SMTP_PORT || '',
         SMTP_USER: process.env.SMTP_USER || '',

@@ -10,7 +10,7 @@ SERVER_IP="${1:?用法: ./deploy_to_server.sh <服务器IP>}"
 SSH_USER="${2:-root}"
 SSH_TARGET="${SSH_USER}@${SERVER_IP}"
 DEPLOY_TAR="freddy-epr-deploy.tar.gz"
-PROJECT_DIR="/root/freddy-website"
+PROJECT_DIR="/root/freddy-epr"
 
 echo "🚀 FREDDY EPR 一键部署"
 echo "   目标: ${SSH_TARGET}"
@@ -47,7 +47,7 @@ log "上传完成"
 log "4/5 服务器安装依赖并启动..."
 ssh "${SSH_TARGET}" << 'ENDSSH'
 set -e
-cd /root/freddy-website
+cd /root/freddy-epr
 
 # 解压
 tar xzf freddy-epr-deploy.tar.gz
