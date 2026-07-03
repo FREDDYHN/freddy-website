@@ -19,3 +19,4 @@ projects/contracts/LIVANTO/_tmp_template/
 *.orig*
 outputs/*.pdf
 node_modules/
+*.tar.gz
