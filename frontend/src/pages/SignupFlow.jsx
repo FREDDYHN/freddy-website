@@ -125,7 +125,7 @@ export default function SignupFlow() {
           <h2 className="text-xl font-bold text-gray-800">合同已创建，请查收验证邮件</h2>
           <p className="text-gray-500">验证邮件已发送至 <strong>{form.contact_email}</strong></p>
           <p className="text-sm text-gray-400">请点击邮件中的链接设置登录密码，完成后即可进入 Dashboard 管理您的合同。</p>
-          <p className="text-xs text-gray-300 mt-4">未收到邮件？请检查垃圾邮件箱，或联系 zifeng.qian@outlook.com</p>
+          <p className="text-xs text-gray-300 mt-4">未收到邮件？请检查垃圾邮件箱，或联系 +86 152 2138 0610 或 info@freddy-epr.com</p>
           <div className="pt-4">
             <button onClick={() => navigate('/login')} className={btnCls}>前往登录 →</button>
           </div>
