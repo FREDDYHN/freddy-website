@@ -72,6 +72,8 @@ export async function generateContract({ type, clientLocation, data }) {
     start_date: data.start_date || '',
     end_date: data.end_date || '',
     annual_fee_eur: data.annual_fee_eur || data.fee_eur || '',
+    tier_name_de: data.tier === 'basic' ? 'Basis' : data.tier === 'standard' ? 'Standard' : data.tier === 'premium' ? 'Premium' : '',
+    tier_name_zh: data.tier === 'basic' ? '基础' : data.tier === 'standard' ? '标准' : data.tier === 'premium' ? '高级' : '',
     device_count: data.device_count || '',
     brand_count: data.brand_count || '',
     device_categories: data.device_categories || '',
