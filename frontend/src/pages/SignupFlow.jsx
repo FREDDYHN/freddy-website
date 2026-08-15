@@ -50,7 +50,7 @@ export default function SignupFlow() {
   const [form, setForm] = useState({
     company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '', legal_representative_en: '',
     contact_person: '', contact_person_en: '', contact_phone: '', wechat_id: '', contact_email: '',
-    packaging_items: [], tier: urlTier,
+    packaging_items: MATERIALS.map(m => ({ material: m.label, material_key: m.key, category: 'B2C', kg: '', example: '' })), tier: urlTier,
     device_categories: [], brand_count: '1', year_type: 'first',
   })
   const [countryCode, setCountryCode] = useState('+86')
@@ -83,23 +83,15 @@ export default function SignupFlow() {
   const goStep = (n) => { setStep(n); setSearchParams({ step: String(n + 1) }, { replace: true }) }
   const next = (n) => { if (validate(step)) goStep(n) }
 
-  // Packaging
-  const [ni, setNi] = useState({ material: 'plastics', category: 'B2C', kg: '', example: '' })
-  const addItem = () => {
-    const kgVal = parseFloat(ni.kg)
-    if (!ni.kg || isNaN(kgVal) || kgVal <= 0) { setErrors({ kg: '请输入有效的重量' }); return }
-    setErrors({})
-    const newItem = { material: MATERIALS.find(m => m.key === ni.material)?.label || ni.material, material_key: ni.material, category: ni.category, kg: parseFloat(ni.kg), example: ni.example.trim() }
-    // Capture ni values before async state update, then reset both atomically
-    setForm(f => ({ ...f, packaging_items: [...f.packaging_items, newItem] }))
-    setNi({ material: 'plastics', category: 'B2C', kg: '', example: '' })
+  // Packaging — 8 种材料平铺，直接编辑每种材料的 kg/类别/举例
+  const updateMaterial = (materialKey, field, value) => {
+    setForm(f => ({ ...f, packaging_items: f.packaging_items.map(p => p.material_key === materialKey ? { ...p, [field]: value } : p) }))
   }
-  const rmItem = (i) => update('packaging_items', form.packaging_items.filter((_, j) => j !== i))
   const toggleCat = (k) => { const c = form.device_categories; update('device_categories', c.includes(k) ? c.filter(x => x !== k) : [...c, k]) }
 
   const buildBody = () => {
     const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: form.legal_representative_en.trim(), contact_person: form.contact_person.trim(), contact_person_en: form.contact_person_en.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), tier: form.tier }
-    if (isPkg) body.packaging_items = form.packaging_items.map(p => ({ material_type: p.material_key, category: p.category, estimated_kg: p.kg, example: p.example || '' }))
+    if (isPkg) body.packaging_items = form.packaging_items.filter(p => p.kg && parseFloat(p.kg) > 0).map(p => ({ material_type: p.material_key, category: p.category, estimated_kg: p.kg, example: p.example || '' }))
     else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
     return body
   }
@@ -299,45 +291,23 @@ export default function SignupFlow() {
       {step === 1 && isPkg && (
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           <h2 className="font-bold text-lg">包装预申报</h2>
-          <p className="text-sm text-gray-500">添加您在德国市场使用的包装类型，授权代表据此完成双元系统对接。</p>
-          {/* Input row — 4 columns + button, aligned with list below */}
-          <div className="grid gap-2 items-end" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr auto'}}>
-            <div>
-              <label className="block text-xs text-gray-400 mb-0.5">材料类别</label>
-              <select value={ni.material} onChange={e => setNi(n => ({ ...n, material: e.target.value }))} className="w-full border border-gray-200 rounded-md px-2 py-2 text-sm">{MATERIALS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}</select>
+          <p className="text-sm text-gray-500">请填写您在德国市场使用的各类包装的预估年量（kg），未使用的类别留空即可。</p>
+          {/* 8 种材料平铺表格 */}
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="grid items-center bg-gray-100 px-3 py-2 text-xs text-gray-500 font-medium" style={{gridTemplateColumns:'2fr 0.9fr 1fr 1.6fr'}}>
+              <span>材料类别</span><span>类别</span><span>预估年量 (kg/年)</span><span>产品举例（可选）</span>
             </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-0.5">类别</label>
-              <select value={ni.category} onChange={e => setNi(n => ({ ...n, category: e.target.value }))} className="w-full border border-gray-200 rounded-md px-2 py-2 text-sm"><option value="B2C">B2C</option><option value="B2B">B2B</option></select>
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-0.5">预估年量 (kg)</label>
-              <input type="number" value={ni.kg} onChange={e => setNi(n => ({ ...n, kg: e.target.value }))} placeholder="kg/年" className={`w-full border border-gray-200 rounded-md px-2 py-2 text-sm ${errors.kg ? 'border-red-400' : ''}`} />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-0.5">产品举例</label>
-              <input value={ni.example} onChange={e => setNi(n => ({ ...n, example: e.target.value }))} placeholder="如：手机壳" className="w-full border border-gray-200 rounded-md px-2 py-2 text-sm" />
-            </div>
-            <button onClick={addItem} className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-light self-end">+ 添加</button>
-          </div>
-          {errors.kg && <p className="text-red-500 text-xs mt-1">{errors.kg}</p>}
-          {form.packaging_items.length > 0 && (
-            <div className="space-y-1.5">
-              {/* List header */}
-              <div className="grid items-center px-3 py-1.5 text-xs text-gray-400 font-medium" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr auto'}}>
-                <span>材料类别</span><span>类别</span><span>预估年量</span><span>产品举例</span><span></span>
+            {form.packaging_items.map((item) => (
+              <div key={item.material_key} className="grid items-center gap-2 px-3 py-2 text-sm border-t border-gray-100" style={{gridTemplateColumns:'2fr 0.9fr 1fr 1.6fr'}}>
+                <span className="font-medium truncate">{item.material}</span>
+                <select value={item.category} onChange={e => updateMaterial(item.material_key, 'category', e.target.value)} className="border border-gray-200 rounded-md px-2 py-1.5 text-sm bg-white">
+                  <option value="B2C">B2C</option><option value="B2B">B2B</option>
+                </select>
+                <input type="number" value={item.kg} onChange={e => updateMaterial(item.material_key, 'kg', e.target.value)} placeholder="0" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm" />
+                <input value={item.example} onChange={e => updateMaterial(item.material_key, 'example', e.target.value)} placeholder="如：手机壳" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm" />
               </div>
-              {form.packaging_items.map((item, i) => (
-                <div key={i} className="grid items-center bg-gray-50 rounded-md px-3 py-2.5 text-sm" style={{gridTemplateColumns:'1fr 1fr 1fr 1fr auto'}}>
-                  <span className="font-medium truncate">{item.material}</span>
-                  <span className="text-gray-500 text-xs">{item.category}</span>
-                  <span className="font-medium tabular-nums">{item.kg} kg</span>
-                  <span className="text-gray-500 text-xs truncate">{item.example || '—'}</span>
-                  <button onClick={() => rmItem(i)} className="text-red-400 text-xs hover:text-red-600 ml-2">删除</button>
-                </div>
-              ))}
-            </div>
-          )}
+            ))}
+          </div>
           <div className="flex justify-between pt-2">
             <button onClick={() => goStep(step - 1)} className={btnGhostCls}>← 上一步</button>
             <button onClick={() => goStep(step + 1)} className={btnCls}>下一步 →</button>
@@ -422,7 +392,7 @@ export default function SignupFlow() {
                   <div className="grid text-xs text-gray-400 mt-1 mb-1" style={{gridTemplateColumns:'2fr 0.8fr 0.8fr 1.2fr'}}>
                     <span>材料类别</span><span className="pl-4">类别</span><span className="pl-4">预估年量</span><span className="pl-4">产品举例</span>
                   </div>
-                  {form.packaging_items.map((item, i) => (
+                  {form.packaging_items.filter(p => p.kg && parseFloat(p.kg) > 0).map((item, i) => (
                     <div key={i} className="grid text-sm mb-0.5" style={{gridTemplateColumns:'2fr 0.8fr 0.8fr 1.2fr'}}>
                       <span className="font-medium">{item.material}</span>
                       <span className="text-gray-500 pl-4">{item.category}</span>
