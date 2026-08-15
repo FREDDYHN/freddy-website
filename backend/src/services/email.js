@@ -61,7 +61,7 @@ export async function sendConfirmation({ email, name, contractNumber, tier, fee 
 <tr><td style="padding:8px;border:1px solid #e0e0e0;background:#f5f5f5">套餐</td><td style="padding:8px;border:1px solid #e0e0e0">${tier === 'basic' ? '基础' : tier === 'standard' ? '标准' : '高级'} — €${fee}/年</td></tr>
 </table>
 <p><strong>下一步：</strong>支付年费 → 合同激活 → LUCID注册 → LIVANTO确认</p>
-<p style="margin-top:24px;color:#999;font-size:12px">此邮件由系统自动发送。如需帮助，请联系 zifeng.qian@outlook.com</p>
+<p style="margin-top:24px;color:#999;font-size:12px">此邮件由系统自动发送。如需帮助，请联系 +86 152 2138 0610 或 info@freddy-epr.com</p>
 </div>`,
   })
 }
@@ -142,7 +142,7 @@ export async function sendVerificationEmail({ email, name, contractNumber, clien
 <p style="color:#999;font-size:13px">或复制以下链接到浏览器打开：</p>
 <p style="color:#999;font-size:12px;word-break:break-all">${link}</p>
 <p style="margin-top:24px;color:#c0392b;font-size:13px">⚠ 此链接 48 小时内有效，过期后请重新提交申请。</p>
-<p style="margin-top:24px;color:#999;font-size:12px">此邮件由系统自动发送。如需帮助，请联系 zifeng.qian@outlook.com</p>
+<p style="margin-top:24px;color:#999;font-size:12px">此邮件由系统自动发送。如需帮助，请联系 +86 152 2138 0610 或 info@freddy-epr.com</p>
 </div>`,
   })
 }
