@@ -58,6 +58,7 @@ export async function generateContract({ type, clientLocation, data }) {
     company_name: data.company_name || data.company || '',
     company_name_en: data.company_name_en || '',
     company_address: data.company_address || data.address || '',
+    registered_address: data.registered_address || data.company_address || data.address || '',
     registered_address_en: data.registered_address_en || '',
     uscc: data.uscc || '',
     legal_representative: data.legal_representative || data.legal_rep || '',
