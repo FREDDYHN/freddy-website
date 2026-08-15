@@ -29,6 +29,7 @@ tar czf "$DEPLOY_TAR" \
   --exclude='src-legacy' \
   --exclude='frontend/node_modules' \
   --exclude='backend/node_modules' \
+  --exclude='database/data.db*' \
   backend/package.json backend/package-lock.json backend/src/ \
   frontend/dist/ \
   database/ \
