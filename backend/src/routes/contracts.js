@@ -116,13 +116,13 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
       clientId = existingClient.id
       // Update existing client with latest info
       await db.run(
-        'UPDATE clients SET company_name=?, company_name_en=?, registered_address=?, uscc=?, legal_representative=?, contact_name=?, contact_phone=?, wechat_id=? WHERE id=?',
-        company_name, company_name_en || '', registered_address || '', uscc || '', legal_representative || '', contact_person || '', contact_phone || '', wechat_id || '', clientId
+        'UPDATE clients SET company_name=?, company_name_en=?, registered_address=?, registered_address_en=?, uscc=?, legal_representative=?, legal_representative_en=?, contact_name=?, contact_name_en=?, contact_phone=?, wechat_id=? WHERE id=?',
+        company_name, company_name_en || '', registered_address || '', registered_address_en || '', uscc || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_phone || '', wechat_id || '', clientId
       )
     } else {
       const clientResult = await db.run(
-        'INSERT INTO clients (company_name, company_name_en, registered_address, uscc, legal_representative, contact_name, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        company_name, company_name_en || '', registered_address || '', uscc || '', legal_representative || '', contact_person || '', contact_email, contact_phone || '', wechat_id || ''
+        'INSERT INTO clients (company_name, company_name_en, registered_address, registered_address_en, uscc, legal_representative, legal_representative_en, contact_name, contact_name_en, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        company_name, company_name_en || '', registered_address || '', registered_address_en || '', uscc || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_email, contact_phone || '', wechat_id || ''
       )
       clientId = clientResult.lastID
     }
@@ -141,8 +141,8 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
     if (isPackaging && packaging_items && packaging_items.length > 0) {
       for (const item of packaging_items) {
         await db.run(
-          'INSERT INTO packaging_data (contract_id, declaration_year, material_type, packaging_category, estimated_quantity_kg) VALUES (?, ?, ?, ?, ?)',
-          contractId, new Date().getFullYear(), item.material_type, item.category || 'B2C', item.estimated_kg || 0
+          'INSERT INTO packaging_data (contract_id, declaration_year, material_type, packaging_category, example, estimated_quantity_kg) VALUES (?, ?, ?, ?, ?, ?)',
+          contractId, new Date().getFullYear(), item.material_type, item.category || 'B2C', item.example || '', item.estimated_kg || 0
         )
       }
     }

@@ -408,10 +408,10 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
   try {
     const db = await getDb()
     const contract = await db.get(
-      `SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email,
-              cl.contact_phone, cl.uscc, cl.registered_address,
+      `SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_name_en, cl.contact_email,
+              cl.contact_phone, cl.uscc, cl.registered_address, cl.registered_address_en,
               cl.registered_address as company_address,
-              cl.legal_representative,
+              cl.legal_representative, cl.legal_representative_en,
               cl.wechat_id
        FROM contracts c JOIN clients cl ON c.client_id = cl.id WHERE c.id = ?`,
       req.params.id
@@ -423,14 +423,14 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
 
     // Fetch packaging data for Anlage B
     const packagingItems = await db.all(
-      'SELECT material_type, packaging_category, estimated_quantity_kg FROM packaging_data WHERE contract_id = ?',
+      'SELECT material_type, packaging_category, example, estimated_quantity_kg FROM packaging_data WHERE contract_id = ?',
       req.params.id
     )
     const pkgItems = packagingItems.map(p => ({
       material: p.material_type,
       category: p.packaging_category,
       kg: String(p.estimated_quantity_kg || ''),
-      example: '',
+      example: p.example || '',
     }))
 
     const { type, client_location } = req.body
@@ -445,7 +445,8 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
         contract_date: contract.created_at?.slice(0, 10) || new Date().toISOString().slice(0, 10),
         sign_date: new Date().toISOString().slice(0, 10),
         livanto_address: 'LIVANTO GmbH, Germany',
-        livanto_register: 'HRB XXXX',
+        livanto_vat: 'DE464031041',
+        livanto_register: 'HBR38628',
       },
     })
 

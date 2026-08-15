@@ -63,7 +63,7 @@ export async function generateContract({ type, clientLocation, data }) {
     legal_representative: data.legal_representative || data.legal_rep || '',
     legal_representative_en: data.legal_representative_en || '',
     contact_person: data.contact_person || data.contact_name || data.contact || '',
-    contact_person_en: data.contact_person_en || '',
+    contact_person_en: data.contact_person_en || data.contact_name_en || '',
     contact_email: data.contact_email || data.email || '',
     contact_phone: data.contact_phone || data.phone || '',
     wechat_id: data.wechat_id || '',
@@ -82,6 +82,7 @@ export async function generateContract({ type, clientLocation, data }) {
     sign_date: data.sign_date || new Date().toISOString().slice(0, 10),
     livanto_name: 'LIVANTO GmbH',
     livanto_address: data.livanto_address || '',
+    livanto_vat: data.livanto_vat || '',
     livanto_register: data.livanto_register || '',
   }
 
