@@ -350,7 +350,7 @@ export default function Admin() {
                             settleRows.push({ label: (mat ? mat.label : mk), estKg, actKg, exKg: actKg - estKg, rate, estFee, actFeeM, diff: actFeeM - estFee });
                           })
                           const e = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-                          const tierName = c.tier==='basic'?'基础 €89/年':c.tier==='standard'?'标准 €159/年':'高级 €249/年'
+                          const tierName = c.tier==='basic'?'基础 €29/年':c.tier==='standard'?'标准 €49/年':'高级 €79/年'
                           const prepaidDisplay = c.prepaid_amount || prepaidCalc
                           const settleDisplay = c.settlement_amount || Math.abs(settleAmt)
                           const prepaidOverride = c.prepaid_amount > 0 && Math.abs(c.prepaid_amount - prepaidCalc) > 0.01

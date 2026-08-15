@@ -69,7 +69,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
       settleRows.push({ label: (mat ? mat.label : mk), estKg: estKg, actKg: actKg, exKg: actKg - estKg, rate: rate, diff: actFee1 - estFee });
     })
     var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
-    var tierName = c.tier==='basic'?'基础 €89/年':c.tier==='standard'?'标准 €159/年':'高级 €249/年'
+    var tierName = c.tier==='basic'?'基础 €29/年':c.tier==='standard'?'标准 €49/年':'高级 €79/年'
     var prepaidDisplay = prepaidPayment?.amount_eur || prepaidCalc
     var settleDisplay = settlementPayment?.amount_eur || Math.abs(settleAmt)
     var prepaidOverride = prepaidPayment?.amount_eur > 0 && Math.abs(prepaidPayment.amount_eur - prepaidCalc) > 0.01

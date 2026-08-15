@@ -12,9 +12,9 @@
 // ══════════════════════════════════════════════
 
 export const AR_TIERS = {
-  basic:   { key: 'basic',   name: '基础 Basic',         nameEn: 'Basic',    feeEur: 89,  color: 'border-gray-200' },
-  standard:{ key: 'standard',name: '标准 Standard',      nameEn: 'Standard', feeEur: 159, color: 'border-primary', featured: true },
-  premium: { key: 'premium', name: '高级 Premium',       nameEn: 'Premium',  feeEur: 249, color: 'border-gray-200' },
+  basic:   { key: 'basic',   name: '基础 Basic',         nameEn: 'Basic',    feeEur: 29,  color: 'border-gray-200' },
+  standard:{ key: 'standard',name: '标准 Standard',      nameEn: 'Standard', feeEur: 49, color: 'border-primary', featured: true },
+  premium: { key: 'premium', name: '高级 Premium',       nameEn: 'Premium',  feeEur: 79, color: 'border-gray-200' },
 }
 
 export const AR_TIER_FEES_EUR = Object.fromEntries(

@@ -106,7 +106,7 @@ function verifyAlipaySignature(params) {
 async function createPayment({ clientId, contractId, tier, method, amountEur }) {
   method = method || 'wechat'
   const db = await getDb()
-  const eur = amountEur || AR_TIER_FEES_EUR[tier] || 89
+  const eur = amountEur || AR_TIER_FEES_EUR[tier] || 29
   const rate = await getRate()
   const cny = Math.round(eur * rate * 100) / 100
   const tradeNo = genTradeNo()

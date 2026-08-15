@@ -12,7 +12,7 @@ export default function Calculator() {
   const wt = Pw.baseFee + Pw.insolvencyFee + Pw.earQuarterly + we
   const be = Math.max(0, (bb - 1) * Pb.extraBrand) + bb * Pb.earBrandReg + (by === 'first' ? Pb.authFirstYear : 0)
   const bt = Pb.baseFee + Pb.takebackFee + Pb.earMembership + Pb.earQuarterly + be
-  const af = AR_TIERS[ar]?.feeEur || 89
+  const af = AR_TIERS[ar]?.feeEur || 29
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">

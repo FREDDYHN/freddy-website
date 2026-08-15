@@ -76,7 +76,7 @@ export default function Landing() {
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-2xl font-extrabold text-gray-800 mb-3">开始您的德国合规之旅</h2>
           <p className="text-gray-400 text-sm mb-6">3 分钟完成签约，LIVANTO 授权代表即日生效</p>
-          <Link to="/signup/packaging?tier=basic" className="inline-block px-8 py-3 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary/90 transition-colors">立即签约 — €89/年起</Link>
+          <Link to="/signup/packaging?tier=basic" className="inline-block px-8 py-3 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary/90 transition-colors">立即签约 — €29/年起</Link>
         </div>
       </section>
     </div>
