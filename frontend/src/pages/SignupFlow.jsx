@@ -296,12 +296,12 @@ export default function SignupFlow() {
               <div key={item.material_key} className="px-3 py-2.5 text-sm border-t border-gray-100">
                 <div className="font-medium mb-2 md:hidden">{item.material}</div>
                 <div className="grid grid-cols-2 gap-2 items-center md:grid-cols-[2fr_0.9fr_1fr_1.6fr]">
-                  <span className="hidden md:block font-medium truncate">{item.material}</span>
-                  <select value={item.category} onChange={e => updateMaterial(item.material_key, 'category', e.target.value)} className="border border-gray-200 rounded-md px-2 py-1.5 text-sm bg-white">
+                  <span className="hidden md:block font-medium truncate md:order-1">{item.material}</span>
+                  <select value={item.category} onChange={e => updateMaterial(item.material_key, 'category', e.target.value)} className="border border-gray-200 rounded-md px-2 py-1.5 text-sm bg-white order-2">
                     <option value="B2C">B2C</option><option value="B2B">B2B</option>
                   </select>
-                  <input type="number" value={item.kg} onChange={e => updateMaterial(item.material_key, 'kg', e.target.value)} placeholder="kg" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm" />
-                  <input value={item.example} onChange={e => updateMaterial(item.material_key, 'example', e.target.value)} placeholder="如：手机壳" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm col-span-2 md:col-span-1" />
+                  <input type="number" value={item.kg} onChange={e => updateMaterial(item.material_key, 'kg', e.target.value)} placeholder="kg" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm order-1 md:order-3" />
+                  <input value={item.example} onChange={e => updateMaterial(item.material_key, 'example', e.target.value)} placeholder="如：手机壳" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm col-span-2 md:col-span-1 order-3 md:order-4" />
                 </div>
               </div>
             ))}
