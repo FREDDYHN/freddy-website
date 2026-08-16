@@ -368,8 +368,8 @@ export default function SignupFlow() {
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           <h2 className="font-bold text-lg">信息确认</h2>
           <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
-            <div><span className="inline-block w-40 text-gray-400">服务</span><span className="font-bold">{cfg.label}</span></div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <div><span className="inline-block w-20 text-gray-400">服务</span><span className="font-bold">{cfg.label}</span></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
               <div><span className="text-gray-400 text-xs">公司（英文）</span><p className="font-medium text-xs">{form.company_name_en}</p></div>
               <div><span className="text-gray-400 text-xs">公司（中文）</span><p className="font-medium">{form.company_name}</p></div>
               {form.registered_address_en && <div><span className="text-gray-400 text-xs">地址（英文）</span><p className="font-medium text-xs">{form.registered_address_en}</p></div>}
@@ -380,11 +380,11 @@ export default function SignupFlow() {
               <div><span className="text-gray-400 text-xs">联系人（英文）</span><p className="font-medium text-xs">{form.contact_person_en}</p></div>
               <div><span className="text-gray-400 text-xs">联系人（中文）</span><p className="font-medium">{form.contact_person}</p></div>
             </div>
-            <div><span className="inline-block w-40 text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>
-            <div><span className="inline-block w-40 text-gray-400">手机</span><span className="font-medium">{form.contact_phone}</span></div>
-            <div><span className="inline-block w-40 text-gray-400">微信</span><span className="font-medium">{form.wechat_id}</span></div>
+            <div><span className="inline-block w-20 text-gray-400">邮箱</span><span className="font-medium">{form.contact_email}</span></div>
+            <div><span className="inline-block w-20 text-gray-400">手机</span><span className="font-medium">{form.contact_phone}</span></div>
+            <div><span className="inline-block w-20 text-gray-400">微信</span><span className="font-medium">{form.wechat_id}</span></div>
             {isPkg && <>
-                <div><span className="inline-block w-40 text-gray-400">套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div>
+                <div><span className="inline-block w-20 text-gray-400">套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div>
                 <div className="mt-3">
                   <span className="text-gray-400 text-xs">包装预申报</span>
                   <div className="grid text-xs text-gray-400 mt-1 mb-1" style={{gridTemplateColumns:'2fr 0.8fr 0.8fr 1.2fr'}}>
@@ -400,8 +400,8 @@ export default function SignupFlow() {
                   ))}
                 </div>
               </>}
-            {isWeee && <div><span className="inline-block w-40 text-gray-400">设备类别</span><span className="font-medium">{form.device_categories.length} 类</span></div>}
-            {!isPkg && <div><span className="inline-block w-40 text-gray-400">品牌数</span><span className="font-medium">{form.brand_count}</span></div>}
+            {isWeee && <div><span className="inline-block w-20 text-gray-400">设备类别</span><span className="font-medium">{form.device_categories.length} 类</span></div>}
+            {!isPkg && <div><span className="inline-block w-20 text-gray-400">品牌数</span><span className="font-medium">{form.brand_count}</span></div>}
             <div className="border-t pt-2 mt-2 font-bold"><span>预估年费：</span><span className="text-primary">€{reviewFee}</span>{isPkg && <span className="text-gray-400 text-xs font-normal"> + 回收费用（按实际量缴纳）</span>}</div>
           </div>
           <p className="text-xs text-gray-400 pt-2">确认信息无误后，合同将自动生成。您可在登录后的 Dashboard 中下载、签署并上传合同。</p>
