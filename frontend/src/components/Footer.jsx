@@ -7,7 +7,8 @@ export default function Footer() {
         <span>📞 +86 152 2138 0610</span>
         <span>✉️ info@freddy-epr.com</span>
       </div>
-      <p>© {new Date().getFullYear()} 福瑞笛（上海）信息咨询有限公司淮南分公司 版权所有</p>
+      <p>福瑞笛（上海）信息咨询有限公司淮南分公司</p>
+      <p>© {new Date().getFullYear()} 版权所有</p>
       <p>
         <Link to="/about" className="hover:text-white/80">关于我们</Link>
         &nbsp;|&nbsp;
@@ -16,7 +17,8 @@ export default function Footer() {
         <Link to="/privacy" className="hover:text-white/80">隐私政策</Link>
         &nbsp;|&nbsp;
         <Link to="/terms" className="hover:text-white/80">用户服务协议</Link>
-        &nbsp;|&nbsp;
+      </p>
+      <p>
         <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:text-white/80">皖ICP备2025099866号-1</a>
       </p>
     </footer>
