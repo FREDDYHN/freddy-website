@@ -44,15 +44,12 @@ function dateStr(date) {
 }
 
 /**
- * Calculate contract period:
+ * Calculate contract period (自然年):
  *   - Start: first day of NEXT month (gives client time to prepare)
- *   - End:   last day of the 12th month after start
- *
- * Uses the actual resolved start date for end calculation,
- * correctly handling JavaScript Date month overflow (e.g. month 12 → January next year).
+ *   - End:   Dec 31 of the start year (calendar year)
  *
  * Examples:
- *   signed on 2026-06-27 → start 2026-07-01, end 2027-06-30
+ *   signed on 2026-07-15 → start 2026-08-01, end 2026-12-31
  *   signed on 2026-12-15 → start 2027-01-01, end 2027-12-31
  */
 function contractPeriod() {
@@ -60,8 +57,6 @@ function contractPeriod() {
   const startYear = now.getFullYear()
   const startMonth = now.getMonth() + 1  // next calendar month (0-indexed)
   const start = new Date(startYear, startMonth, 1)
-  // Calculate end based on the ACTUAL resolved start date
-  // (handles December→January overflow correctly via JS Date auto-roll)
   const end = new Date(start.getFullYear(), 11, 31)  // 自然年：当年12月31日
   return {
     startDate: dateStr(start),
