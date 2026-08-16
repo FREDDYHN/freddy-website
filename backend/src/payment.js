@@ -10,6 +10,7 @@ import { Router } from 'express'
 import { getDb, getRate } from './db.js'
 import { authMiddleware, adminMiddleware } from './auth.js'
 import { AR_TIER_FEES_EUR } from '../../shared/constants.js'
+import { formatInvoiceNumber, generateAndSendInvoice } from './services/invoice.js'
 
 const SIMULATION_MODE = !process.env.WECHAT_MCH_ID && !process.env.ALIPAY_APP_ID
 
@@ -150,9 +151,11 @@ async function createPayment({ clientId, contractId, tier, method, amountEur }) 
 
 async function markPaid(tradeNo) {
   const db = await getDb()
+  let invoice = null
+  let p = null
   await db.run('BEGIN IMMEDIATE')
   try {
-    const p = await db.get('SELECT * FROM payments WHERE out_trade_no = ?', tradeNo)
+    p = await db.get('SELECT * FROM payments WHERE out_trade_no = ?', tradeNo)
     if (!p) { await db.run('ROLLBACK'); throw new Error('Payment not found') }
     if (p.status === 'paid') { await db.run('ROLLBACK'); return p }
     await db.run("UPDATE payments SET status='paid', paid_at=datetime('now') WHERE out_trade_no=?", tradeNo)
@@ -161,15 +164,22 @@ async function markPaid(tradeNo) {
     }
     const existing = await db.get('SELECT id FROM invoices WHERE payment_id = ?', p.id)
     if (!existing) {
-      const inv = 'INV-' + Date.now().toString(36).toUpperCase() + '-' + crypto.randomBytes(2).toString('hex').toUpperCase()
-      await db.run("INSERT INTO invoices (client_id,contract_id,payment_id,invoice_number,amount_eur,status) VALUES (?,?,?,?,?,'issued')", p.client_id, p.contract_id, p.id, inv, p.amount_eur)
+      // 发票号 = 合同号-YYMM（如 LTO-AR-2026-0006-2607）
+      const contract = await db.get('SELECT contract_number FROM contracts WHERE id = ?', p.contract_id)
+      const invNo = contract?.contract_number ? formatInvoiceNumber(contract.contract_number) : ('INV-' + Date.now().toString(36).toUpperCase())
+      const r = await db.run("INSERT INTO invoices (client_id,contract_id,payment_id,invoice_number,amount_eur,status) VALUES (?,?,?,?,?,'issued')", p.client_id, p.contract_id, p.id, invNo, p.amount_eur)
+      invoice = { id: r.lastID, client_id: p.client_id, contract_id: p.contract_id, invoice_number: invNo, amount_eur: p.amount_eur, invoice_date: new Date().toISOString().slice(0, 10) }
     }
     await db.run('COMMIT')
-    return p
   } catch (e) {
     await db.run('ROLLBACK')
     throw e
   }
+  // 提交成功后异步发发票（仅授权代表年费 contract_fee），不阻塞确认响应
+  if (invoice && p && p.payment_type === 'contract_fee') {
+    generateAndSendInvoice(invoice).catch(e => console.error('[invoice] send failed:', e.message))
+  }
+  return p
 }
 
 async function createWechatOrder(tradeNo, cny, desc) {

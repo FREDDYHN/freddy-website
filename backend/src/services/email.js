@@ -31,11 +31,11 @@ function getTransport() {
   return transporter
 }
 
-export async function send({ to, subject, html }) {
+export async function send({ to, subject, html, attachments }) {
   const t = getTransport()
   if (t) {
     try {
-      await t.sendMail({ from: FROM, to, subject, html })
+      await t.sendMail({ from: FROM, to, subject, html, attachments })
     } catch (e) {
       console.error('[email] Send failed, resetting transporter:', e.message)
       transporter = null // force reconnect on next attempt
@@ -85,16 +85,25 @@ export async function sendLucidGuide({ email, name }) {
   })
 }
 
-export async function sendInvoice({ email, name, invoiceNumber, amount }) {
+export async function sendInvoiceEmail({ email, name, invoiceNumber, amount, pdfBuffer }) {
+  const attachments = pdfBuffer && pdfBuffer.length
+    ? [{ filename: `Rechnung-${invoiceNumber}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
+    : []
   await send({
     to: email,
-    subject: `[FREDDY] 发票 ${invoiceNumber}`,
+    subject: `[FREDDY] 发票 / Rechnung ${invoiceNumber}`,
+    attachments,
     html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
-<h2 style="color:#1e3a5f">电子发票</h2>
+<h2 style="color:#1e3a5f">电子发票 / Elektronische Rechnung</h2>
 <p>${esc(name)}，您好！</p>
-<p>发票号：<strong>${esc(invoiceNumber)}</strong></p>
-<p>金额：<strong>€${amount}</strong></p>
-<p style="color:#999;font-size:12px">FREDDY (Shanghai) Information Consulting Ltd.</p>
+<p>您的授权代表年费发票已生成：</p>
+<table style="border-collapse:collapse;width:100%;margin:16px 0">
+<tr><td style="padding:8px;border:1px solid #e0e0e0;background:#f5f5f5">发票号 / Rechnungsnummer</td><td style="padding:8px;border:1px solid #e0e0e0">${esc(invoiceNumber)}</td></tr>
+<tr><td style="padding:8px;border:1px solid #e0e0e0;background:#f5f5f5">金额 / Betrag</td><td style="padding:8px;border:1px solid #e0e0e0"><strong>€${Number(amount).toFixed(2)}</strong></td></tr>
+</table>
+<p>PDF 发票见附件（德语 + 中文）。</p>
+<p style="margin-top:24px;color:#999;font-size:12px">LIVANTO GmbH · Luisenhoffnung 3C, 44225 Dortmund, Deutschland</p>
+<p style="color:#999;font-size:12px">此邮件由系统自动发送。</p>
 </div>`,
   })
 }

@@ -9,6 +9,7 @@ import { Router } from 'express'
 import { getDb } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
 import { calcMaterialFee, applyFloorFee } from '../../../shared/constants.js'
+import { formatInvoiceNumber, generateAndSendInvoice } from '../services/invoice.js'
 
 const router = Router()
 
@@ -54,6 +55,7 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
     if (!upload) return res.status(404).json({ error: 'Upload not found' })
     if (upload.status === 'approved') return res.status(400).json({ error: 'Upload already approved' })
 
+    let invoiceToSend = null
     await db.run('BEGIN IMMEDIATE')
     try {
       await db.run(
@@ -88,8 +90,10 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
             await db.run("UPDATE payments SET status = 'paid', paid_at = datetime('now') WHERE id = ?", pmt.id)
             if (paymentType === 'contract_fee') {
               await db.run("UPDATE contracts SET status = 'active', paid_confirmed_at = datetime('now'), activated_at = datetime('now'), start_date = date('now'), end_date = date('now','+1 year') WHERE id = ? AND status = 'pending_payment'", upload.contract_id)
-              const inv = 'INV-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase()
-              await db.run("INSERT INTO invoices (client_id, contract_id, payment_id, invoice_number, amount_eur, status) VALUES (?,?,?,?,?,'issued')", upload.client_id, upload.contract_id, pmt.id, inv, pmt.amount_eur)
+              const contract = await db.get('SELECT contract_number FROM contracts WHERE id = ?', upload.contract_id)
+              const invNo = contract?.contract_number ? formatInvoiceNumber(contract.contract_number) : ('INV-' + Date.now().toString(36).toUpperCase())
+              await db.run("INSERT INTO invoices (client_id, contract_id, payment_id, invoice_number, amount_eur, status) VALUES (?,?,?,?,?,'issued')", upload.client_id, upload.contract_id, pmt.id, invNo, pmt.amount_eur)
+              invoiceToSend = { client_id: upload.client_id, contract_id: upload.contract_id, invoice_number: invNo, amount_eur: pmt.amount_eur, invoice_date: new Date().toISOString().slice(0, 10) }
             }
           } else if (paymentType === 'recycling_prepaid') {
             // Calculate prepaid fee from packaging data (same as client dashboard)
@@ -146,6 +150,9 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
       }
 
       await db.run('COMMIT')
+      if (invoiceToSend) {
+        generateAndSendInvoice(invoiceToSend).catch(e => console.error('[invoice] send failed:', e.message))
+      }
       console.log(`[admin] Upload ${req.params.id} ${status} by admin — notified client ${upload.client_id}`)
       res.json({ success: true, upload_id: parseInt(req.params.id), status })
     } catch (e) {
