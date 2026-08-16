@@ -139,7 +139,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     <div className="bg-white border border-gray-100 rounded-lg">
       <button onClick={() => setCollapsed(!collapsed)} className="w-full flex items-center gap-3 p-5 text-left hover:bg-gray-50/50 transition-colors rounded-lg">
         <span className="text-sm font-semibold text-gray-700 flex-shrink-0">💰 付费与申报</span>
-        <span className="text-[11px] text-gray-400 flex-1 truncate">{collapsedSub}</span>
+        <span className="text-xs text-gray-400 flex-1 truncate">{collapsedSub}</span>
         <span className="text-xs text-gray-400 flex-shrink-0">{sorted.length}个周期</span>
         <span className={`text-gray-300 text-xs flex-shrink-0 transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`}>▼</span>
       </button>
@@ -180,60 +180,60 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                   {/* Line 1: Grid aligned with headers */}
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_0.8fr_1fr_1fr_1fr] md:items-start">
                     <div className="flex flex-col">
-                      <span className="text-[10px] text-gray-400 md:hidden">合同号</span>
+                      <span className="text-xs text-gray-400 md:hidden">合同号</span>
                       <span className="h-[18px] flex items-center">
                         <button onClick={() => navigator.clipboard.writeText(c.contract_number)}
                           className="text-xs font-semibold text-gray-700 hover:text-primary transition-colors text-left"
                           title="点击复制合同号">{c.contract_number}</button>
                       </span>
                       <button onClick={() => openFeeDetail(c, cost, pkg, prepaidPayment, settlementPayment)}
-                        className="text-[10px] text-gray-400 hover:text-primary mt-0.5 text-left">📊 费用明细</button>
+                        className="text-xs text-gray-400 hover:text-primary mt-0.5 text-left">📊 费用明细</button>
                     </div>
                     <span className="flex flex-col">
-                      <span className="text-[10px] text-gray-400 md:hidden">服务周期</span>
-                      <span className="text-[10px] text-gray-500 h-[18px] flex items-center">开始：{c.start_date?.slice(0,10)||'—'}</span>
-                      <span className="text-[10px] text-gray-500 h-[18px] flex items-center mt-0.5">结束：{c.end_date?.slice(0,10)||'—'}</span>
+                      <span className="text-xs text-gray-400 md:hidden">服务周期</span>
+                      <span className="text-xs text-gray-500 h-[18px] flex items-center">开始：{c.start_date?.slice(0,10)||'—'}</span>
+                      <span className="text-xs text-gray-500 h-[18px] flex items-center mt-0.5">结束：{c.end_date?.slice(0,10)||'—'}</span>
                     </span>
                     <span className="flex flex-col">
-                      <span className="text-[10px] text-gray-400 md:hidden">授权代表年费</span>
+                      <span className="text-xs text-gray-400 md:hidden">授权代表年费</span>
                       <span className="text-xs text-gray-700 h-[18px] flex items-center">
                         <span className={`font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
                         <span className={`font-semibold ml-1 ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>{isPendingAR ? (proofUploads.length > 0 ? '待确认' : '待付') : '✓'}</span>
                       </span>
-                      <span className="text-[9px] text-gray-350 mt-0.5">≈ ¥{Math.round(c.annual_fee_eur * rate)}</span>
-                      <label className="cursor-pointer text-[10px] text-gray-400 hover:text-primary mt-0.5">
+                      <span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(c.annual_fee_eur * rate)}</span>
+                      <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
                         上传付款凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_annual_fee')} disabled={uploadingCid === c.id} className="hidden" />
                       </label>
                     </span>
                     <span className="flex flex-col">
-                      <span className="text-[10px] text-gray-400 md:hidden">预申报费</span>
+                      <span className="text-xs text-gray-400 md:hidden">预申报费</span>
                       <span className="text-xs text-gray-700 h-[18px] flex items-center">
                         <span className={`font-semibold ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>€{(prepaidPayment?.amount_eur || cost).toFixed(2)}</span>
                         <span className={`font-semibold ml-1 ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>{prepaidPayment?.status === 'paid' ? '✓' : '待缴'}</span>
                       </span>
-                      <span className="text-[9px] text-gray-350 mt-0.5">≈ ¥{Math.round((prepaidPayment?.amount_eur || cost) * rate)}</span>
-                      <label className="cursor-pointer text-[10px] text-gray-400 hover:text-primary mt-0.5">
+                      <span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round((prepaidPayment?.amount_eur || cost) * rate)}</span>
+                      <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
                         上传付款凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_prepaid')} disabled={uploadingCid === c.id} className="hidden" />
                       </label>
                     </span>
                     <span className="flex flex-col">
-                      <span className="text-[10px] text-gray-400 md:hidden">年终结算</span>
+                      <span className="text-xs text-gray-400 md:hidden">年终结算</span>
                       {settlementPayment?.status === 'paid' && settlementPayment.amount_eur > 0 ? (
                         <>
                         <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">€{settlementPayment.amount_eur} ✓</span>
-                        <span className="text-[9px] text-gray-350 mt-0.5">≈ ¥{Math.round(settlementPayment.amount_eur * rate)}</span>
+                        <span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(settlementPayment.amount_eur * rate)}</span>
                         </>
                       ) : settlementPayment && settlementPayment.amount_eur > 0 ? (
                         <>
                         <span className="text-xs text-yellow-600 font-semibold h-[18px] flex items-center">€{settlementPayment.amount_eur} 待缴</span>
-                        <span className="text-[9px] text-gray-350 mt-0.5">≈ ¥{Math.round(settlementPayment.amount_eur * rate)}</span>
+                        <span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(settlementPayment.amount_eur * rate)}</span>
                         </>
                       ) : pkg.some(p => p.submitted_at) ? (
-                        (() => { const actByMat = {}; pkg.forEach(item => { const mk = item.material_type || item.material_key; const ak = parseFloat(item.actual_quantity_kg) || 0; if (ak > 0) actByMat[mk] = (actByMat[mk] || 0) + ak }); let af = 0; Object.entries(actByMat).forEach(([mk, kg]) => { af += calcMaterialFee(mk, kg) }); af = applyFloorFee(af, 28.90); const s = calcTotalSettlement(cost, af); return s.amount > 0 ? <><span className="text-xs text-red-500 font-semibold h-[18px] flex items-center">补缴 €{s.amount.toFixed(2)}</span><span className="text-[9px] text-gray-350 mt-0.5">≈ ¥{Math.round(s.amount * rate)}</span></> : s.amount < 0 ? <><span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">退 €{Math.abs(s.amount).toFixed(2)}</span><span className="text-[9px] text-gray-350 mt-0.5">≈ ¥{Math.round(Math.abs(s.amount) * rate)}</span></> : <span className="text-xs text-blue-500 h-[18px] flex items-center">已申报</span> })()
+                        (() => { const actByMat = {}; pkg.forEach(item => { const mk = item.material_type || item.material_key; const ak = parseFloat(item.actual_quantity_kg) || 0; if (ak > 0) actByMat[mk] = (actByMat[mk] || 0) + ak }); let af = 0; Object.entries(actByMat).forEach(([mk, kg]) => { af += calcMaterialFee(mk, kg) }); af = applyFloorFee(af, 28.90); const s = calcTotalSettlement(cost, af); return s.amount > 0 ? <><span className="text-xs text-red-500 font-semibold h-[18px] flex items-center">补缴 €{s.amount.toFixed(2)}</span><span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(s.amount * rate)}</span></> : s.amount < 0 ? <><span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">退 €{Math.abs(s.amount).toFixed(2)}</span><span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(Math.abs(s.amount) * rate)}</span></> : <span className="text-xs text-blue-500 h-[18px] flex items-center">已申报</span> })()
                       ) : (
                         <button onClick={() => setActualsCid(c.id)} className="text-primary hover:underline font-semibold text-xs h-[18px] flex items-center">申报实际量</button>
                       )}
-                      <label className="cursor-pointer text-[10px] text-gray-400 hover:text-primary mt-0.5">
+                      <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
                         上传付款凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_settlement')} disabled={uploadingCid === c.id} className="hidden" />
                       </label>
                     </span>
