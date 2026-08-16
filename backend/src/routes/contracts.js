@@ -229,6 +229,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
     }
 
     const client = await db.get('SELECT * FROM clients WHERE id = ?', contract.client_id)
+    if (client) delete client.lucid_password_enc
     const packaging = await db.all('SELECT * FROM packaging_data WHERE contract_id = ?', req.params.id)
     res.json({ contract, client, packaging })
   } catch (e) {

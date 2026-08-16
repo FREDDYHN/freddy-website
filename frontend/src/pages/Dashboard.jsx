@@ -150,7 +150,7 @@ export default function Dashboard() {
       {/* Zone A — Contract + LUCID + Client Info */}
       <div className="grid md:grid-cols-3 gap-6 items-start">
         <ContractCard contract={c} uploads={uploads} onUpload={handleUpload} />
-        <LucidCard contract={c} onToggle={handleLucidToggle} />
+        <LucidCard contract={c} client={data.client} onToggle={handleLucidToggle} />
         <ClientInfoCard client={data.client} />
       </div>
 

@@ -20,6 +20,7 @@ import adminNotificationsRoutes from './routes/admin-notifications.js'
 import { authMiddleware, adminMiddleware } from './auth.js'
 import { checkReminders } from './services/reminders.js'
 import { generateContract } from './services/contract-gen.js'
+import { decryptLucid } from './services/crypto.js'
 import { markPaid } from './payment.js'
 import { rateLimit } from './rate-limiter.js'
 
@@ -113,6 +114,7 @@ app.get('/api/dashboard', authMiddleware, async (req, res) => {
 
     const client = await db.get('SELECT * FROM clients WHERE id = ?', clientId)
     if (!client) return res.status(404).json({ error: 'Client not found' })
+    delete client.lucid_password_enc
 
     const contracts = await db.all(
       'SELECT * FROM contracts WHERE client_id = ? ORDER BY id DESC', clientId
@@ -190,7 +192,7 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
     const whereClause = showAll ? '' : "WHERE c.status != 'pending_verification'"
     const [rows, countRow] = await Promise.all([
       db.all(
-        `SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email, cl.contact_phone, cl.registered_address, cl.uscc, cl.legal_representative, cl.wechat_id, cl.lucid_registration_number FROM contracts c JOIN clients cl ON c.client_id = cl.id ${whereClause} ORDER BY c.id DESC LIMIT ? OFFSET ?`,
+        `SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email, cl.contact_phone, cl.registered_address, cl.uscc, cl.legal_representative, cl.wechat_id, cl.lucid_registration_number, cl.lucid_login FROM contracts c JOIN clients cl ON c.client_id = cl.id ${whereClause} ORDER BY c.id DESC LIMIT ? OFFSET ?`,
         perPage, offset
       ),
       db.get(`SELECT COUNT(*) as total FROM contracts c ${whereClause}`),
@@ -297,6 +299,8 @@ app.get('/api/admin/clients/search', authMiddleware, adminMiddleware, async (req
       countRow = await db.get('SELECT COUNT(*) as total FROM clients')
     }
 
+    for (const r of rows) delete r.lucid_password_enc
+
     res.json({
       data: rows,
       pagination: { page, perPage, total: countRow.total, totalPages: Math.ceil(countRow.total / perPage) },
@@ -348,6 +352,23 @@ app.get('/api/admin/clients/export', authMiddleware, adminMiddleware, async (req
     console.error('[server] client export error:', e)
     if (!res.headersSent) res.status(500).json({ error: e.message })
     else res.end()
+  }
+})
+
+// ── Admin: Decrypt LUCID password (for acting on behalf of customer) ──
+app.get('/api/admin/clients/:id/lucid-password', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const client = await db.get('SELECT lucid_login, lucid_password_enc FROM clients WHERE id = ?', req.params.id)
+    if (!client) return res.status(404).json({ error: 'Client not found' })
+    res.json({
+      success: true,
+      login: client.lucid_login || '',
+      password: client.lucid_password_enc ? decryptLucid(client.lucid_password_enc) : '',
+    })
+  } catch (e) {
+    console.error('[server] lucid password error:', e)
+    res.status(500).json({ error: e.message })
   }
 })
 

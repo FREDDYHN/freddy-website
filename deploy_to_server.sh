@@ -72,11 +72,13 @@ cd ..
 # 创建 .env (only on first deploy — preserves existing JWT_SECRET)
 if [ ! -f backend/.env ]; then
     JWT_SECRET=$(openssl rand -hex 32)
+    LUCID_ENCRYPTION_KEY=$(openssl rand -hex 32)
     cat > backend/.env << EOF
 NODE_ENV=production
 PORT=3002
 BASE_URL=https://www.freddy-epr.com
 JWT_SECRET=${JWT_SECRET}
+LUCID_ENCRYPTION_KEY=${LUCID_ENCRYPTION_KEY}
 SMTP_HOST=
 SMTP_PORT=587
 SMTP_USER=

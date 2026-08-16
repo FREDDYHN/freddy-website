@@ -31,6 +31,7 @@ export default function Admin() {
   const [rateModal, setRateModal] = useState(false)
   const [rateNew, setRateNew] = useState('')
   const [rateSubmitting, setRateSubmitting] = useState(false)
+  const [lucidPwd, setLucidPwd] = useState(null)
 
   const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}` } : {} }
 
@@ -39,6 +40,15 @@ export default function Admin() {
       const r = await fetch('/api/admin/rate', { headers: ah() })
       if (r.ok) { const d = await r.json(); setRateInfo(d) }
     } catch {}
+  }
+
+  const showLucidPassword = async (clientId) => {
+    setLucidPwd(null)
+    try {
+      const r = await fetch(`/api/admin/clients/${clientId}/lucid-password`, { headers: ah() })
+      if (r.ok) { const d = await r.json(); setLucidPwd(d.password ?? '') }
+      else { const d = await r.json().catch(() => ({})); alert(d.error || '获取失败') }
+    } catch { alert('网络错误') }
   }
 
   const load = async (p = 1, includeAll = false) => {
@@ -313,7 +323,7 @@ export default function Admin() {
                   return (
                   <tr key={c.id} className="border-t border-gray-100 hover:bg-blue-50 even:bg-blue-50/40">
                     <td className="p-3 align-top">
-                      <button onClick={() => setInfoModal(c)} className="text-xs font-semibold text-primary hover:underline text-left">{c.company_name}</button>
+                      <button onClick={() => { setInfoModal(c); setLucidPwd(null) }} className="text-xs font-semibold text-primary hover:underline text-left">{c.company_name}</button>
                       <p className="text-[10px] text-gray-500 mt-0.5">
                         <span className="font-mono">{c.contract_number}</span>
                         <span className="mx-1 text-gray-300">/</span>
@@ -547,6 +557,20 @@ export default function Admin() {
               {infoModal.wechat_id && <div className="flex justify-between"><span className="text-gray-400">微信</span><span className="font-medium">{infoModal.wechat_id}</span></div>}
               {infoModal.legal_representative && <div className="flex justify-between"><span className="text-gray-400">法定代表人</span><span className="font-medium">{infoModal.legal_representative}</span></div>}
               {infoModal.lucid_registration_number && <div className="flex justify-between"><span className="text-gray-400">LUCID号</span><span className="font-mono font-medium">{infoModal.lucid_registration_number}</span></div>}
+              {infoModal.lucid_login && <div className="flex justify-between"><span className="text-gray-400">LUCID 登录名</span><span className="font-mono font-medium">{infoModal.lucid_login}</span></div>}
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">LUCID 密码</span>
+                {lucidPwd === null ? (
+                  <button onClick={() => showLucidPassword(infoModal.client_id)} className="text-xs text-primary hover:underline">显示密码</button>
+                ) : lucidPwd === '' ? (
+                  <span className="text-xs text-gray-400">客户未填写</span>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-medium">{lucidPwd}</span>
+                    <button onClick={() => navigator.clipboard?.writeText(lucidPwd)} className="text-xs text-primary hover:underline">复制</button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

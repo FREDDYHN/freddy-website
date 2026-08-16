@@ -2,6 +2,7 @@ import { Router } from 'express'
 import bcryptjs from 'bcryptjs'
 import { getDb } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
+import { encryptLucid } from '../services/crypto.js'
 
 const router = Router()
 
@@ -11,6 +12,7 @@ router.get('/', authMiddleware, async (req, res) => {
     const db = await getDb()
     const client = await db.get('SELECT * FROM clients WHERE id = ?', req.user.client_id)
     if (!client) return res.status(404).json({ error: 'Client not found' })
+    delete client.lucid_password_enc
     res.json({ success: true, data: client })
   } catch (e) {
     console.error('[profile] get error:', e)
@@ -43,6 +45,26 @@ router.put('/', authMiddleware, async (req, res) => {
     res.json({ success: true })
   } catch (e) {
     console.error('[profile] update error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// PUT /api/profile/lucid — Save LUCID login credentials (encrypted)
+router.put('/lucid', authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const { lucid_login, lucid_password } = req.body
+    if (!lucid_login || !lucid_login.trim()) return res.status(400).json({ error: 'LUCID 登录名必填' })
+    if (!lucid_password) return res.status(400).json({ error: 'LUCID 密码必填' })
+
+    const enc = encryptLucid(lucid_password)
+    await db.run(
+      "UPDATE clients SET lucid_login = ?, lucid_password_enc = ?, updated_at = datetime('now') WHERE id = ?",
+      lucid_login.trim(), enc, req.user.client_id
+    )
+    res.json({ success: true })
+  } catch (e) {
+    console.error('[profile] lucid save error:', e)
     res.status(500).json({ error: e.message })
   }
 })
