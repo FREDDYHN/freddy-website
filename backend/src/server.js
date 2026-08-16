@@ -444,9 +444,6 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
         packaging_items: pkgItems,
         contract_date: contract.created_at?.slice(0, 10) || new Date().toISOString().slice(0, 10),
         sign_date: new Date().toISOString().slice(0, 10),
-        livanto_address: 'LIVANTO GmbH, Germany',
-        livanto_vat: 'DE464031041',
-        livanto_register: 'HRB38628',
       },
     })
 

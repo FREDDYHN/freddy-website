@@ -83,10 +83,6 @@ export async function generateContract({ type, clientLocation, data }) {
     signer_name: data.signer_name || '',
     signer_title: data.signer_title || '',
     sign_date: data.sign_date || new Date().toISOString().slice(0, 10),
-    livanto_name: 'LIVANTO GmbH',
-    livanto_address: data.livanto_address || '',
-    livanto_vat: data.livanto_vat || '',
-    livanto_register: data.livanto_register || '',
   }
 
   const filledTags = Object.keys(tags).filter(k => tags[k])
