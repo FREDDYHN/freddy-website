@@ -289,17 +289,20 @@ export default function SignupFlow() {
           <p className="text-sm text-gray-500">请填写您在德国市场使用的各类包装的预估年量（kg），未使用的类别留空即可。</p>
           {/* 8 种材料平铺表格 */}
           <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <div className="grid items-center bg-gray-100 px-3 py-2 text-xs text-gray-500 font-medium" style={{gridTemplateColumns:'2fr 0.9fr 1fr 1.6fr'}}>
+            <div className="hidden md:grid items-center bg-gray-100 px-3 py-2 text-xs text-gray-500 font-medium md:grid-cols-[2fr_0.9fr_1fr_1.6fr]">
               <span>材料类别</span><span>类别</span><span>预估年量 (kg/年)</span><span>产品举例（可选）</span>
             </div>
             {form.packaging_items.map((item) => (
-              <div key={item.material_key} className="grid items-center gap-2 px-3 py-2 text-sm border-t border-gray-100" style={{gridTemplateColumns:'2fr 0.9fr 1fr 1.6fr'}}>
-                <span className="font-medium truncate">{item.material}</span>
-                <select value={item.category} onChange={e => updateMaterial(item.material_key, 'category', e.target.value)} className="border border-gray-200 rounded-md px-2 py-1.5 text-sm bg-white">
-                  <option value="B2C">B2C</option><option value="B2B">B2B</option>
-                </select>
-                <input type="number" value={item.kg} onChange={e => updateMaterial(item.material_key, 'kg', e.target.value)} placeholder="0" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm" />
-                <input value={item.example} onChange={e => updateMaterial(item.material_key, 'example', e.target.value)} placeholder="如：手机壳" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm" />
+              <div key={item.material_key} className="px-3 py-2.5 text-sm border-t border-gray-100">
+                <div className="font-medium mb-2 md:hidden">{item.material}</div>
+                <div className="grid grid-cols-2 gap-2 items-center md:grid-cols-[2fr_0.9fr_1fr_1.6fr]">
+                  <span className="hidden md:block font-medium truncate">{item.material}</span>
+                  <select value={item.category} onChange={e => updateMaterial(item.material_key, 'category', e.target.value)} className="border border-gray-200 rounded-md px-2 py-1.5 text-sm bg-white">
+                    <option value="B2C">B2C</option><option value="B2B">B2B</option>
+                  </select>
+                  <input type="number" value={item.kg} onChange={e => updateMaterial(item.material_key, 'kg', e.target.value)} placeholder="kg" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm" />
+                  <input value={item.example} onChange={e => updateMaterial(item.material_key, 'example', e.target.value)} placeholder="如：手机壳" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm col-span-2 md:col-span-1" />
+                </div>
               </div>
             ))}
           </div>
