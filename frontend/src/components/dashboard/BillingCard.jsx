@@ -74,7 +74,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     var settleDisplay = settlementPayment?.amount_eur || Math.abs(settleAmt)
     var prepaidOverride = prepaidPayment?.amount_eur > 0 && Math.abs(prepaidPayment.amount_eur - prepaidCalc) > 0.01
     var settleOverride = settlementPayment?.amount_eur > 0 && hasAnyActuals && Math.abs(settlementPayment.amount_eur - settleAmt) > 0.01
-    var h = ''; h += '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>缴费明细 - '+esc(c.company_name||'')+'</title><style>'
+    var h = ''; h += '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>缴费明细 - '+esc(c.company_name||'')+'</title><style>'
     h += 'body{font:13px "PingFang SC","Microsoft YaHei",sans-serif;padding:64px 24px 24px;max-width:960px;margin:0 auto;color:#333}@media(max-width:768px){body{padding-top:240px}}'
     h += 'h2{font-size:16px;margin:0 0 4px}.sub{color:#888;font-size:12px;margin-bottom:16px}h3{font-size:13px;margin:16px 0 8px;color:#555}'
     h += 'table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:4px 8px}th{color:#888;font-weight:400;border-bottom:1px solid #e0e0e0}td{border-bottom:1px solid #f0f0f0}'
