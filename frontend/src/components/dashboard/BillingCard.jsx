@@ -151,7 +151,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
           ) : (
             <>
             {/* Column Headers */}
-            <div className="grid px-4 py-2 text-xs text-gray-500 font-bold border-b border-gray-200" style={{gridTemplateColumns:'1fr 0.8fr 1fr 1fr 1fr'}}>
+            <div className="hidden md:grid px-4 py-2 text-xs text-gray-500 font-bold border-b border-gray-200 md:grid-cols-[1fr_0.8fr_1fr_1fr_1fr]">
               <span>合同号</span>
               <span>服务周期</span>
               <span>授权代表年费</span>
@@ -178,8 +178,9 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                 {/* ── Row Summary ── */}
                 <div className="px-4 py-3">
                   {/* Line 1: Grid aligned with headers */}
-                  <div className="grid items-start" style={{gridTemplateColumns:'1fr 0.8fr 1fr 1fr 1fr'}}>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_0.8fr_1fr_1fr_1fr] md:items-start">
                     <div className="flex flex-col">
+                      <span className="text-[10px] text-gray-400 md:hidden">合同号</span>
                       <span className="h-[18px] flex items-center">
                         <button onClick={() => navigator.clipboard.writeText(c.contract_number)}
                           className="text-xs font-semibold text-gray-700 hover:text-primary transition-colors text-left"
@@ -189,10 +190,12 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                         className="text-[10px] text-gray-400 hover:text-primary mt-0.5 text-left">📊 费用明细</button>
                     </div>
                     <span className="flex flex-col">
+                      <span className="text-[10px] text-gray-400 md:hidden">服务周期</span>
                       <span className="text-[10px] text-gray-500 h-[18px] flex items-center">开始：{c.start_date?.slice(0,10)||'—'}</span>
                       <span className="text-[10px] text-gray-500 h-[18px] flex items-center mt-0.5">结束：{c.end_date?.slice(0,10)||'—'}</span>
                     </span>
                     <span className="flex flex-col">
+                      <span className="text-[10px] text-gray-400 md:hidden">授权代表年费</span>
                       <span className="text-xs text-gray-700 h-[18px] flex items-center">
                         <span className={`font-semibold ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
                         <span className={`font-semibold ml-1 ${isPendingAR ? 'text-yellow-600' : 'text-green-600'}`}>{isPendingAR ? (proofUploads.length > 0 ? '待确认' : '待付') : '✓'}</span>
@@ -203,6 +206,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                       </label>
                     </span>
                     <span className="flex flex-col">
+                      <span className="text-[10px] text-gray-400 md:hidden">预申报费</span>
                       <span className="text-xs text-gray-700 h-[18px] flex items-center">
                         <span className={`font-semibold ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>€{(prepaidPayment?.amount_eur || cost).toFixed(2)}</span>
                         <span className={`font-semibold ml-1 ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>{prepaidPayment?.status === 'paid' ? '✓' : '待缴'}</span>
@@ -213,6 +217,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                       </label>
                     </span>
                     <span className="flex flex-col">
+                      <span className="text-[10px] text-gray-400 md:hidden">年终结算</span>
                       {settlementPayment?.status === 'paid' && settlementPayment.amount_eur > 0 ? (
                         <>
                         <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">€{settlementPayment.amount_eur} ✓</span>
