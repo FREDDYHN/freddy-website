@@ -315,7 +315,7 @@ app.get('/api/admin/clients/search', authMiddleware, adminMiddleware, async (req
 app.get('/api/admin/clients/export', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const db = await getDb()
-    const headers = ['公司名称','联系人','邮箱','电话','LUCID号','客户状态','注册日期','合同编号','套餐','合同状态','年费€']
+    const headers = ['公司名称','联系人','邮箱','电话','LUCID号','客户状态','注册日期','合同编号','套餐','合同状态','年费€','年费状态','回收费预缴€','回收费预缴状态','年终结算€','年终结算状态']
     const dateStr = new Date().toISOString().slice(0, 10)
     res.setHeader('Content-Type', 'text/csv; charset=utf-8')
     res.setHeader('Content-Disposition', `attachment; filename="freddy-clients-${dateStr}.csv"`)
@@ -327,7 +327,7 @@ app.get('/api/admin/clients/export', authMiddleware, adminMiddleware, async (req
       const rows = await db.all(
         `SELECT cl.company_name, cl.contact_name, cl.contact_email, cl.contact_phone,
                 cl.lucid_registration_number, cl.status as client_status, cl.created_at,
-                c.contract_number, c.tier, c.status as contract_status, c.annual_fee_eur
+                c.id as contract_id, c.contract_number, c.tier, c.status as contract_status, c.annual_fee_eur
          FROM clients cl
          LEFT JOIN contracts c ON c.client_id = cl.id AND c.id = (
            SELECT MAX(id) FROM contracts WHERE client_id = cl.id
@@ -337,12 +337,36 @@ app.get('/api/admin/clients/export', authMiddleware, adminMiddleware, async (req
       )
       if (rows.length === 0) break
 
+      // 批量取各合同的付款（年费/回收费预缴/年终结算），避免 N+1
+      const contractIds = rows.map(r => r.contract_id).filter(Boolean)
+      const allPayments = contractIds.length > 0
+        ? await db.all(
+            `SELECT contract_id, payment_type, amount_eur, status FROM payments WHERE contract_id IN (${contractIds.map(() => '?').join(',')}) ORDER BY id DESC`,
+            ...contractIds
+          )
+        : []
+      const payByContract = {}
+      for (const p of allPayments) {
+        if (!payByContract[p.contract_id]) payByContract[p.contract_id] = {}
+        if (!payByContract[p.contract_id][p.payment_type]) payByContract[p.contract_id][p.payment_type] = p
+      }
+      const statusLabel = (p) => !p ? '' : (p.status === 'paid' ? '已付' : '待付')
+
       for (const r of rows) {
+        const pm = payByContract[r.contract_id] || {}
+        const fee = pm.contract_fee
+        const prepaid = pm.recycling_prepaid
+        const settle = pm.recycling_settlement
         const vals = [
           r.company_name, r.contact_name, r.contact_email, r.contact_phone,
           r.lucid_registration_number, r.client_status, r.created_at,
           r.contract_number, r.tier, r.contract_status, r.annual_fee_eur,
-        ].map(v => '"' + String(v || '').replace(/"/g, '""') + '"')
+          statusLabel(fee),
+          prepaid ? prepaid.amount_eur : '',
+          statusLabel(prepaid),
+          settle ? settle.amount_eur : '',
+          statusLabel(settle),
+        ].map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"')
         res.write(vals.join(',') + '\n')
       }
       offset += BATCH
