@@ -130,8 +130,8 @@ export default function LucidCard({ contract, client, onToggle }) {
             <p className="text-xs text-gray-500">授权代表将来需要您的 LUCID 登录账号和密码，代您申报包装种类和数量。密码加密存储，仅管理员可查看。</p>
             <div className="space-y-2.5">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">LUCID 登录名（邮箱）</label>
-                <input value={lucidLogin} onChange={e => setLucidLogin(e.target.value)} placeholder="lucid 登录邮箱"
+                <label className="block text-xs text-gray-500 mb-1">LUCID 登录邮箱</label>
+                <input value={lucidLogin} onChange={e => setLucidLogin(e.target.value)} placeholder="请输入 LUCID 登录邮箱"
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-primary" />
               </div>
               <div>

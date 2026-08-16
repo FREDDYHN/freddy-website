@@ -557,7 +557,7 @@ export default function Admin() {
               {infoModal.wechat_id && <div className="flex justify-between"><span className="text-gray-400">微信</span><span className="font-medium">{infoModal.wechat_id}</span></div>}
               {infoModal.legal_representative && <div className="flex justify-between"><span className="text-gray-400">法定代表人</span><span className="font-medium">{infoModal.legal_representative}</span></div>}
               {infoModal.lucid_registration_number && <div className="flex justify-between"><span className="text-gray-400">LUCID号</span><span className="font-mono font-medium">{infoModal.lucid_registration_number}</span></div>}
-              {infoModal.lucid_login && <div className="flex justify-between"><span className="text-gray-400">LUCID 登录名</span><span className="font-mono font-medium">{infoModal.lucid_login}</span></div>}
+              {infoModal.lucid_login && <div className="flex justify-between"><span className="text-gray-400">LUCID 登录邮箱</span><span className="font-mono font-medium">{infoModal.lucid_login}</span></div>}
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">LUCID 密码</span>
                 {lucidPwd === null ? (
