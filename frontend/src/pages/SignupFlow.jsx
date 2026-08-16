@@ -189,7 +189,7 @@ export default function SignupFlow() {
           <h2 className="font-bold text-lg">委托方信息</h2>
           <p className="text-xs text-gray-400 -mt-2">Auftraggeber / Kunde</p>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">公司名称 / 中文 *</label>
               <input value={form.company_name} onChange={e => update('company_name', e.target.value)} className={`${inputCls} ${errCls('company_name', errors)}`} placeholder="福瑞笛（上海）信息咨询有限公司" />
@@ -202,7 +202,7 @@ export default function SignupFlow() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">注册地址 / 中文 *</label>
               <input value={form.registered_address} onChange={e => update('registered_address', e.target.value)} className={`${inputCls} ${errCls('registered_address', errors)}`} placeholder="中国上海市浦东新区陆家嘴环路88号金茂大厦58层5808室" />
@@ -216,12 +216,10 @@ export default function SignupFlow() {
 
           <div>
             <label className="block text-xs font-semibold mb-1 text-gray-500">统一社会信用代码 / 税号（如有）</label>
-            <div className="grid grid-cols-2 gap-3"><div>
             <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={inputCls} placeholder="91340400MADDK97K4X" />
-            </div></div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">法定代表人 / 中文 *</label>
               <input value={form.legal_representative} onChange={e => update('legal_representative', e.target.value)} className={`${inputCls} ${errCls('legal_representative', errors)}`} placeholder="冯巩" />
@@ -236,7 +234,7 @@ export default function SignupFlow() {
 
           <div className="border-t border-gray-100"></div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">联系人 / 中文 *</label>
               <input value={form.contact_person} onChange={e => update('contact_person', e.target.value)} className={`${inputCls} ${errCls('contact_person', errors)}`} placeholder="潘长江" />
@@ -249,7 +247,7 @@ export default function SignupFlow() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">手机号 *</label>
               <div className="flex gap-2">
@@ -271,14 +269,11 @@ export default function SignupFlow() {
 
           <div className="border-t border-gray-100"></div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+          <div>
             <label className="block text-xs font-semibold mb-1 text-gray-500">E-Mail / 电子邮箱（用于登录）*</label>
             <input type="email" value={form.contact_email} onChange={e => update('contact_email', e.target.value)} className={`${inputCls} ${errCls('contact_email', errors)}`} placeholder="your@email.com" />
             {fe('contact_email')}
             <p className="text-xs text-gray-400 mt-1">提交后将发送验证邮件，点击链接设置登录密码</p>
-            </div>
-            <div></div>
           </div>
 
           <div className="flex justify-end pt-2">
