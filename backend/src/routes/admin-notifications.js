@@ -89,7 +89,7 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
           if (pmt) {
             await db.run("UPDATE payments SET status = 'paid', paid_at = datetime('now') WHERE id = ?", pmt.id)
             if (paymentType === 'contract_fee') {
-              await db.run("UPDATE contracts SET status = 'active', paid_confirmed_at = datetime('now'), activated_at = datetime('now'), start_date = date('now'), end_date = date('now','+1 year') WHERE id = ? AND status = 'pending_payment'", upload.contract_id)
+              await db.run("UPDATE contracts SET status = 'active', paid_confirmed_at = datetime('now'), activated_at = datetime('now'), start_date = date('now'), end_date = date('now','start of year','+1 year','-1 day') WHERE id = ? AND status = 'pending_payment'", upload.contract_id)
               const contract = await db.get('SELECT contract_number FROM contracts WHERE id = ?', upload.contract_id)
               const invNo = contract?.contract_number ? formatInvoiceNumber(contract.contract_number) : ('INV-' + Date.now().toString(36).toUpperCase())
               await db.run("INSERT INTO invoices (client_id, contract_id, payment_id, invoice_number, amount_eur, status) VALUES (?,?,?,?,?,'issued')", upload.client_id, upload.contract_id, pmt.id, invNo, pmt.amount_eur)

@@ -160,7 +160,7 @@ async function markPaid(tradeNo) {
     if (p.status === 'paid') { await db.run('ROLLBACK'); return p }
     await db.run("UPDATE payments SET status='paid', paid_at=datetime('now') WHERE out_trade_no=?", tradeNo)
     if (p.contract_id) {
-      await db.run("UPDATE contracts SET status='active', paid_confirmed_at=datetime('now'), activated_at=datetime('now'), start_date=date('now'), end_date=date('now','+1 year') WHERE id=? AND status='pending_payment'", p.contract_id)
+      await db.run("UPDATE contracts SET status='active', paid_confirmed_at=datetime('now'), activated_at=datetime('now'), start_date=date('now'), end_date=date('now','start of year','+1 year','-1 day') WHERE id=? AND status='pending_payment'", p.contract_id)
     }
     const existing = await db.get('SELECT id FROM invoices WHERE payment_id = ?', p.id)
     if (!existing) {

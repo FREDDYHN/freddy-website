@@ -62,7 +62,7 @@ function contractPeriod() {
   const start = new Date(startYear, startMonth, 1)
   // Calculate end based on the ACTUAL resolved start date
   // (handles December→January overflow correctly via JS Date auto-roll)
-  const end = new Date(start.getFullYear() + 1, start.getMonth(), 0)
+  const end = new Date(start.getFullYear(), 11, 31)  // 自然年：当年12月31日
   return {
     startDate: dateStr(start),
     endDate: dateStr(end),

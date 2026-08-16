@@ -22,6 +22,14 @@ const LIVANTO = {
   bank: { kontoinhaber: 'LIVANTO GmbH', bank: 'Postbank', iban: 'DE11 4667 0204 0080 8352 00', bic: 'DEUTDEDWP03' },
 }
 
+const FREDDY = {
+  kontoinhaber: 'FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN',
+  bank: 'BANK OF CHINA HUAINAN BRANCH',
+  kontonummer: '181276312093',
+  swift: 'BKCHCNBJ780',
+  bankadresse: 'NO.21, LONGHU ROAD, HUAINAN CITY, CHINA',
+}
+
 const TIER_DE = { basic: 'Basis', standard: 'Standard', premium: 'Premium' }
 const TIER_ZH = { basic: '基础', standard: '标准', premium: '高级' }
 
@@ -74,7 +82,7 @@ export function buildInvoiceHtml(invoice, client, contract) {
   <div>
     <strong>Rechnungsempfänger / 客户：</strong><br>
     ${esc(client.company_name_en || '')} &nbsp; ${esc(client.company_name || '')}<br>
-    ${esc(client.registered_address || '')}${client.uscc ? `<br>USt-ID / 税号: ${esc(client.uscc)}` : ''}
+    ${esc(client.registered_address || '')}${client.registered_address_en ? `<br>${esc(client.registered_address_en)}` : ''}${client.uscc ? `<br>USt-ID / 税号: ${esc(client.uscc)}` : ''}
   </div>
 
   <div class="title">Rechnung / 发票</div>
@@ -105,6 +113,13 @@ export function buildInvoiceHtml(invoice, client, contract) {
     <strong>Bankverbindung / 银行信息</strong><br>
     Kontoinhaber: ${esc(LIVANTO.bank.kontoinhaber)} &nbsp;|&nbsp; Bank: ${esc(LIVANTO.bank.bank)}<br>
     IBAN: ${esc(LIVANTO.bank.iban)} &nbsp;|&nbsp; BIC(SWIFT): ${esc(LIVANTO.bank.bic)}
+    <br><br>
+    <span class="note">Gemäß Dreiparteienvertrag ist FREDDY die Inkassostelle / 根据三方合同，FREDDY 为代收款方：</span><br>
+    Kontoinhaber: ${esc(FREDDY.kontoinhaber)} &nbsp;|&nbsp; Bank: ${esc(FREDDY.bank)}<br>
+    Kontonummer: ${esc(FREDDY.kontonummer)} &nbsp;|&nbsp; Swift-Code: ${esc(FREDDY.swift)}<br>
+    Bankadresse: ${esc(FREDDY.bankadresse)}<br>
+    户名：福瑞笛（上海）信息咨询有限公司淮南分公司 &nbsp;|&nbsp; 开户行：中国银行股份有限公司淮南分行<br>
+    账号：181276312093 &nbsp;|&nbsp; 银行代码：BKCHCNBJ780 &nbsp;|&nbsp; 开户行地址：安徽省淮南市龙湖路21号
   </div>
 </body>
 </html>`
