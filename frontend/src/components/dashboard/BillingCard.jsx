@@ -151,7 +151,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
           ) : (
             <>
             {/* Column Headers */}
-            <div className="hidden md:grid px-4 py-2 text-xs text-gray-500 font-bold border-b border-gray-200 md:grid-cols-[1fr_0.8fr_0.8fr_1fr_1fr_1fr]">
+            <div className="hidden md:grid px-4 py-2 text-xs text-gray-500 font-bold border-b border-gray-200 md:grid-cols-[0.9fr_0.7fr_0.8fr_1.1fr_1.1fr_1.1fr]">
               <span>合同号</span>
               <span>服务周期</span>
               <span>往年缴费凭证</span>
@@ -180,7 +180,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                 {/* ── Row Summary ── */}
                 <div className="px-4 py-3">
                   {/* Line 1: Grid aligned with headers */}
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_0.8fr_0.8fr_1fr_1fr_1fr] md:items-start">
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-[0.9fr_0.7fr_0.8fr_1.1fr_1.1fr_1.1fr] md:items-start">
                     <div className="flex flex-col">
                       <span className="text-xs text-gray-600 font-semibold md:hidden">合同号</span>
                       <span className="h-[18px] flex items-center">
