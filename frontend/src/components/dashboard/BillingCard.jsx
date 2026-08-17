@@ -232,7 +232,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                             </label>
                           </>) : (<>
                             {prepaidPayment?.status !== 'paid' && (
-                              <button onClick={() => onPredeclared(c.id, false)} className="text-yellow-600 hover:underline font-semibold text-xs mt-0.5 text-left">标记已预申报</button>
+                              <button onClick={() => onPredeclared(c.id, false)} className="text-yellow-600 hover:underline font-semibold text-xs mt-0.5 text-left">我已预申报</button>
                             )}
                             <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
                               上传付款凭证（待管理员确认） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_prepaid')} disabled={uploadingCid === c.id} className="hidden" />
