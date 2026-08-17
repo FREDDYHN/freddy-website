@@ -683,6 +683,45 @@ app.delete('/api/admin/contracts/:id', authMiddleware, adminMiddleware, async (r
   }
 })
 
+// ── Admin: Delete client account (contract + contact info + login, frees unique email/phone) ──
+app.delete('/api/admin/clients/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const clientId = req.params.id
+    const client = await db.get('SELECT id FROM clients WHERE id = ?', clientId)
+    if (!client) return res.status(404).json({ error: 'Client not found' })
+
+    const contracts = await db.all('SELECT id FROM contracts WHERE client_id = ?', clientId)
+    const cids = contracts.map(c => c.id)
+
+    await db.run('BEGIN')
+    try {
+      // 自底向上删除，避免外键约束冲突
+      await db.run('DELETE FROM invoices WHERE client_id = ?', clientId)
+      await db.run('DELETE FROM payments WHERE client_id = ?', clientId)
+      if (cids.length > 0) {
+        const ph = cids.map(() => '?').join(',')
+        await db.run(`DELETE FROM packaging_data WHERE contract_id IN (${ph})`, ...cids)
+        await db.run(`DELETE FROM reminders WHERE contract_id IN (${ph})`, ...cids)
+      }
+      await db.run('DELETE FROM uploads WHERE client_id = ?', clientId)
+      await db.run('DELETE FROM notifications WHERE client_id = ?', clientId)
+      await db.run('DELETE FROM applications WHERE client_id = ?', clientId)
+      await db.run('DELETE FROM contracts WHERE client_id = ?', clientId)
+      await db.run('DELETE FROM users WHERE client_id = ?', clientId)
+      await db.run('DELETE FROM clients WHERE id = ?', clientId)
+      await db.run('COMMIT')
+    } catch (e) {
+      await db.run('ROLLBACK')
+      throw e
+    }
+    res.json({ success: true, client_id: parseInt(clientId) })
+  } catch (e) {
+    console.error('[server] client delete error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // ── Admin: Toggle spam flag on application ──
 app.post('/api/admin/applications/:id/spam', authMiddleware, adminMiddleware, async (req, res) => {
   try {

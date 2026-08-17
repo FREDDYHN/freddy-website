@@ -135,6 +135,15 @@ export default function Admin() {
     } catch { alert('请求失败') }
   }
 
+  const deleteClient = async (clientId) => {
+    if (!confirm('⚠️ 确认删除此账户？将永久删除该客户的合同、联系方式、登录账号及全部关联数据（支付/上传/通知等），邮箱和电话将释放并可重新注册。此操作不可撤销！')) return
+    try {
+      const r = await fetch(`/api/admin/clients/${clientId}`, { method: 'DELETE', headers: ah() })
+      if (r.ok) { setContracts(prev => prev.filter(c => c.client_id !== clientId)); load(page) }
+      else { const d = await r.json(); alert('删除失败: ' + d.error) }
+    } catch { alert('请求失败') }
+  }
+
   const deleteApplication = async (appId) => {
     if (!confirm('确认删除此申请表？')) return
     try {
@@ -507,6 +516,10 @@ export default function Admin() {
                           <button onClick={() => deleteContract(c.id)}
                             className="text-[10px] text-gray-300 hover:text-red-500" title="删除合同">
                             🗑 删除
+                          </button>
+                          <button onClick={() => deleteClient(c.client_id)}
+                            className="text-[10px] text-gray-300 hover:text-red-500" title="删除账户（合同/联系方式/登录账号，邮箱电话释放）">
+                            🗑 删账户
                           </button>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
