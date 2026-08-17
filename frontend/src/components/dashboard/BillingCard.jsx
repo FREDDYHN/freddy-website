@@ -151,9 +151,10 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
           ) : (
             <>
             {/* Column Headers */}
-            <div className="hidden md:grid px-4 py-2 text-xs text-gray-500 font-bold border-b border-gray-200 md:grid-cols-[1fr_0.8fr_1fr_1fr_1fr]">
+            <div className="hidden md:grid px-4 py-2 text-xs text-gray-500 font-bold border-b border-gray-200 md:grid-cols-[1fr_0.8fr_0.8fr_1fr_1fr_1fr]">
               <span>合同号</span>
               <span>服务周期</span>
+              <span>往年缴费凭证</span>
               <span>授权代表年费</span>
               <span>预申报费</span>
               <span>年终结算</span>
@@ -178,7 +179,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                 {/* ── Row Summary ── */}
                 <div className="px-4 py-3">
                   {/* Line 1: Grid aligned with headers */}
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_0.8fr_1fr_1fr_1fr] md:items-start">
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_0.8fr_0.8fr_1fr_1fr_1fr] md:items-start">
                     <div className="flex flex-col">
                       <span className="text-xs text-gray-600 font-semibold md:hidden">合同号</span>
                       <span className="h-[18px] flex items-center">
@@ -193,6 +194,12 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                       <span className="text-xs text-gray-600 font-semibold md:hidden">服务周期</span>
                       <span className="text-xs text-gray-500 h-[18px] flex items-center">开始：{c.start_date?.slice(0,10)||'—'}</span>
                       <span className="text-xs text-gray-500 h-[18px] flex items-center mt-0.5">结束：{c.end_date?.slice(0,10)||'—'}</span>
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="text-xs text-gray-600 font-semibold md:hidden">往年缴费凭证</span>
+                      <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
+                        上传往年缴费凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_previous_year')} disabled={uploadingCid === c.id} className="hidden" />
+                      </label>
                     </span>
                     <span className="flex flex-col">
                       <span className="text-xs text-gray-600 font-semibold md:hidden">授权代表年费</span>

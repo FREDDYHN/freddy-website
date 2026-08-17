@@ -19,6 +19,7 @@ const FILE_LABELS = {
   proof_annual_fee: '年费付款凭证',
   proof_prepaid: '预缴回收费凭证',
   proof_settlement: '年终结算凭证',
+  proof_previous_year: '往年缴费凭证',
   admin_stamped: '管理文件',
   payment_proof: '付款凭证',
 }
