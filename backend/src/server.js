@@ -18,7 +18,7 @@ import uploadsRoutes from './routes/uploads.js'
 import notificationsRoutes from './routes/notifications.js'
 import adminNotificationsRoutes from './routes/admin-notifications.js'
 import { authMiddleware, adminMiddleware } from './auth.js'
-import { checkReminders } from './services/reminders.js'
+import { checkReminders, startReminderScheduler } from './services/reminders.js'
 import { generateContract } from './services/contract-gen.js'
 import { decryptLucid } from './services/crypto.js'
 import { markPaid } from './payment.js'
@@ -740,6 +740,7 @@ async function start() {
   await getDb()
   await seedAdmin()
   startRateFetcher()
+  startReminderScheduler()
   const server = app.listen(PORT, () => {
     console.log(`[server] Freddy EPR Platform running on http://localhost:${PORT}`)
     console.log(`[server] CORS origins: ${ALLOWED_ORIGINS.join(', ')}`)

@@ -100,3 +100,22 @@ export async function checkReminders() {
 
   console.log(`[reminders] Check complete — ${todayStr}`)
 }
+
+/**
+ * Start the scheduled reminder checker.
+ * Runs once on startup, then every 6 hours — so reporting/expiry reminders
+ * are never missed if no admin manually clicks the "check" button.
+ */
+export function startReminderScheduler() {
+  const run = () => {
+    checkReminders().catch((e) => {
+      console.error('[reminders] Scheduled check failed:', e.message)
+    })
+  }
+
+  run() // once at startup
+
+  setInterval(run, 6 * 60 * 60 * 1000)
+
+  console.log('[reminders] Auto-scheduler started (every 6 hours)')
+}

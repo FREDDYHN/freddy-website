@@ -3,7 +3,7 @@ import { getDb } from '../db.js'
 import { authMiddleware } from '../auth.js'
 import { createPayment } from '../payment.js'
 import { generateContract, getContractUrl } from '../services/contract-gen.js'
-import { sendVerificationEmail } from '../services/email.js'
+import { sendVerificationEmail, sendLucidGuide } from '../services/email.js'
 import { rateLimit } from '../rate-limiter.js'
 import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES } from '../../../shared/constants.js'
 
@@ -322,6 +322,28 @@ router.post('/:id/submit-actuals', authMiddleware, async (req, res) => {
     res.json({ success: true, packaging })
   } catch (e) {
     console.error('[contracts] submit-actuals error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// POST /api/contracts/:id/send-lucid-guide — Email LUCID registration guide to client (auth required)
+router.post('/:id/send-lucid-guide', authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const contract = await db.get(
+      'SELECT c.*, cl.contact_email, cl.contact_name FROM contracts c JOIN clients cl ON c.client_id = cl.id WHERE c.id = ?',
+      req.params.id
+    )
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    if (req.user.role !== 'admin' && contract.client_id !== req.user.client_id) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+    if (!contract.contact_email) return res.status(400).json({ error: 'Client email missing' })
+
+    await sendLucidGuide({ email: contract.contact_email, name: contract.contact_name })
+    res.json({ success: true })
+  } catch (e) {
+    console.error('[contracts] send-lucid-guide error:', e)
     res.status(500).json({ error: e.message })
   }
 })

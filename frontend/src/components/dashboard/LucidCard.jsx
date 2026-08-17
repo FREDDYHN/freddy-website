@@ -11,6 +11,8 @@ export default function LucidCard({ contract, client, onToggle }) {
   const [lucidConfirm, setLucidConfirm] = useState('')
   const [savingLucid, setSavingLucid] = useState(false)
   const [lucidMsg, setLucidMsg] = useState('')
+  const [sendingGuide, setSendingGuide] = useState(false)
+  const [guideMsg, setGuideMsg] = useState('')
 
   if (!contract) return null
 
@@ -55,6 +57,29 @@ export default function LucidCard({ contract, client, onToggle }) {
     }
   }
 
+  const handleSendGuide = async () => {
+    if (sendingGuide) return
+    setSendingGuide(true)
+    setGuideMsg('')
+    try {
+      const t = sessionStorage.getItem('token')
+      const r = await fetch(`/api/contracts/${contract.id}/send-lucid-guide`, {
+        method: 'POST',
+        headers: t ? { Authorization: `Bearer ${t}` } : {},
+      })
+      const d = await r.json()
+      if (r.ok) {
+        setGuideMsg('✅ 注册指南已发送到您的邮箱')
+      } else {
+        setGuideMsg(d.error || '发送失败')
+      }
+    } catch {
+      setGuideMsg('网络错误，请稍后重试')
+    } finally {
+      setSendingGuide(false)
+    }
+  }
+
   return (
     <div className="bg-white border border-gray-100 rounded-lg">
       <button onClick={() => setCollapsed(!collapsed)} className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50/50 transition-colors rounded-lg">
@@ -80,6 +105,15 @@ export default function LucidCard({ contract, client, onToggle }) {
               <li>完成后，点击下方按钮确认</li>
             </ol>
           </div>
+
+          <button
+            onClick={handleSendGuide}
+            disabled={sendingGuide}
+            className="w-full py-2 border border-gray-200 rounded-md text-sm text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            {sendingGuide ? '发送中...' : '📧 将 LUCID 注册指南发送到我的邮箱'}
+          </button>
+          {guideMsg && <p className={`text-xs ${guideMsg.startsWith('✅') ? 'text-green-600' : 'text-amber-600'}`}>{guideMsg}</p>}
 
           {!showConfirm ? (
             <button

@@ -73,14 +73,14 @@ export async function sendLucidGuide({ email, name }) {
     html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
 <h2 style="color:#1e3a5f">LUCID 注册指南</h2>
 <p>${esc(name)}，您好！</p>
-<p>请按照以下步骤完成 LUCID 注册：</p>
+<p>授权代表服务不包含 LUCID 注册，请按以下步骤自行完成：</p>
 <ol>
 <li>访问 <a href="https://lucid.verpackungsregister.org">lucid.verpackungsregister.org</a></li>
-<li>点击 "Registrieren" 注册您的公司信息</li>
-<li>获取 LUCID 注册号后，在系统中将 LIVANTO GmbH 指定为授权代表</li>
+<li>点击 "Registrieren" 注册公司信息</li>
+<li>获取 LUCID 注册号后，在 LUCID 中搜索并选择 <strong>LIVANTO GmbH</strong> 作为授权代表（授权代表 ID：<strong>DE8514687609035</strong>）</li>
 </ol>
-<p>LIVANTO 授权代表 ID：<strong>（请咨询客服获取）</strong></p>
-<p style="margin-top:24px;color:#999;font-size:12px">详细中文图文指南即将上线。</p>
+<p>完成上述步骤后，请回到 Dashboard 确认「已在 LUCID 中完成授权」，LIVANTO 将接管除注册外的全部法定义务。</p>
+<p style="margin-top:24px;color:#999;font-size:12px">如需帮助，请联系 +86 152 2138 0610 或 info@freddy-epr.com</p>
 </div>`,
   })
 }
