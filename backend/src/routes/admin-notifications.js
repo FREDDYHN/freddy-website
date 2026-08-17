@@ -6,7 +6,7 @@
  * record that the client sees in their dashboard bell.
  */
 import { Router } from 'express'
-import { getDb } from '../db.js'
+import { getDb, withTransaction } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
 import { calcMaterialFee, applyFloorFee } from '../../../shared/constants.js'
 import { formatInvoiceNumber, generateAndSendInvoice } from '../services/invoice.js'
@@ -58,8 +58,7 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
     if (upload.status === 'approved') return res.status(400).json({ error: 'Upload already approved' })
 
     let invoiceToSend = null
-    await db.run('BEGIN IMMEDIATE')
-    try {
+    await withTransaction(db, async () => {
       await db.run(
         'UPDATE uploads SET status = ?, review_comment = ? WHERE id = ?',
         status, comment || null, req.params.id
@@ -161,16 +160,12 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
         )
       }
 
-      await db.run('COMMIT')
-      if (invoiceToSend) {
-        generateAndSendInvoice(invoiceToSend).catch(e => console.error('[invoice] send failed:', e.message))
-      }
-      console.log(`[admin] Upload ${req.params.id} ${status} by admin — notified client ${upload.client_id}`)
-      res.json({ success: true, upload_id: parseInt(req.params.id), status })
-    } catch (e) {
-      await db.run('ROLLBACK')
-      throw e
+    })
+    if (invoiceToSend) {
+      generateAndSendInvoice(invoiceToSend).catch(e => console.error('[invoice] send failed:', e.message))
     }
+    console.log(`[admin] Upload ${req.params.id} ${status} by admin — notified client ${upload.client_id}`)
+    res.json({ success: true, upload_id: parseInt(req.params.id), status })
   } catch (e) {
     console.error('[admin] review error:', e)
     res.status(500).json({ error: e.message })

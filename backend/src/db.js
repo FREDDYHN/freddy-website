@@ -26,6 +26,7 @@ export async function getDb() {
   await db.exec('PRAGMA journal_mode = WAL')
   await db.exec('PRAGMA foreign_keys = ON')
   await db.exec('PRAGMA wal_autocheckpoint = 1000')
+  await db.exec('PRAGMA busy_timeout = 5000')
 
   // Initialize schema
   if (fs.existsSync(SCHEMA_PATH)) {
@@ -46,6 +47,28 @@ export async function getDb() {
 
   console.log(`[db] Connected: ${DB_PATH}`)
   return db
+}
+
+// ═══ Transaction Helper ═══
+// getDb() 返回单例共享连接，手写 BEGIN/COMMIT 容易因提前 return 或并发 await 导致
+// 事务泄漏 / 嵌套，报 "cannot start a transaction within a transaction"。
+// 这里用一个模块级互斥队列串行化所有事务，并用 try/catch 保证必然 COMMIT/ROLLBACK。
+let txnQueue = Promise.resolve()
+
+export async function withTransaction(db, fn) {
+  const run = txnQueue.then(async () => {
+    await db.run('BEGIN IMMEDIATE')
+    try {
+      const result = await fn()
+      await db.run('COMMIT')
+      return result
+    } catch (e) {
+      try { await db.run('ROLLBACK') } catch (_) {}
+      throw e
+    }
+  })
+  txnQueue = run.catch(() => {})   // 失败也不阻塞后续事务
+  return run
 }
 
 export async function closeDb() {

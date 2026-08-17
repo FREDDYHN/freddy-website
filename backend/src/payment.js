@@ -7,7 +7,7 @@
  */
 import crypto from 'crypto'
 import { Router } from 'express'
-import { getDb, getRate } from './db.js'
+import { getDb, getRate, withTransaction } from './db.js'
 import { authMiddleware, adminMiddleware } from './auth.js'
 import { AR_TIER_FEES_EUR } from '../../shared/constants.js'
 import { formatInvoiceNumber, generateAndSendInvoice } from './services/invoice.js'
@@ -153,11 +153,10 @@ async function markPaid(tradeNo) {
   const db = await getDb()
   let invoice = null
   let p = null
-  await db.run('BEGIN IMMEDIATE')
-  try {
+  await withTransaction(db, async () => {
     p = await db.get('SELECT * FROM payments WHERE out_trade_no = ?', tradeNo)
-    if (!p) { await db.run('ROLLBACK'); throw new Error('Payment not found') }
-    if (p.status === 'paid') { await db.run('ROLLBACK'); return p }
+    if (!p) throw new Error('Payment not found')
+    if (p.status === 'paid') return
     await db.run("UPDATE payments SET status='paid', paid_at=datetime('now') WHERE out_trade_no=?", tradeNo)
     if (p.contract_id) {
       await db.run("UPDATE contracts SET status='active', paid_confirmed_at=datetime('now'), activated_at=datetime('now'), start_date=date('now'), end_date=date('now','start of year','+1 year','-1 day') WHERE id=? AND status='pending_payment'", p.contract_id)
@@ -170,11 +169,7 @@ async function markPaid(tradeNo) {
       const r = await db.run("INSERT INTO invoices (client_id,contract_id,payment_id,invoice_number,amount_eur,status) VALUES (?,?,?,?,?,'issued')", p.client_id, p.contract_id, p.id, invNo, p.amount_eur)
       invoice = { id: r.lastID, client_id: p.client_id, contract_id: p.contract_id, invoice_number: invNo, amount_eur: p.amount_eur, invoice_date: new Date().toISOString().slice(0, 10) }
     }
-    await db.run('COMMIT')
-  } catch (e) {
-    await db.run('ROLLBACK')
-    throw e
-  }
+  })
   // 提交成功后异步发发票（仅授权代表年费 contract_fee），不阻塞确认响应
   if (invoice && p && p.payment_type === 'contract_fee') {
     generateAndSendInvoice(invoice).catch(e => console.error('[invoice] send failed:', e.message))

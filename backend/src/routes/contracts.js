@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { getDb } from '../db.js'
+import { getDb, withTransaction } from '../db.js'
 import { authMiddleware } from '../auth.js'
 import { createPayment } from '../payment.js'
 import { generateContract, getContractUrl } from '../services/contract-gen.js'
@@ -68,15 +68,18 @@ function contractPeriod() {
 // Rate limited: 3 per 10 min per IP
 router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, res) => {
   const db = await getDb()
-  await db.run('BEGIN IMMEDIATE')
   try {
     const { service_type, company_name, company_name_en, registered_address, registered_address_en, uscc, legal_representative, legal_representative_en,
             contact_person, contact_person_en, contact_email, contact_phone, wechat_id,
             packaging_items, tier, device_categories, brand_count, year_type } = req.body
 
+    // ── 校验（事务外，避免事务内提前 return 泄漏连接）──
     if (!company_name || !contact_person || !contact_email || !registered_address || !contact_phone || !wechat_id) {
-      await db.run('ROLLBACK')
       return res.status(400).json({ error: 'Missing required fields: company_name, registered_address, contact_person, contact_email, contact_phone, wechat_id' })
+    }
+    if (contact_phone) {
+      const phoneExists = await db.get('SELECT id FROM clients WHERE contact_phone = ? AND contact_email != ?', contact_phone, contact_email)
+      if (phoneExists) return res.status(400).json({ error: '该手机号已被注册，请使用其他手机号' })
     }
 
     const svcType = service_type || 'packaging'
@@ -99,69 +102,67 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
       contractTier = 'standard'
     }
 
-    // 1. Create or reuse client (by email)
-    let clientId
-    const existingClient = await db.get('SELECT id FROM clients WHERE contact_email = ?', contact_email)
-    // Check phone uniqueness
-    if (contact_phone) {
-      const phoneExists = await db.get('SELECT id FROM clients WHERE contact_phone = ? AND contact_email != ?', contact_phone, contact_email)
-      if (phoneExists) return res.status(400).json({ error: '该手机号已被注册，请使用其他手机号' })
-    }
-    if (existingClient) {
-      clientId = existingClient.id
-      // Update existing client with latest info
-      await db.run(
-        'UPDATE clients SET company_name=?, company_name_en=?, registered_address=?, registered_address_en=?, uscc=?, legal_representative=?, legal_representative_en=?, contact_name=?, contact_name_en=?, contact_phone=?, wechat_id=? WHERE id=?',
-        company_name, company_name_en || '', registered_address || '', registered_address_en || '', uscc || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_phone || '', wechat_id || '', clientId
-      )
-    } else {
-      const clientResult = await db.run(
-        'INSERT INTO clients (company_name, company_name_en, registered_address, registered_address_en, uscc, legal_representative, legal_representative_en, contact_name, contact_name_en, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        company_name, company_name_en || '', registered_address || '', registered_address_en || '', uscc || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_email, contact_phone || '', wechat_id || ''
-      )
-      clientId = clientResult.lastID
-    }
-
-    // 2. Create contract
-    const contractNumber = await nextContractNumber(db, svcType)
-    const { startDate, endDate } = contractPeriod()
-
-    const contractResult = await db.run(
-      'INSERT INTO contracts (client_id, contract_number, tier, annual_fee_eur, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      clientId, contractNumber, contractTier, annualFee, startDate, endDate, 'pending_verification'
-    )
-    const contractId = contractResult.lastID
-
-    // 3. Store service-specific data
-    if (isPackaging && packaging_items && packaging_items.length > 0) {
-      for (const item of packaging_items) {
+    // ── 事务：所有 DB 写（含 createPayment，其内部网络请求会短暂占用锁，低流量可接受）──
+    const { clientId, contractId, contractNumber, startDate, endDate, payment } = await withTransaction(db, async () => {
+      // 1. Create or reuse client (by email)
+      let clientId
+      const existingClient = await db.get('SELECT id FROM clients WHERE contact_email = ?', contact_email)
+      if (existingClient) {
+        clientId = existingClient.id
+        // Update existing client with latest info
         await db.run(
-          'INSERT INTO packaging_data (contract_id, declaration_year, material_type, packaging_category, example, estimated_quantity_kg) VALUES (?, ?, ?, ?, ?, ?)',
-          contractId, new Date().getFullYear(), item.material_type, item.category || 'B2C', item.example || '', item.estimated_kg || 0
+          'UPDATE clients SET company_name=?, company_name_en=?, registered_address=?, registered_address_en=?, uscc=?, legal_representative=?, legal_representative_en=?, contact_name=?, contact_name_en=?, contact_phone=?, wechat_id=? WHERE id=?',
+          company_name, company_name_en || '', registered_address || '', registered_address_en || '', uscc || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_phone || '', wechat_id || '', clientId
+        )
+      } else {
+        const clientResult = await db.run(
+          'INSERT INTO clients (company_name, company_name_en, registered_address, registered_address_en, uscc, legal_representative, legal_representative_en, contact_name, contact_name_en, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          company_name, company_name_en || '', registered_address || '', registered_address_en || '', uscc || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_email, contact_phone || '', wechat_id || ''
+        )
+        clientId = clientResult.lastID
+      }
+
+      // 2. Create contract
+      const contractNumber = await nextContractNumber(db, svcType)
+      const { startDate, endDate } = contractPeriod()
+
+      const contractResult = await db.run(
+        'INSERT INTO contracts (client_id, contract_number, tier, annual_fee_eur, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        clientId, contractNumber, contractTier, annualFee, startDate, endDate, 'pending_verification'
+      )
+      const contractId = contractResult.lastID
+
+      // 3. Store service-specific data
+      if (isPackaging && packaging_items && packaging_items.length > 0) {
+        for (const item of packaging_items) {
+          await db.run(
+            'INSERT INTO packaging_data (contract_id, declaration_year, material_type, packaging_category, example, estimated_quantity_kg) VALUES (?, ?, ?, ?, ?, ?)',
+            contractId, new Date().getFullYear(), item.material_type, item.category || 'B2C', item.example || '', item.estimated_kg || 0
+          )
+        }
+      }
+      // For WEEE/Battery, store as application record for reference
+      if (!isPackaging) {
+        await db.run(
+          "INSERT INTO applications (client_id, type, data_json, status) VALUES (?, ?, ?, 'pending')",
+          clientId, svcType, JSON.stringify({ device_categories, brand_count, year_type, contract_id: contractId })
         )
       }
-    }
-    // For WEEE/Battery, store as application record for reference
-    if (!isPackaging) {
-      await db.run(
-        "INSERT INTO applications (client_id, type, data_json, status) VALUES (?, ?, ?, 'pending')",
-        clientId, svcType, JSON.stringify({ device_categories, brand_count, year_type, contract_id: contractId })
-      )
-    }
 
-    // 4. Create payment
-    const payment = await createPayment({ clientId, contractId, tier: contractTier, method: 'wechat', amountEur: annualFee })
+      // 4. Create payment
+      const payment = await createPayment({ clientId, contractId, tier: contractTier, method: 'wechat', amountEur: annualFee })
 
-    // 5. Create user account (email_verified=0, password set later via verification email)
-    const existingUser = await db.get('SELECT id FROM users WHERE email = ?', contact_email)
-    if (!existingUser) {
-      await db.run(
-        "INSERT INTO users (email, password_hash, role, client_id, email_verified) VALUES (?, '', 'client', ?, 0)",
-        contact_email, clientId
-      )
-    }
+      // 5. Create user account (email_verified=0, password set later via verification email)
+      const existingUser = await db.get('SELECT id FROM users WHERE email = ?', contact_email)
+      if (!existingUser) {
+        await db.run(
+          "INSERT INTO users (email, password_hash, role, client_id, email_verified) VALUES (?, '', 'client', ?, 0)",
+          contact_email, clientId
+        )
+      }
 
-    await db.run('COMMIT')
+      return { clientId, contractId, contractNumber, startDate, endDate, payment }
+    })
 
     // 6. Send verification email (non-blocking, after commit)
     try {
@@ -205,7 +206,6 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
       message: '合同已创建。请查收验证邮件并设置登录密码。',
     })
   } catch (e) {
-    await db.run('ROLLBACK')
     console.error('[contracts] create error:', e)
     res.status(500).json({ error: 'Failed to create contract' })
   }
@@ -338,19 +338,14 @@ router.post('/:id/submit-actuals', authMiddleware, async (req, res) => {
     const { items } = req.body
     if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'items array required' })
 
-    await db.run('BEGIN')
-    try {
+    await withTransaction(db, async () => {
       for (const item of items) {
         await db.run(
           'UPDATE packaging_data SET actual_quantity_kg = ?, submitted_at = datetime(\'now\') WHERE contract_id = ? AND material_type = ?',
           parseFloat(item.actual_kg), req.params.id, item.material_type
         )
       }
-      await db.run('COMMIT')
-    } catch (e) {
-      await db.run('ROLLBACK')
-      throw e
-    }
+    })
 
     const packaging = await db.all('SELECT * FROM packaging_data WHERE contract_id = ?', req.params.id)
     res.json({ success: true, packaging })

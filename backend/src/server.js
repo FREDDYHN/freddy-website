@@ -7,7 +7,7 @@ import { existsSync } from 'fs'
 import { rename } from 'fs/promises'
 import { fileURLToPath } from 'url'
 import { dirname, join as pathJoin } from 'path'
-import { getDb, getRate, setRate, seedAdmin, closeDb } from './db.js'
+import { getDb, getRate, setRate, seedAdmin, closeDb, withTransaction } from './db.js'
 import { startRateFetcher, fetchAndSave } from './services/rate-fetcher.js'
 import paymentRoutes from './payment.js'
 import authRoutes from './auth.js'
@@ -694,8 +694,7 @@ app.delete('/api/admin/clients/:id', authMiddleware, adminMiddleware, async (req
     const contracts = await db.all('SELECT id FROM contracts WHERE client_id = ?', clientId)
     const cids = contracts.map(c => c.id)
 
-    await db.run('BEGIN')
-    try {
+    await withTransaction(db, async () => {
       // 自底向上删除，避免外键约束冲突
       await db.run('DELETE FROM invoices WHERE client_id = ?', clientId)
       await db.run('DELETE FROM payments WHERE client_id = ?', clientId)
@@ -710,11 +709,7 @@ app.delete('/api/admin/clients/:id', authMiddleware, adminMiddleware, async (req
       await db.run('DELETE FROM contracts WHERE client_id = ?', clientId)
       await db.run('DELETE FROM users WHERE client_id = ?', clientId)
       await db.run('DELETE FROM clients WHERE id = ?', clientId)
-      await db.run('COMMIT')
-    } catch (e) {
-      await db.run('ROLLBACK')
-      throw e
-    }
+    })
     res.json({ success: true, client_id: parseInt(clientId) })
   } catch (e) {
     console.error('[server] client delete error:', e)

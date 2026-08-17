@@ -2,7 +2,7 @@ import { Router } from 'express'
 import jwt from 'jsonwebtoken'
 import bcryptjs from 'bcryptjs'
 import crypto from 'crypto'
-import { getDb } from './db.js'
+import { getDb, withTransaction } from './db.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_SECRET required in production') })() : crypto.randomBytes(32).toString('hex'))
 export { JWT_SECRET }
@@ -35,34 +35,34 @@ setInterval(() => {
 // ─── Register ───
 router.post('/register', async (req, res) => {
   const db = await getDb()
-  await db.run('BEGIN IMMEDIATE')
   try {
     const { email, password, company_name, contact_name } = req.body
     if (!email || !password) {
-      await db.run('ROLLBACK')
       return res.status(400).json({ error: 'Email and password required' })
     }
 
     const existing = await db.get('SELECT id FROM users WHERE email = ?', email)
     if (existing) {
-      await db.run('ROLLBACK')
       return res.status(409).json({ error: 'Email already registered' })
     }
 
+    // CPU 密集，移到事务外，缩短锁持有时间
     const hash = await bcryptjs.hash(password, 10)
-    const result = await db.run(
-      'INSERT INTO clients (company_name, contact_name, contact_email) VALUES (?, ?, ?)',
-      company_name || '', contact_name || '', email
-    )
-    await db.run(
-      'INSERT INTO users (email, password_hash, role, client_id) VALUES (?, ?, ?, ?)',
-      email, hash, 'client', result.lastID
-    )
 
-    await db.run('COMMIT')
+    const result = await withTransaction(db, async () => {
+      const clientResult = await db.run(
+        'INSERT INTO clients (company_name, contact_name, contact_email) VALUES (?, ?, ?)',
+        company_name || '', contact_name || '', email
+      )
+      await db.run(
+        'INSERT INTO users (email, password_hash, role, client_id) VALUES (?, ?, ?, ?)',
+        email, hash, 'client', clientResult.lastID
+      )
+      return clientResult
+    })
+
     res.status(201).json({ client_id: result.lastID, email })
   } catch (e) {
-    await db.run('ROLLBACK')
     console.error('[auth] register error:', e)
     res.status(500).json({ error: 'Registration failed' })
   }
