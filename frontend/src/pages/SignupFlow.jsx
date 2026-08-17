@@ -50,7 +50,7 @@ export default function SignupFlow() {
   const [form, setForm] = useState({
     company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', uscc: '', legal_representative: '', legal_representative_en: '',
     contact_person: '', contact_person_en: '', contact_phone: '', wechat_id: '', contact_email: '',
-    packaging_items: MATERIALS.map(m => ({ material: m.label, material_key: m.key, category: 'B2C', kg: '', example: '' })), tier: urlTier,
+    packaging_items: MATERIALS.map(m => ({ material: m.label, material_key: m.key, kg: '', example: '' })), tier: urlTier,
     device_categories: [], brand_count: '1', year_type: 'first',
   })
   const [countryCode, setCountryCode] = useState('+86')
@@ -91,7 +91,7 @@ export default function SignupFlow() {
 
   const buildBody = () => {
     const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), uscc: form.uscc.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: form.legal_representative_en.trim(), contact_person: form.contact_person.trim(), contact_person_en: form.contact_person_en.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), tier: form.tier }
-    if (isPkg) body.packaging_items = form.packaging_items.filter(p => p.kg && parseFloat(p.kg) > 0).map(p => ({ material_type: p.material_key, category: p.category, estimated_kg: p.kg, example: p.example || '' }))
+    if (isPkg) body.packaging_items = form.packaging_items.filter(p => p.kg && parseFloat(p.kg) > 0).map(p => ({ material_type: p.material_key, estimated_kg: p.kg, example: p.example || '' }))
     else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
     return body
   }
@@ -289,19 +289,16 @@ export default function SignupFlow() {
           <p className="text-sm text-gray-500">请填写您在德国市场使用的各类包装的预估年量（kg），未使用的类别留空即可。</p>
           {/* 8 种材料平铺表格 */}
           <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <div className="hidden md:grid items-center bg-gray-100 px-3 py-2 text-xs text-gray-500 font-medium md:grid-cols-[2fr_0.9fr_1fr_1.6fr]">
-              <span>材料类别</span><span>类别</span><span>预估年量 (kg/年)</span><span>产品举例（可选）</span>
+            <div className="hidden md:grid items-center bg-gray-100 px-3 py-2 text-xs text-gray-500 font-medium md:grid-cols-[2fr_1fr_1.6fr]">
+              <span>材料类别</span><span>预估年量 (kg/年)</span><span>产品举例（可选）</span>
             </div>
             {form.packaging_items.map((item) => (
               <div key={item.material_key} className="px-3 py-2.5 text-sm border-t border-gray-100">
                 <div className="font-medium mb-2 md:hidden">{item.material}</div>
-                <div className="grid grid-cols-2 gap-2 items-center md:grid-cols-[2fr_0.9fr_1fr_1.6fr]">
+                <div className="grid grid-cols-2 gap-2 items-center md:grid-cols-[2fr_1fr_1.6fr]">
                   <span className="hidden md:block font-medium truncate md:order-1">{item.material}</span>
-                  <select value={item.category} onChange={e => updateMaterial(item.material_key, 'category', e.target.value)} className="border border-gray-200 rounded-md px-2 py-1.5 text-sm bg-white order-2">
-                    <option value="B2C">B2C</option><option value="B2B">B2B</option>
-                  </select>
-                  <input type="number" value={item.kg} onChange={e => updateMaterial(item.material_key, 'kg', e.target.value)} placeholder="kg" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm order-1 md:order-3" />
-                  <input value={item.example} onChange={e => updateMaterial(item.material_key, 'example', e.target.value)} placeholder="如：手机壳" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm col-span-2 md:col-span-1 order-3 md:order-4" />
+                  <input type="number" value={item.kg} onChange={e => updateMaterial(item.material_key, 'kg', e.target.value)} placeholder="kg" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm order-1 md:order-2" />
+                  <input value={item.example} onChange={e => updateMaterial(item.material_key, 'example', e.target.value)} placeholder="如：手机壳" className="border border-gray-200 rounded-md px-2 py-1.5 text-sm col-span-2 md:col-span-1 order-2 md:order-3" />
                 </div>
               </div>
             ))}
@@ -387,13 +384,12 @@ export default function SignupFlow() {
                 <div><span className="inline-block w-20 text-gray-400">套餐</span><span className="font-medium">{AR_TIERS_LIST.find(t => t.key === form.tier)?.name} — €{AR_TIERS_LIST.find(t => t.key === form.tier)?.price}/年</span></div>
                 <div className="mt-3">
                   <span className="text-gray-400 text-xs">包装预申报</span>
-                  <div className="grid text-xs text-gray-400 mt-1 mb-1" style={{gridTemplateColumns:'2fr 0.8fr 0.8fr 1.2fr'}}>
-                    <span>材料类别</span><span className="pl-4">类别</span><span className="pl-4">预估年量</span><span className="pl-4">产品举例</span>
+                  <div className="grid text-xs text-gray-400 mt-1 mb-1" style={{gridTemplateColumns:'2fr 0.8fr 1.2fr'}}>
+                    <span>材料类别</span><span className="pl-4">预估年量</span><span className="pl-4">产品举例</span>
                   </div>
                   {form.packaging_items.filter(p => p.kg && parseFloat(p.kg) > 0).map((item, i) => (
-                    <div key={i} className="grid text-sm mb-0.5" style={{gridTemplateColumns:'2fr 0.8fr 0.8fr 1.2fr'}}>
+                    <div key={i} className="grid text-sm mb-0.5" style={{gridTemplateColumns:'2fr 0.8fr 1.2fr'}}>
                       <span className="font-medium">{item.material}</span>
-                      <span className="text-gray-500 pl-4">{item.category}</span>
                       <span className="tabular-nums pl-4">{item.kg} kg</span>
                       <span className="text-gray-500 truncate pl-4">{item.example || '—'}</span>
                     </div>
