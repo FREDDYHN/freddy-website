@@ -20,6 +20,7 @@ import adminNotificationsRoutes from './routes/admin-notifications.js'
 import { authMiddleware, adminMiddleware } from './auth.js'
 import { checkReminders, startReminderScheduler } from './services/reminders.js'
 import { generateContract } from './services/contract-gen.js'
+import { docxToPdf } from './services/pdf.js'
 import { decryptLucid } from './services/crypto.js'
 import { markPaid } from './payment.js'
 import { rateLimit } from './rate-limiter.js'
@@ -492,10 +493,12 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
       },
     })
 
-    const fileName = filePath.split('/').pop().split('\\').pop()
+    // 生成 PDF 版本（防篡改），PDF 作为正式交付格式
+    const pdfPath = await docxToPdf(filePath)
+    const pdfName = pdfPath.split('/').pop().split('\\').pop()
     res.json({
       success: true,
-      download_url: `/api/contracts/${req.params.id}/download?file=${encodeURIComponent(fileName)}`,
+      pdf_url: `/api/contracts/${req.params.id}/download?file=${encodeURIComponent(pdfName)}`,
       contract_number: contract.contract_number,
     })
   } catch (e) {

@@ -21,10 +21,10 @@ export default function ContractCard({ contract, uploads, onUpload }) {
       })
       const d = await r.json()
       if (!r.ok) throw new Error(d.error)
-      const fr = await fetch(d.download_url, { headers: h() })
+      const fr = await fetch(d.pdf_url, { headers: h() })
       const blob = await fr.blob()
       const url = URL.createObjectURL(blob)
-      const a = document.createElement('a'); a.href = url; a.download = `${contract.contract_number}.docx`; a.click()
+      const a = document.createElement('a'); a.href = url; a.download = `${contract.contract_number}.pdf`; a.click()
       URL.revokeObjectURL(url)
     } catch (e) { alert('生成失败: ' + e.message) }
     setBusy(false)
