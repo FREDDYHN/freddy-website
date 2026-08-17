@@ -89,6 +89,18 @@ export default function Dashboard() {
     window.location.reload()
   }
 
+  const handlePredeclared = async (contractId, currentlyRequested) => {
+    const token = sessionStorage.getItem('token')
+    if (!token) { alert('未登录'); return }
+    const endpoint = currentlyRequested
+      ? `/api/contracts/${contractId}/cancel-predeclared`
+      : `/api/contracts/${contractId}/request-predeclared`
+    const r = await fetch(endpoint, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+    const d = await r.json()
+    if (!r.ok) throw new Error(d.error)
+    window.location.reload()
+  }
+
   // ── Render states ──
 
   if (error === 'login_required') return (
@@ -161,6 +173,7 @@ export default function Dashboard() {
         payments={data.payments}
         uploads={uploads}
         onUpload={handleUpload}
+        onPredeclared={handlePredeclared}
       />
     </div>
   )

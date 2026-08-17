@@ -292,6 +292,40 @@ router.post('/:id/cancel-lucid', authMiddleware, async (req, res) => {
   }
 })
 
+// POST /api/contracts/:id/request-predeclared — Client self-marks "already pre-declared" (pending admin review)
+router.post('/:id/request-predeclared', authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const contract = await db.get('SELECT * FROM contracts WHERE id = ?', req.params.id)
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    if (req.user.role !== 'admin' && contract.client_id !== req.user.client_id) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+    await db.run("UPDATE contracts SET pre_declared_status = 'pending' WHERE id = ?", req.params.id)
+    res.json({ success: true })
+  } catch (e) {
+    console.error('[contracts] request-predeclared error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// POST /api/contracts/:id/cancel-predeclared — Client withdraws "already pre-declared" request
+router.post('/:id/cancel-predeclared', authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const contract = await db.get('SELECT * FROM contracts WHERE id = ?', req.params.id)
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    if (req.user.role !== 'admin' && contract.client_id !== req.user.client_id) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+    await db.run('UPDATE contracts SET pre_declared_status = NULL WHERE id = ?', req.params.id)
+    res.json({ success: true })
+  } catch (e) {
+    console.error('[contracts] cancel-predeclared error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // POST /api/contracts/:id/submit-actuals — Submit actual packaging quantities (auth required)
 router.post('/:id/submit-actuals', authMiddleware, async (req, res) => {
   try {

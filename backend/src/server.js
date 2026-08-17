@@ -284,7 +284,7 @@ app.get('/api/admin/clients/search', authMiddleware, adminMiddleware, async (req
     if (q) {
       const like = `%${q}%`
       rows = await db.all(
-        `SELECT cl.*, c.id as contract_id, c.contract_number, c.tier, c.annual_fee_eur, c.status as contract_status, c.start_date, c.end_date, c.lucid_confirmed
+        `SELECT cl.*, c.id as contract_id, c.contract_number, c.tier, c.annual_fee_eur, c.status as contract_status, c.start_date, c.end_date, c.lucid_confirmed, c.pre_declared_status
          FROM clients cl LEFT JOIN contracts c ON c.client_id = cl.id
          WHERE cl.company_name LIKE ? OR cl.company_name_en LIKE ? OR cl.contact_name LIKE ? OR cl.contact_email LIKE ? OR cl.contact_phone LIKE ? OR cl.legal_representative LIKE ? OR c.contract_number LIKE ?
          ORDER BY cl.id DESC LIMIT ? OFFSET ?`,

@@ -18,6 +18,7 @@ const FILE_LABELS = {
   bank_proof: '银行转账凭证',
   proof_annual_fee: '年费付款凭证',
   proof_prepaid: '预缴回收费凭证',
+  proof_predeclared: '预申报缴费凭证',
   proof_settlement: '年终结算凭证',
   proof_previous_year: '往年缴费凭证',
   admin_stamped: '管理文件',
@@ -135,6 +136,11 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
           }
         }
 
+        // 「已预申报」凭证审核通过 → 确认预申报状态（不动 payments）
+        if (upload.file_type === 'proof_predeclared' && upload.contract_id) {
+          await db.run("UPDATE contracts SET pre_declared_status = 'approved' WHERE id = ?", upload.contract_id)
+        }
+
         await db.run(
           `INSERT INTO notifications (client_id, contract_id, type, title, message)
            VALUES (?, ?, 'upload_approved', '✅ 文件审核通过', ?)`,
@@ -142,6 +148,11 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
           `您上传的「${fileLabel}」已审核通过。${paymentType && paymentType === 'contract_fee' ? '合同已激活。' : ''}`
         )
       } else {
+        // 「已预申报」凭证被驳回 → 重置为未请求，客户端可重新标记
+        if (upload.file_type === 'proof_predeclared' && upload.contract_id) {
+          await db.run('UPDATE contracts SET pre_declared_status = NULL WHERE id = ?', upload.contract_id)
+        }
+
         await db.run(
           `INSERT INTO notifications (client_id, contract_id, type, title, message)
            VALUES (?, ?, 'upload_rejected', '❌ 文件需重新提交', ?)`,

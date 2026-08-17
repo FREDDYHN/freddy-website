@@ -37,7 +37,7 @@ function calcTotalSettlement(preFee, actFee) {
   return { amount: Math.round(settle * 100) / 100, note }
 }
 
-export default function BillingCard({ contracts, packaging, payments, uploads, onUpload }) {
+export default function BillingCard({ contracts, packaging, payments, uploads, onUpload, onPredeclared }) {
   const [rate, setRate] = useState(8.10)
   useEffect(() => { fetch('/api/rate').then(r => r.json()).then(d => d.rate && setRate(d.rate)).catch(() => {}) }, [])
   const [collapsed, setCollapsed] = useState(false)
@@ -87,7 +87,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     rows.forEach(function(r){ h += '<tr><td>'+esc(r.label)+'</td><td class="num">'+r.kg+'kg</td><td class="num">€'+r.rate+'</td><td class="num">€'+r.fee.toFixed(2)+'</td></tr>' })
     h += '<tr><td colspan="3">小计 · '+totalKg+'kg</td><td class="num"><b>€'+subtotal.toFixed(2)+'</b></td></tr>'
     if(prepaidCalc>subtotal) h += '<tr><td colspan="3" class="y">取起步价</td><td class="num y"><b>€'+prepaidCalc.toFixed(2)+'</b></td></tr>'
-    h += '</table><p class="b">预申报费 €'+prepaidDisplay.toFixed(2)+' '+(prepaidPayment?.status==='paid'?'✓':'')+'</p>'
+    h += '</table><p class="b">预申报费 €'+prepaidDisplay.toFixed(2)+' '+(c.pre_declared_status==='approved'?'已预申报 ✓':c.pre_declared_status==='pending'?'待审核':(prepaidPayment?.status==='paid'?'✓':''))+'</p>'
     h += '<p style="font-size:10px;color:#888">≈ ¥'+Math.round(prepaidDisplay * rate)+'</p>'
     if(prepaidOverride) h += '<p class="s">报价表 €'+prepaidCalc.toFixed(2)+'</p>'
     h += '</div>' // close prepaid div
@@ -167,6 +167,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
 
             // Fee statuses
             const isPendingAR = c.status === 'pending_payment'
+            const preStatus = c.pre_declared_status // null | 'pending' | 'approved'
             const prepaidPayment = pays.find(p => p.payment_type === 'recycling_prepaid')
             const settlementPayment = pays.find(p => p.payment_type === 'recycling_settlement')
             const proofUploads = ups.filter(u => u.file_type?.startsWith('proof_') || u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
@@ -214,14 +215,31 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                     </span>
                     <span className="flex flex-col">
                       <span className="text-xs text-gray-600 font-semibold md:hidden">预申报费</span>
-                      <span className="text-xs text-gray-700 h-[18px] flex items-center">
-                        <span className={`font-semibold ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>€{(prepaidPayment?.amount_eur || cost).toFixed(2)}</span>
-                        <span className={`font-semibold ml-1 ${prepaidPayment?.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>{prepaidPayment?.status === 'paid' ? '✓' : '待缴'}</span>
-                      </span>
-                      <span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round((prepaidPayment?.amount_eur || cost) * rate)}</span>
-                      <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
-                        上传付款凭证（待管理员确认） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_prepaid')} disabled={uploadingCid === c.id} className="hidden" />
-                      </label>
+                      {(() => {
+                        const green = preStatus === 'approved' || prepaidPayment?.status === 'paid'
+                        const cls = green ? 'text-green-600' : 'text-yellow-600'
+                        const label = preStatus === 'approved' ? '已预申报' : preStatus === 'pending' ? '待审核' : (prepaidPayment?.status === 'paid' ? '✓' : '待缴')
+                        return (<>
+                          <span className="text-xs text-gray-700 h-[18px] flex items-center">
+                            <span className={`font-semibold ${cls}`}>€{(prepaidPayment?.amount_eur || cost).toFixed(2)}</span>
+                            <span className={`font-semibold ml-1 ${cls}`}>{label}</span>
+                          </span>
+                          <span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round((prepaidPayment?.amount_eur || cost) * rate)}</span>
+                          {preStatus === 'approved' ? null : preStatus === 'pending' ? (<>
+                            <button onClick={() => onPredeclared(c.id, true)} className="text-xs text-gray-400 hover:text-primary mt-0.5 text-left">撤销「已预申报」</button>
+                            <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
+                              上传预申报缴费凭证（待管理员审核） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_predeclared')} disabled={uploadingCid === c.id} className="hidden" />
+                            </label>
+                          </>) : (<>
+                            {prepaidPayment?.status !== 'paid' && (
+                              <button onClick={() => onPredeclared(c.id, false)} className="text-yellow-600 hover:underline font-semibold text-xs mt-0.5 text-left">标记已预申报</button>
+                            )}
+                            <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
+                              上传付款凭证（待管理员确认） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_prepaid')} disabled={uploadingCid === c.id} className="hidden" />
+                            </label>
+                          </>)}
+                        </>)
+                      })()}
                     </span>
                     <span className="flex flex-col">
                       <span className="text-xs text-gray-600 font-semibold md:hidden">年终结算</span>

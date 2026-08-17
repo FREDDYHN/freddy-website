@@ -182,6 +182,9 @@ export default function Admin() {
         if (status === 'approved' && (fileType === 'bank_proof' || fileType === 'proof_annual_fee')) {
           setContracts(prev => prev.map(c => c.id === contractId ? { ...c, status: 'active' } : c))
         }
+        if (fileType === 'proof_predeclared') {
+          setContracts(prev => prev.map(c => c.id === contractId ? { ...c, pre_declared_status: status === 'approved' ? 'approved' : null } : c))
+        }
       } else {
         alert('操作失败：' + (d.error || '未知错误'))
       }
@@ -290,7 +293,7 @@ export default function Admin() {
         <div className="p-4 border-b border-gray-100">
           <div className="flex flex-wrap gap-3 justify-between items-center">
             <div className="flex gap-2">
-              <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ id: cl.contract_id||cl.id, client_id: cl.id, company_name: cl.company_name, contact_email: cl.contact_email, contact_name: cl.contact_name, contact_phone: cl.contact_phone, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, start_date: cl.start_date, end_date: cl.end_date, lucid_confirmed: !!cl.lucid_confirmed, is_spam: cl.is_spam||0, _uploads:{}, _packaging:[] }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
+              <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ id: cl.contract_id||cl.id, client_id: cl.id, company_name: cl.company_name, contact_email: cl.contact_email, contact_name: cl.contact_name, contact_phone: cl.contact_phone, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, start_date: cl.start_date, end_date: cl.end_date, lucid_confirmed: !!cl.lucid_confirmed, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0, _uploads:{}, _packaging:[] }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
                 <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setShowPending(false) }}
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary">
                   <option value="">全部状态</option>
@@ -437,18 +440,33 @@ export default function Admin() {
                       {uploadLinks(c, 'bank_proof', 'proof_annual_fee')}
                     </td>
                     <td className="p-3 align-top">
-                      {c.prepaid_status === 'paid' ? (
-                        <span className="text-xs text-green-600 font-medium">€{c.prepaid_amount} ✓</span>
-                      ) : c.prepaid_amount ? (
-                        <span className="text-xs text-yellow-600">€{c.prepaid_amount} 待付</span>
+                      {c.pre_declared_status === 'approved' ? (
+                        <>
+                          <span className="text-xs text-green-600 font-medium">{c.prepaid_amount > 0 ? `€${c.prepaid_amount} 已预申报 ✓` : '已预申报 ✓'}</span>
+                          {c.prepaid_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{Math.round(c.prepaid_amount * (rateInfo.rate||8.10))}</div>}
+                          {uploadLinks(c, 'proof_predeclared')}
+                        </>
+                      ) : c.pre_declared_status === 'pending' ? (
+                        <>
+                          <span className="text-xs text-yellow-600 font-medium">已预申报 · 待审核</span>
+                          {uploadLinks(c, 'proof_predeclared')}
+                        </>
                       ) : (
-                        <button onClick={() => { setFeeModal({ contractId: c.id, type: 'prepaid' }); setFeeAmount('') }}
-                          className="text-xs text-primary hover:underline">💰 设置费用</button>
-                      )}
-                      {c.prepaid_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{Math.round(c.prepaid_amount * (rateInfo.rate||8.10))}</div>}
-                      {uploadLinks(c, 'proof_prepaid')}
-                      {!uploadLinks(c, 'proof_prepaid') && (
-                        <div className="mt-1"><span className="text-[10px] text-gray-300">暂无凭证</span></div>
+                        <>
+                          {c.prepaid_status === 'paid' ? (
+                            <span className="text-xs text-green-600 font-medium">€{c.prepaid_amount} ✓</span>
+                          ) : c.prepaid_amount ? (
+                            <span className="text-xs text-yellow-600">€{c.prepaid_amount} 待付</span>
+                          ) : (
+                            <button onClick={() => { setFeeModal({ contractId: c.id, type: 'prepaid' }); setFeeAmount('') }}
+                              className="text-xs text-primary hover:underline">💰 设置费用</button>
+                          )}
+                          {c.prepaid_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{Math.round(c.prepaid_amount * (rateInfo.rate||8.10))}</div>}
+                          {uploadLinks(c, 'proof_prepaid')}
+                          {!uploadLinks(c, 'proof_prepaid') && (
+                            <div className="mt-1"><span className="text-[10px] text-gray-300">暂无凭证</span></div>
+                          )}
+                        </>
                       )}
                     </td>
                     <td className="p-3 align-top">
