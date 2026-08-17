@@ -318,9 +318,9 @@ export default function Admin() {
           {currentList.length === 0 ? <p className="p-8 text-center text-sm text-gray-400">暂无数据</p> : (
             <table className="w-full text-sm table-fixed">
               <colgroup>
-                <col style={{width:'25%'}} /><col style={{width:'8%'}} /><col style={{width:'13%'}} /><col style={{width:'13%'}} /><col style={{width:'13%'}} /><col style={{width:'28%'}} />
+                <col style={{width:'22%'}} /><col style={{width:'7%'}} /><col style={{width:'9%'}} /><col style={{width:'12%'}} /><col style={{width:'12%'}} /><col style={{width:'12%'}} /><col style={{width:'26%'}} />
               </colgroup>
-              <thead className="bg-gray-200 text-left"><tr><th className="p-3 font-bold text-gray-700">基本信息</th><th className="p-3 font-bold text-gray-700">服务周期</th><th className="p-3 font-bold text-gray-700">授权代表年费</th><th className="p-3 font-bold text-gray-700">预申报费</th><th className="p-3 font-bold text-gray-700">年终结算</th><th className="p-3 font-bold text-gray-700">账户管理</th></tr></thead>
+              <thead className="bg-gray-200 text-left"><tr><th className="p-3 font-bold text-gray-700">基本信息</th><th className="p-3 font-bold text-gray-700">服务周期</th><th className="p-3 font-bold text-gray-700">往年缴费凭证</th><th className="p-3 font-bold text-gray-700">授权代表年费</th><th className="p-3 font-bold text-gray-700">预申报费</th><th className="p-3 font-bold text-gray-700">年终结算</th><th className="p-3 font-bold text-gray-700">账户管理</th></tr></thead>
               <tbody>
                 {currentList.map(c => {
                   return (
@@ -430,6 +430,12 @@ export default function Admin() {
                           const w = window.open('','_blank','width=1020,height=700')
                           if(w){ w.document.write(html); w.document.close() }
                         }} className="text-[10px] text-gray-400 hover:text-primary mt-1">📊 缴费明细</button>
+                      )}
+                    </td>
+                    <td className="p-3 align-top">
+                      {uploadLinks(c, 'proof_previous_year')}
+                      {!uploadLinks(c, 'proof_previous_year') && (
+                        <div className="mt-1"><span className="text-[10px] text-gray-300">暂无凭证</span></div>
                       )}
                     </td>
                     <td className="p-3 align-top">
