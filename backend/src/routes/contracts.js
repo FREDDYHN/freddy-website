@@ -85,6 +85,21 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
       if (phoneExists) return res.status(400).json({ error: '该手机号已被注册，请使用其他手机号' })
     }
 
+    // 防止重复签约：同一邮箱已有合同时直接返回，不再新建重复合同
+    const dupClient = await db.get('SELECT id FROM clients WHERE contact_email = ?', contact_email)
+    if (dupClient) {
+      const dupContract = await db.get(
+        'SELECT id, contract_number FROM contracts WHERE client_id = ? ORDER BY id DESC LIMIT 1',
+        dupClient.id
+      )
+      if (dupContract) {
+        return res.status(409).json({
+          error: '该邮箱已签约，请直接登录查看您的合同',
+          contract_number: dupContract.contract_number,
+        })
+      }
+    }
+
     const svcType = service_type || 'packaging'
     const isPackaging = svcType === 'packaging'
 
