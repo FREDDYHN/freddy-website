@@ -72,13 +72,20 @@ function contractPeriod() {
 router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, res) => {
   const db = await getDb()
   try {
-    const { service_type, company_name, company_name_en, registered_address, registered_address_en, uscc, legal_representative, legal_representative_en,
+    const { service_type, company_name, company_name_en, registered_address, registered_address_en, entity_type, uscc, id_number, legal_representative, legal_representative_en,
             contact_person, contact_person_en, contact_email, contact_phone, wechat_id,
             packaging_items, tier, device_categories, brand_count, year_type } = req.body
 
     // ── 校验（事务外，避免事务内提前 return 泄漏连接）──
     if (!company_name || !contact_person || !contact_email || !registered_address || !contact_phone || !wechat_id) {
       return res.status(400).json({ error: 'Missing required fields: company_name, registered_address, contact_person, contact_email, contact_phone, wechat_id' })
+    }
+    // 税号必填：公司 → 统一社会信用代码；个人 → 身份证号码
+    const entityType = entity_type === 'individual' ? 'individual' : 'company'
+    if (entityType === 'individual') {
+      if (!id_number || !String(id_number).trim()) return res.status(400).json({ error: '身份证号码必填' })
+    } else {
+      if (!uscc || !String(uscc).trim()) return res.status(400).json({ error: '统一社会信用代码（税号）必填' })
     }
     if (contact_phone) {
       const phoneExists = await db.get('SELECT id FROM clients WHERE contact_phone = ? AND contact_email != ?', contact_phone, contact_email)
@@ -132,13 +139,13 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
         clientId = existingClient.id
         // Update existing client with latest info
         await db.run(
-          'UPDATE clients SET company_name=?, company_name_en=?, registered_address=?, registered_address_en=?, uscc=?, legal_representative=?, legal_representative_en=?, contact_name=?, contact_name_en=?, contact_phone=?, wechat_id=? WHERE id=?',
-          company_name, company_name_en || '', registered_address || '', registered_address_en || '', uscc || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_phone || '', wechat_id || '', clientId
+          'UPDATE clients SET company_name=?, company_name_en=?, registered_address=?, registered_address_en=?, entity_type=?, uscc=?, id_number=?, legal_representative=?, legal_representative_en=?, contact_name=?, contact_name_en=?, contact_phone=?, wechat_id=? WHERE id=?',
+          company_name, company_name_en || '', registered_address || '', registered_address_en || '', entityType, uscc || '', id_number || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_phone || '', wechat_id || '', clientId
         )
       } else {
         const clientResult = await db.run(
-          'INSERT INTO clients (company_name, company_name_en, registered_address, registered_address_en, uscc, legal_representative, legal_representative_en, contact_name, contact_name_en, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          company_name, company_name_en || '', registered_address || '', registered_address_en || '', uscc || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_email, contact_phone || '', wechat_id || ''
+          'INSERT INTO clients (company_name, company_name_en, registered_address, registered_address_en, entity_type, uscc, id_number, legal_representative, legal_representative_en, contact_name, contact_name_en, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          company_name, company_name_en || '', registered_address || '', registered_address_en || '', entityType, uscc || '', id_number || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_email, contact_phone || '', wechat_id || ''
         )
         clientId = clientResult.lastID
       }
@@ -205,7 +212,7 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
           company_name, company_name_en: company_name_en || company_name,
           company_address: registered_address || '',
           registered_address_en: registered_address_en || '',
-          uscc: uscc || '',
+          entity_type: entityType, uscc: uscc || '', id_number: id_number || '',
           legal_representative: legal_representative || '',
           legal_representative_en: legal_representative_en || '',
           contact_person: contact_person || '',

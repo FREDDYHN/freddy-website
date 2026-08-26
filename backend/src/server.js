@@ -25,6 +25,7 @@ import { decryptLucid } from './services/crypto.js'
 import { markPaid } from './payment.js'
 import { rateLimit } from './rate-limiter.js'
 import { localDate, beijingDateFromUtc } from './services/date.js'
+import { sendTaxNumberRequest } from './services/email.js'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -194,7 +195,7 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
     const whereClause = showAll ? '' : "WHERE c.status != 'pending_verification'"
     const [rows, countRow] = await Promise.all([
       db.all(
-        `SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email, cl.contact_phone, cl.registered_address, cl.uscc, cl.legal_representative, cl.wechat_id, cl.lucid_registration_number, cl.lucid_login FROM contracts c JOIN clients cl ON c.client_id = cl.id ${whereClause} ORDER BY c.id DESC LIMIT ? OFFSET ?`,
+        `SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email, cl.contact_phone, cl.registered_address, cl.entity_type, cl.uscc, cl.id_number, cl.legal_representative, cl.wechat_id, cl.lucid_registration_number, cl.lucid_login FROM contracts c JOIN clients cl ON c.client_id = cl.id ${whereClause} ORDER BY c.id DESC LIMIT ? OFFSET ?`,
         perPage, offset
       ),
       db.get(`SELECT COUNT(*) as total FROM contracts c ${whereClause}`),
@@ -549,6 +550,63 @@ app.post('/api/contact', rateLimit('contact-form', 3, 10 * 60 * 1000), async (re
     console.log(`[contact] ${name} <${email}>: ${message}`)
     res.json({ success: true })
   } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
+// ── Admin: Update client tax identifier (entity_type / uscc / id_number) ──
+app.patch('/api/admin/clients/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const { entity_type, uscc, id_number } = req.body
+    const entityType = entity_type === 'individual' ? 'individual' : 'company'
+    if (entityType === 'individual') {
+      if (!id_number || !String(id_number).trim()) return res.status(400).json({ error: '身份证号码必填' })
+    } else {
+      if (!uscc || !String(uscc).trim()) return res.status(400).json({ error: '统一社会信用代码（税号）必填' })
+    }
+    const client = await db.get('SELECT id FROM clients WHERE id = ?', req.params.id)
+    if (!client) return res.status(404).json({ error: 'Client not found' })
+    await db.run(
+      "UPDATE clients SET entity_type = ?, uscc = ?, id_number = ?, updated_at = datetime('now') WHERE id = ?",
+      entityType, uscc ? String(uscc).trim() : '', id_number ? String(id_number).trim() : '', req.params.id
+    )
+    res.json({ success: true, entity_type: entityType, uscc: uscc || '', id_number: id_number || '' })
+  } catch (e) {
+    console.error('[server] update client tax error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ── Admin: Remind clients missing tax number (in-app notification + email) ──
+app.post('/api/admin/remind-missing-tax', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const missing = await db.all(
+      `SELECT cl.id, cl.company_name, cl.contact_name, cl.contact_email, cl.entity_type
+       FROM clients cl
+       JOIN contracts c ON c.client_id = cl.id
+       WHERE c.status != 'pending_verification'
+         AND ((cl.entity_type = 'individual' AND (cl.id_number IS NULL OR cl.id_number = ''))
+              OR (cl.entity_type != 'individual' AND (cl.uscc IS NULL OR cl.uscc = '')))
+       GROUP BY cl.id`
+    )
+    let notified = 0
+    for (const cl of missing) {
+      try {
+        await db.run(
+          `INSERT INTO notifications (client_id, contract_id, type, title, message) VALUES (?, NULL, 'admin_message', ?, ?)`,
+          cl.id, '⚠️ 请补充税号', '为完成预申报，请登录「账户管理」补充您的税号（公司：统一社会信用代码；个人：身份证号码）。'
+        )
+        await sendTaxNumberRequest({ email: cl.contact_email, name: cl.contact_name || cl.company_name })
+        notified++
+      } catch (e) {
+        console.error(`[server] remind-missing-tax failed for client ${cl.id}:`, e.message)
+      }
+    }
+    res.json({ success: true, reminded: notified, total: missing.length })
+  } catch (e) {
+    console.error('[server] remind-missing-tax error:', e)
+    res.status(500).json({ error: e.message })
+  }
 })
 
 // ── Admin: Reset client password ──

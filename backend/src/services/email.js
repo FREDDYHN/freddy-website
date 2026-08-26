@@ -84,6 +84,24 @@ export async function sendLucidGuide({ email, name }) {
   })
 }
 
+export async function sendTaxNumberRequest({ email, name }) {
+  await send({
+    to: email,
+    subject: '[FREDDY] 请补充税号 / 身份证号码',
+    html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+<h2 style="color:#c8a44e">请补充税号信息</h2>
+<p>${esc(name)}，您好！</p>
+<p>为完成德国包装法的预申报（LUCID 申报），我们需要您的身份标识号：</p>
+<ul>
+<li>公司客户：请填写 <strong>统一社会信用代码（税号）</strong></li>
+<li>个人客户：请填写 <strong>身份证号码</strong></li>
+</ul>
+<p>请登录后台，在「账户管理」页面补充并保存。</p>
+<p style="margin-top:24px;color:#999;font-size:12px">如需帮助，请联系 +86 152 2138 0610 或 info@freddy-epr.com</p>
+</div>`,
+  })
+}
+
 export async function sendInvoiceEmail({ email, name, invoiceNumber, amount, pdfBuffer }) {
   const attachments = pdfBuffer && pdfBuffer.length
     ? [{ filename: `Rechnung-${invoiceNumber}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]

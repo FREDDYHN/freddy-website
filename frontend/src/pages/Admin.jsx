@@ -25,6 +25,7 @@ export default function Admin() {
   const [search, setSearch] = useState('')
   const [infoModal, setInfoModal] = useState(null)
   const [showPending, setShowPending] = useState(false)
+  const [showMissingTax, setShowMissingTax] = useState(false)
   const [statusFilter, setStatusFilter] = useState('')
   const [showAll, setShowAll] = useState(false)
   const [rateInfo, setRateInfo] = useState({ rate: 8.10, updated_at: null })
@@ -32,6 +33,8 @@ export default function Admin() {
   const [rateNew, setRateNew] = useState('')
   const [rateSubmitting, setRateSubmitting] = useState(false)
   const [lucidPwd, setLucidPwd] = useState(null)
+  const [taxEdit, setTaxEdit] = useState(null)
+  const [taxSaveMsg, setTaxSaveMsg] = useState('')
 
   const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}` } : {} }
 
@@ -49,6 +52,30 @@ export default function Admin() {
       if (r.ok) { const d = await r.json(); setLucidPwd(d.password ?? '') }
       else { const d = await r.json().catch(() => ({})); alert(d.error || '获取失败') }
     } catch { alert('网络错误') }
+  }
+
+  const saveAdminTax = async () => {
+    if (!infoModal || !taxEdit) return
+    const cid = infoModal.client_id
+    try {
+      const r = await fetch(`/api/admin/clients/${cid}`, { method: 'PATCH', headers: { ...ah(), 'Content-Type': 'application/json' }, body: JSON.stringify(taxEdit) })
+      const d = await r.json()
+      if (r.ok) {
+        setTaxSaveMsg('✅ 已保存')
+        setInfoModal({ ...infoModal, entity_type: d.entity_type, uscc: d.uscc, id_number: d.id_number })
+        setContracts(prev => prev.map(c => c.client_id === cid ? { ...c, entity_type: d.entity_type, uscc: d.uscc, id_number: d.id_number } : c))
+      } else setTaxSaveMsg('❌ ' + (d.error || '保存失败'))
+    } catch (e) { setTaxSaveMsg('❌ ' + e.message) }
+  }
+
+  const remindMissingTax = async () => {
+    if (!window.confirm('将给所有缺失税号的客户发送站内通知 + 邮件提醒，确定继续？')) return
+    try {
+      const r = await fetch('/api/admin/remind-missing-tax', { method: 'POST', headers: ah() })
+      const d = await r.json()
+      if (r.ok) alert(`✅ 已提醒 ${d.reminded}/${d.total} 位客户`)
+      else alert('❌ ' + (d.error || '操作失败'))
+    } catch (e) { alert('❌ ' + e.message) }
   }
 
   const load = async (p = 1, includeAll = false) => {
@@ -255,6 +282,10 @@ export default function Admin() {
           (c.signed_at && !c._uploads?.admin_stamped?.length)
       })
     }
+    // Missing tax number toggle (公司缺 uscc / 个人缺 id_number)
+    if (showMissingTax) {
+      list = list.filter(c => (c.entity_type === 'individual' ? !c.id_number : !c.uscc))
+    }
     return list
   })()
   const appList = applications.filter(a => a.type === tab)
@@ -317,12 +348,20 @@ export default function Admin() {
                   className={`px-3 py-2 rounded-md text-sm font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                   🔔 待办 {pendingCount > 0 && `(${pendingCount})`}
                 </button>
+                <button type="button" onClick={() => setShowMissingTax(!showMissingTax)}
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${showMissingTax ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                  ⚠️ 缺失税号
+                </button>
+                <button type="button" onClick={remindMissingTax}
+                  className="px-3 py-2 rounded-md text-sm font-medium border border-amber-300 text-amber-700 hover:bg-amber-50">
+                  📧 提醒补税号
+                </button>
                 <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer select-none">
                   <input type="checkbox" checked={showAll} onChange={e => { setShowAll(e.target.checked); load(1, e.target.checked) }} className="w-3.5 h-3.5" /> 含待验证
                 </label>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="公司 / 手机号 / 联系人 / 法人 / 合同号后4位" className="border border-gray-300 rounded-md px-3 py-2 text-sm w-72 focus:outline-none focus:border-primary" />
                 <button type="submit" className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium">🔍 搜索</button>
-                <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); setShowAll(false); load(1, false); setPage(1) }} className="px-4 py-2 border border-gray-200 rounded-md text-sm text-gray-500">重置</button>
+                <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); setShowMissingTax(false); setShowAll(false); load(1, false); setPage(1) }} className="px-4 py-2 border border-gray-200 rounded-md text-sm text-gray-500">重置</button>
               </form>
             </div>
           </div>
@@ -341,7 +380,8 @@ export default function Admin() {
                   return (
                   <tr key={c.id} className="border-t border-gray-100 hover:bg-blue-50 even:bg-blue-50/40">
                     <td className="p-3 align-top">
-                      <button onClick={() => { setInfoModal(c); setLucidPwd(null) }} className="text-xs font-semibold text-primary hover:underline text-left">{c.company_name}</button>
+                      <button onClick={() => { setInfoModal(c); setLucidPwd(null); setTaxEdit({ entity_type: c.entity_type || 'company', uscc: c.uscc || '', id_number: c.id_number || '' }); setTaxSaveMsg('') }} className="text-xs font-semibold text-primary hover:underline text-left">{c.company_name}</button>
+                      {(c.entity_type === 'individual' ? !c.id_number : !c.uscc) && <span className="ml-1 text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded">缺税号</span>}
                       <p className="text-[10px] text-gray-500 mt-0.5">
                         <span className="font-mono">{c.contract_number}</span>
                         <span className="mx-1 text-gray-300">/</span>
@@ -599,7 +639,9 @@ export default function Admin() {
               <div className="flex justify-between"><span className="text-gray-400">套餐</span><span className="font-medium">{infoModal.tier?.toUpperCase()}</span></div>
               <div className="flex justify-between"><span className="text-gray-400">服务周期</span><span className="font-medium">{infoModal.start_date?.slice(0,10)||'—'} – {infoModal.end_date?.slice(0,10)||'—'}</span></div>
               {infoModal.registered_address && <div className="flex justify-between"><span className="text-gray-400">注册地址</span><span className="font-medium text-xs">{infoModal.registered_address}</span></div>}
-              {infoModal.uscc && <div className="flex justify-between"><span className="text-gray-400">信用代码</span><span className="font-mono font-medium">{infoModal.uscc}</span></div>}
+              {infoModal.entity_type === 'individual'
+                ? (infoModal.id_number && <div className="flex justify-between"><span className="text-gray-400">身份证号</span><span className="font-mono font-medium">{infoModal.id_number}</span></div>)
+                : (infoModal.uscc && <div className="flex justify-between"><span className="text-gray-400">信用代码</span><span className="font-mono font-medium">{infoModal.uscc}</span></div>)}
               <div className="flex justify-between"><span className="text-gray-400">联系人</span><span className="font-medium">{infoModal.contact_name||'—'}</span></div>
               <div className="flex justify-between"><span className="text-gray-400">邮箱</span><span className="font-medium">{infoModal.contact_email}</span></div>
               <div className="flex justify-between"><span className="text-gray-400">手机</span><span className="font-medium">{infoModal.contact_phone||'—'}</span></div>
@@ -621,6 +663,35 @@ export default function Admin() {
                 )}
               </div>
             </div>
+
+            {taxEdit && (
+              <div className="border-t border-gray-100 pt-3 space-y-3">
+                <h4 className="text-sm font-semibold text-gray-700">✏️ 税号 / 身份证</h4>
+                <div className="flex gap-2">
+                  {[['company', '公司'], ['individual', '个人']].map(([k, label]) => (
+                    <button key={k} type="button" onClick={() => setTaxEdit(f => ({ ...f, entity_type: k }))}
+                      className={`flex-1 py-1.5 rounded-md text-xs font-medium border ${taxEdit.entity_type === k ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-500'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {taxEdit.entity_type === 'company' ? (
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">统一社会信用代码（税号）</label>
+                    <input value={taxEdit.uscc} onChange={e => setTaxEdit(f => ({ ...f, uscc: e.target.value }))} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono" placeholder="91340400MADDK97K4X" />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">身份证号码</label>
+                    <input value={taxEdit.id_number} onChange={e => setTaxEdit(f => ({ ...f, id_number: e.target.value }))} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono" placeholder="18位身份证号码" />
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <button onClick={saveAdminTax} className="px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">保存</button>
+                  {taxSaveMsg && <span className={`text-xs ${taxSaveMsg.startsWith('✅') ? 'text-green-600' : 'text-red-500'}`}>{taxSaveMsg}</span>}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

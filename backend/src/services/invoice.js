@@ -82,7 +82,7 @@ export function buildInvoiceHtml(invoice, client, contract) {
   <div>
     <strong>Rechnungsempfänger / 客户：</strong><br>
     ${esc(client.company_name_en || '')} &nbsp; ${esc(client.company_name || '')}<br>
-    ${esc(client.registered_address || '')}${client.registered_address_en ? `<br>${esc(client.registered_address_en)}` : ''}${client.uscc ? `<br>USt-ID / 税号: ${esc(client.uscc)}` : ''}
+    ${esc(client.registered_address || '')}${client.registered_address_en ? `<br>${esc(client.registered_address_en)}` : ''}${client.entity_type === 'individual' ? (client.id_number ? `<br>身份证号: ${esc(client.id_number)}` : '') : (client.uscc ? `<br>USt-ID / 税号: ${esc(client.uscc)}` : '')}
   </div>
 
   <div class="title">Rechnung / 发票</div>

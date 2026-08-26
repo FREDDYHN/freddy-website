@@ -27,17 +27,25 @@ router.put('/', authMiddleware, async (req, res) => {
   try {
     const db = await getDb()
     const { company_name, company_name_en, contact_name, contact_phone, wechat_id,
-            uscc, registered_address, legal_representative, lucid_registration_number } = req.body
+            entity_type, uscc, id_number, registered_address, legal_representative, lucid_registration_number } = req.body
+
+    // 税号校验（公司 → uscc 必填 / 个人 → id_number 必填）
+    const entityType = entity_type === 'individual' ? 'individual' : 'company'
+    if (entityType === 'individual') {
+      if (!id_number || !String(id_number).trim()) return res.status(400).json({ error: '身份证号码必填' })
+    } else {
+      if (!uscc || !String(uscc).trim()) return res.status(400).json({ error: '统一社会信用代码（税号）必填' })
+    }
 
     await db.run(
       `UPDATE clients SET
         company_name = ?, company_name_en = ?, contact_name = ?,
-        contact_phone = ?, wechat_id = ?, uscc = ?,
+        contact_phone = ?, wechat_id = ?, entity_type = ?, uscc = ?, id_number = ?,
         registered_address = ?, legal_representative = ?,
         lucid_registration_number = ?, updated_at = datetime('now')
        WHERE id = ?`,
       company_name, company_name_en || '', contact_name,
-      contact_phone || '', wechat_id || '', uscc || '',
+      contact_phone || '', wechat_id || '', entityType, uscc || '', id_number || '',
       registered_address || '', legal_representative || '',
       lucid_registration_number || '',
       req.user.client_id

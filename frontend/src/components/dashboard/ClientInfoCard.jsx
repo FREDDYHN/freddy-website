@@ -30,7 +30,7 @@ export default function ClientInfoCard({ client }) {
           <div className="bg-gray-50/50 rounded-lg p-3 space-y-0">
             <Row label="公司（中文）" value={client.company_name} />
             <Row label="公司（英文）" value={client.company_name_en} />
-            <Row label="信用代码" value={client.uscc} mono />
+            <Row label={client.entity_type === 'individual' ? '身份证号' : '信用代码'} value={client.entity_type === 'individual' ? client.id_number : client.uscc} mono />
             <Row label="注册地址" value={client.registered_address} />
             <Row label="法定代表人" value={client.legal_representative} />
             <Row label="联系人" value={client.contact_name} />
