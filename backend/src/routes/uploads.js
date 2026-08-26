@@ -37,7 +37,7 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
     const db = await getDb()
     const { contract_id, file_type } = req.body
 
-    await db.run(
+    const result = await db.run(
       `INSERT INTO uploads (client_id, contract_id, file_type, original_name, stored_path, file_size, mime_type)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       req.user.client_id,
@@ -54,12 +54,20 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
       await db.run("UPDATE contracts SET signed_at = datetime('now') WHERE id = ? AND signed_at IS NULL", contract_id)
     }
 
+    // 返回完整记录（含 id/contract_id/file_type/status），前端上传后能立即展示「已上传 + 下载」
     res.status(201).json({
       success: true,
       file: {
-        original_name: req.file.originalname,
+        id: result.lastID,
+        client_id: req.user.client_id,
+        contract_id: contract_id ? Number(contract_id) : null,
+        file_type: file_type || 'other',
+        original_name: fixEncoding(req.file.originalname),
         stored_path: req.file.filename,
-        size: req.file.size,
+        file_size: req.file.size,
+        mime_type: req.file.mimetype,
+        status: 'pending',
+        uploaded_at: new Date().toISOString(),
       },
     })
   } catch (e) {

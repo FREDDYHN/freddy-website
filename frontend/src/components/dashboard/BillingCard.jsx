@@ -51,6 +51,8 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
 
   const handleUpload = async (e, cid, ft) => { const file = e.target.files?.[0]; if (!file) return; setUploadingCid(cid); try { await onUpload(file, cid, ft) } finally { setUploadingCid(null); e.target.value = '' } }
 
+  const downloadFile = async (f) => { try { const r = await fetch(`/api/uploads/${f.id}/download`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }); if (!r.ok) throw new Error('下载失败'); const blob = await r.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = f.original_name || ''; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url) } catch (e) { alert('下载失败: ' + e.message) } }
+
   const openFeeDetail = (c, cost, pkg, prepaidPayment, settlementPayment) => {
     const byMat = {}; pkg.forEach(function(item){ var mk = item.material_type || item.material_key; byMat[mk] = (byMat[mk] || 0) + (parseFloat(item.estimated_quantity_kg || item.kg) || 0) })
     var subtotal = 0, totalKg = 0
@@ -171,6 +173,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
             const prepaidPayment = pays.find(p => p.payment_type === 'recycling_prepaid')
             const settlementPayment = pays.find(p => p.payment_type === 'recycling_settlement')
             const proofUploads = ups.filter(u => u.file_type?.startsWith('proof_') || u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
+            const proofLink = (ft) => { const f = ups.find(u => u.file_type === ft); if (!f) return null; return (<button onClick={() => downloadFile(f)} className="text-xs text-blue-600 hover:underline mt-0.5 text-left">✅ 已上传 · 📄 下载</button>) }
 
             // Material group for settlement
             const matKg = {}; pkg.forEach(item => { const mk = item.material_type || item.material_key; matKg[mk] = (matKg[mk] || 0) + (parseFloat(item.estimated_quantity_kg || item.kg) || 0) })
@@ -201,6 +204,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                       <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
                         上传往年缴费凭证 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_previous_year')} disabled={uploadingCid === c.id} className="hidden" />
                       </label>
+                      {proofLink('proof_previous_year')}
                     </span>
                     <span className="flex flex-col">
                       <span className="text-xs text-gray-600 font-semibold md:hidden">授权代表年费</span>
@@ -212,6 +216,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                       <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
                         上传付款凭证（待管理员确认后，合同生效） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_annual_fee')} disabled={uploadingCid === c.id} className="hidden" />
                       </label>
+                      {proofLink('proof_annual_fee')}
                     </span>
                     <span className="flex flex-col">
                       <span className="text-xs text-gray-600 font-semibold md:hidden">预申报费</span>
@@ -230,6 +235,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                             <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
                               上传预申报缴费凭证（待管理员审核） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_predeclared')} disabled={uploadingCid === c.id} className="hidden" />
                             </label>
+                            {proofLink('proof_predeclared')}
                           </>) : (<>
                             {prepaidPayment?.status !== 'paid' && (
                               <button onClick={() => onPredeclared(c.id, false)} className="text-yellow-600 hover:underline font-semibold text-xs mt-0.5 text-left">我已预申报</button>
@@ -237,6 +243,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                             <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
                               上传付款凭证（待管理员确认） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_prepaid')} disabled={uploadingCid === c.id} className="hidden" />
                             </label>
+                            {proofLink('proof_prepaid')}
                           </>)}
                         </>)
                       })()}
@@ -261,6 +268,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                       <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
                         上传付款凭证（待管理员确认） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_settlement')} disabled={uploadingCid === c.id} className="hidden" />
                       </label>
+                      {proofLink('proof_settlement')}
                     </span>
                   </div>
                 </div>

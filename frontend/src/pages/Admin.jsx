@@ -101,7 +101,7 @@ export default function Admin() {
   const uploadStamped = async (e, clientId, contractId) => {
     const f = e.target.files?.[0]; if (!f) return
     const fd = new FormData(); fd.append('file', f); fd.append('client_id', clientId); fd.append('contract_id', contractId); fd.append('file_type', 'admin_stamped')
-    try { const r = await fetch('/api/admin/uploads', { method: 'POST', headers: ah(), body: fd }); const d = await r.json(); if (d.success) alert('已上传'); else alert(d.error) } catch {}
+    try { const r = await fetch('/api/admin/uploads', { method: 'POST', headers: ah(), body: fd }); const d = await r.json(); if (d.success) { alert('已上传'); load(page) } else alert(d.error) } catch {}
     e.target.value = ''
   }
 
@@ -541,6 +541,10 @@ export default function Admin() {
                                 <label className="cursor-pointer text-primary hover:underline">
                                   📤 回签上传<input type="file" accept=".pdf,.doc,.docx,.jpg,.png" onChange={e => uploadStamped(e, c.client_id, c.id)} className="hidden" />
                                 </label>
+                                {(c._uploads?.admin_stamped?.length > 0) && c._uploads.admin_stamped.map(u => (
+                                  <button key={u.id} onClick={() => authDownload(`/api/uploads/${u.id}/download`, u.original_name)}
+                                    className="text-primary hover:underline block">📥 下载回签合同</button>
+                                ))}
                               </div>
                             </details>
                           )}
