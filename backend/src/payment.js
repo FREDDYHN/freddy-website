@@ -104,9 +104,13 @@ function verifyAlipaySignature(params) {
 //  Core Payment Logic
 // ══════════════════════════════════════════════
 
-async function createPayment({ clientId, contractId, tier, method, amountEur }) {
+/**
+ * 纯下单（网络调用微信/支付宝），不写库。
+ * 与 createPayment 分离的目的：把网络 I/O 从 SQLite 事务里移出来，
+ * 避免 BEGIN IMMEDIATE 持有写锁期间做 1-5s 的 fetch，阻塞其它签约请求排队。
+ */
+export async function createPaymentOrder({ tier, method, amountEur }) {
   method = method || 'wechat'
-  const db = await getDb()
   const eur = amountEur || AR_TIER_FEES_EUR[tier] || 29
   const rate = await getRate()
   const cny = Math.round(eur * rate * 100) / 100
@@ -142,11 +146,22 @@ async function createPayment({ clientId, contractId, tier, method, amountEur }) 
     url = '/api/payments/' + tradeNo + '/qr?method=bank&amount=' + cny
   }
 
-  await db.run(
+  return { tradeNo, cny, eur, qr, url, rate }
+}
+
+/** 只写 payments 行（供在 withTransaction 内使用，配合预先 createPaymentOrder 的结果） */
+export function insertPaymentRow(db, clientId, contractId, method, order) {
+  return db.run(
     "INSERT INTO payments (client_id,contract_id,payment_type,amount_cny,amount_eur,payment_method,out_trade_no,qr_code_url,pay_url,status,rate_used,rate_locked_at) VALUES (?,?,'contract_fee',?,?,?,?,?,?,'pending',?,datetime('now'))",
-    clientId, contractId, cny, eur, method, tradeNo, qr, url, rate
+    clientId, contractId, order.cny, order.eur, method, order.tradeNo, order.qr, order.url, order.rate
   )
-  return { outTradeNo: tradeNo, cnyAmount: cny, eurAmount: eur, payUrl: url, qrCodeUrl: qr, rateUsed: rate }
+}
+
+async function createPayment({ clientId, contractId, tier, method, amountEur }) {
+  const db = await getDb()
+  const order = await createPaymentOrder({ tier, method, amountEur })
+  await insertPaymentRow(db, clientId, contractId, method || 'wechat', order)
+  return { outTradeNo: order.tradeNo, cnyAmount: order.cny, eurAmount: order.eur, payUrl: order.url, qrCodeUrl: order.qr, rateUsed: order.rate }
 }
 
 async function markPaid(tradeNo) {

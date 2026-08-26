@@ -1,6 +1,6 @@
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
-import bcryptjs from 'bcryptjs'
+import bcrypt from 'bcrypt'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import fs from 'fs'
@@ -105,7 +105,7 @@ export async function seedAdmin() {
 
   const existing = await d.get('SELECT id FROM users WHERE email = ?', adminEmail)
   if (!existing) {
-    const hash = await bcryptjs.hash(adminPass, 10)
+    const hash = await bcrypt.hash(adminPass, 10)
     await d.run('INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)', adminEmail, hash, 'admin')
     console.log(`[db] Admin user seeded: ${adminEmail}`)
   }

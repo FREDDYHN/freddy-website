@@ -133,8 +133,12 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 
 CREATE INDEX IF NOT EXISTS idx_contracts_client ON contracts(client_id);
+CREATE INDEX IF NOT EXISTS idx_contracts_status_lucid ON contracts(status, lucid_confirmed);
 CREATE INDEX IF NOT EXISTS idx_packaging_contract ON packaging_data(contract_id);
 CREATE INDEX IF NOT EXISTS idx_payments_contract ON payments(contract_id);
+CREATE INDEX IF NOT EXISTS idx_payments_client ON payments(client_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_client ON invoices(client_id);
+CREATE INDEX IF NOT EXISTS idx_applications_client ON applications(client_id);
 CREATE INDEX IF NOT EXISTS idx_reminders_due ON reminders(due_date) WHERE status = 'pending';
 CREATE INDEX IF NOT EXISTS idx_uploads_client ON uploads(client_id);
 CREATE INDEX IF NOT EXISTS idx_uploads_contract ON uploads(contract_id);

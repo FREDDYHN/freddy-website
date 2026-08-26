@@ -19,13 +19,17 @@ function getTransport() {
       port: parseInt(process.env.SMTP_PORT || '587'),
       secure: process.env.SMTP_SECURE === 'true',
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      // 连接池复用，避免批量发送时反复建连；maxMessages 后自动轮换连接
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100,
     })
-    // Verify eagerly — failures clear transporter so first send can retry
+    // 仅启动时 verify 一次用于日志；失败不清空 transporter ——
+    // nodemailer 连接池会在下次 sendMail 时自动重连，清空反而触发「每封都 verify」的雪崩
     transporter.verify().then(() => {
       console.log('[email] SMTP connected:', process.env.SMTP_HOST)
     }).catch((e) => {
       console.error('[email] SMTP verify failed:', e.message)
-      transporter = null
     })
   }
   return transporter
@@ -34,13 +38,8 @@ function getTransport() {
 export async function send({ to, subject, html, attachments }) {
   const t = getTransport()
   if (t) {
-    try {
-      await t.sendMail({ from: FROM, to, subject, html, attachments })
-    } catch (e) {
-      console.error('[email] Send failed, resetting transporter:', e.message)
-      transporter = null // force reconnect on next attempt
-      throw e
-    }
+    // 失败时向上抛出（调用方决定是否重试/记录），但不重置 transporter
+    await t.sendMail({ from: FROM, to, subject, html, attachments })
   } else {
     console.log(`[email] SIMULATION — To: ${to} | Subject: ${subject}`)
     console.log(`[email] Body preview: ${html.slice(0, 200)}...`)

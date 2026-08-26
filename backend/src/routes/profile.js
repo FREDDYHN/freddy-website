@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import bcryptjs from 'bcryptjs'
+import bcrypt from 'bcrypt'
 import { getDb } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
 import { encryptLucid } from '../services/crypto.js'
@@ -82,10 +82,10 @@ router.put('/password', authMiddleware, async (req, res) => {
     }
 
     const user = await db.get('SELECT password_hash FROM users WHERE id = ?', req.user.id)
-    const valid = await bcryptjs.compare(current_password, user.password_hash)
+    const valid = await bcrypt.compare(current_password, user.password_hash)
     if (!valid) return res.status(401).json({ error: 'Current password is incorrect' })
 
-    const hash = await bcryptjs.hash(new_password, 10)
+    const hash = await bcrypt.hash(new_password, 10)
     await db.run('UPDATE users SET password_hash = ? WHERE id = ?', hash, req.user.id)
     res.json({ success: true, message: 'Password updated' })
   } catch (e) {

@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import jwt from 'jsonwebtoken'
-import bcryptjs from 'bcryptjs'
+import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 import { getDb, withTransaction } from './db.js'
 
@@ -47,7 +47,7 @@ router.post('/register', async (req, res) => {
     }
 
     // CPU 密集，移到事务外，缩短锁持有时间
-    const hash = await bcryptjs.hash(password, 10)
+    const hash = await bcrypt.hash(password, 10)
 
     const result = await withTransaction(db, async () => {
       const clientResult = await db.run(
@@ -91,7 +91,7 @@ router.post('/login', async (req, res) => {
     )
     if (!user) return res.status(401).json({ error: 'Invalid credentials' })
 
-    const valid = await bcryptjs.compare(password, user.password_hash)
+    const valid = await bcrypt.compare(password, user.password_hash)
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' })
 
     // Clear rate limit on successful login
@@ -133,7 +133,7 @@ router.post('/verify-email', async (req, res) => {
       return res.json({ token: loginToken, user: { id: user.id, email: payload.email, role: 'client', client_id: payload.client_id }, already_verified: true })
     }
 
-    const hash = await bcryptjs.hash(password, 10)
+    const hash = await bcrypt.hash(password, 10)
     await db.run('UPDATE users SET password_hash = ?, email_verified = 1 WHERE id = ?', hash, user.id)
 
     // Activate all pending_verification contracts for this client

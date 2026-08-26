@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import bcryptjs from 'bcryptjs'
+import bcrypt from 'bcrypt'
 import multer from 'multer'
 import { existsSync } from 'fs'
 import { rename } from 'fs/promises'
@@ -559,7 +559,7 @@ app.post('/api/admin/reset-password', authMiddleware, adminMiddleware, async (re
     const user = await db.get('SELECT * FROM users WHERE client_id = ?', client_id)
     if (!user) return res.status(404).json({ error: 'User not found' })
     const newPw = Math.random().toString(36).slice(2, 10)
-    const hash = await bcryptjs.hash(newPw, 10)
+    const hash = await bcrypt.hash(newPw, 10)
     await db.run('UPDATE users SET password_hash = ? WHERE client_id = ?', hash, client_id)
     res.json({ success: true, new_password: newPw })
   } catch (e) {

@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { getDb, withTransaction } from '../db.js'
 import { authMiddleware } from '../auth.js'
-import { createPayment } from '../payment.js'
+import { createPaymentOrder, insertPaymentRow } from '../payment.js'
 import { generateContract, getContractUrl } from '../services/contract-gen.js'
 import { sendVerificationEmail, sendLucidGuide } from '../services/email.js'
 import { rateLimit } from '../rate-limiter.js'
@@ -9,12 +9,11 @@ import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES } from '../../../shared/c
 
 const router = Router()
 
-// Generate next contract number with service-type prefix
-async function nextContractNumber(db, type) {
-  const row = await db.get('SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM contracts')
-  const n = String(row.next_id).padStart(4, '0')
+// 合同号 = 前缀 + 年份 + 自增 id 补零（如 LTO-AR-2026-0006）。
+// 用 AUTOINCREMENT 的 lastID 派生，而非 MAX(id)+1 —— 删除合同后编号不复用、也不会因并发/删除而撞号。
+function formatContractNumber(type, id) {
   const prefix = type === 'weee' ? 'LTO-WEEE-' : type === 'battery' ? 'LTO-BATT-' : 'LTO-AR-'
-  return prefix + new Date().getFullYear() + '-' + n
+  return prefix + new Date().getFullYear() + '-' + String(id).padStart(4, '0')
 }
 
 // Calculate WEEE fee
@@ -102,8 +101,11 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
       contractTier = 'standard'
     }
 
-    // ── 事务：所有 DB 写（含 createPayment，其内部网络请求会短暂占用锁，低流量可接受）──
-    const { clientId, contractId, contractNumber, startDate, endDate, payment } = await withTransaction(db, async () => {
+    // ── 先网络下单（在事务外，避免 BEGIN IMMEDIATE 持有写锁期间做 1-5s 的微信/支付宝 fetch）──
+    const order = await createPaymentOrder({ tier: contractTier, method: 'wechat', amountEur: annualFee })
+
+    // ── 事务：只做 DB 写（下单结果 order 已备好，事务内仅 insertPaymentRow）──
+    const { clientId, contractId, contractNumber, startDate, endDate } = await withTransaction(db, async () => {
       // 1. Create or reuse client (by email)
       let clientId
       const existingClient = await db.get('SELECT id FROM clients WHERE contact_email = ?', contact_email)
@@ -122,15 +124,16 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
         clientId = clientResult.lastID
       }
 
-      // 2. Create contract
-      const contractNumber = await nextContractNumber(db, svcType)
+      // 2. Create contract（先插临时唯一号，再取 lastID 派生正式号，同事务内更新）
       const { startDate, endDate } = contractPeriod()
-
+      const tmpNumber = '__tmp__' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
       const contractResult = await db.run(
         'INSERT INTO contracts (client_id, contract_number, tier, annual_fee_eur, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        clientId, contractNumber, contractTier, annualFee, startDate, endDate, 'pending_verification'
+        clientId, tmpNumber, contractTier, annualFee, startDate, endDate, 'pending_verification'
       )
       const contractId = contractResult.lastID
+      const contractNumber = formatContractNumber(svcType, contractId)
+      await db.run('UPDATE contracts SET contract_number = ? WHERE id = ?', contractNumber, contractId)
 
       // 3. Store service-specific data
       if (isPackaging && packaging_items && packaging_items.length > 0) {
@@ -149,8 +152,8 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
         )
       }
 
-      // 4. Create payment
-      const payment = await createPayment({ clientId, contractId, tier: contractTier, method: 'wechat', amountEur: annualFee })
+      // 4. 写支付行（复用事务外预先下好的单，纯 DB 写）
+      await insertPaymentRow(db, clientId, contractId, 'wechat', order)
 
       // 5. Create user account (email_verified=0, password set later via verification email)
       const existingUser = await db.get('SELECT id FROM users WHERE email = ?', contact_email)
@@ -161,8 +164,11 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
         )
       }
 
-      return { clientId, contractId, contractNumber, startDate, endDate, payment }
+      return { clientId, contractId, contractNumber, startDate, endDate }
     })
+
+    // 支付响应信息（来自事务外预先下好的单）
+    const payment = { outTradeNo: order.tradeNo, cnyAmount: order.cny, eurAmount: order.eur, payUrl: order.url, qrCodeUrl: order.qr, rateUsed: order.rate }
 
     // 6. Send verification email (non-blocking, after commit)
     try {
