@@ -332,6 +332,7 @@ export default function Admin() {
               <thead className="bg-gray-200 text-left"><tr><th className="px-2 py-3 font-bold text-gray-700 whitespace-nowrap">基本信息</th><th className="px-2 py-3 font-bold text-gray-700 whitespace-nowrap">服务周期</th><th className="px-2 py-3 font-bold text-gray-700 whitespace-nowrap">往年缴费凭证</th><th className="px-2 py-3 font-bold text-gray-700 whitespace-nowrap">授权代表年费</th><th className="px-2 py-3 font-bold text-gray-700 whitespace-nowrap">预申报费</th><th className="px-2 py-3 font-bold text-gray-700 whitespace-nowrap">年终结算</th><th className="px-2 py-3 font-bold text-gray-700 whitespace-nowrap">账户管理</th></tr></thead>
               <tbody>
                 {currentList.map(c => {
+                  const settlementOpen = new Date().getFullYear() > parseInt(c.end_date?.slice(0,4) || '0')
                   return (
                   <tr key={c.id} className="border-t border-gray-100 hover:bg-blue-50 even:bg-blue-50/40">
                     <td className="p-3 align-top">
@@ -489,9 +490,11 @@ export default function Admin() {
                         <span className="text-xs text-green-600 font-medium">€{c.settlement_amount} ✓</span>
                       ) : c.settlement_amount ? (
                         <span className="text-xs text-yellow-600">€{c.settlement_amount} 待付</span>
-                      ) : (
+                      ) : settlementOpen ? (
                         <button onClick={() => { setFeeModal({ contractId: c.id, type: 'settlement' }); setFeeAmount('') }}
                           className="text-xs text-primary hover:underline">📋 设置结算</button>
+                      ) : (
+                        <span className="text-xs text-gray-300">⏳ 次年1月开放</span>
                       )}
                       {c.settlement_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{Math.round(c.settlement_amount * (rateInfo.rate||8.10))}</div>}
                       {uploadLinks(c, 'proof_settlement')}

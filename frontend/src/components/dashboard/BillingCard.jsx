@@ -174,6 +174,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
             const settlementPayment = pays.find(p => p.payment_type === 'recycling_settlement')
             const proofUploads = ups.filter(u => u.file_type?.startsWith('proof_') || u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
             const proofLink = (ft) => { const f = ups.find(u => u.file_type === ft); if (!f) return null; return (<button onClick={() => downloadFile(f)} className="text-xs text-blue-600 hover:underline mt-0.5 text-left">✅ 已上传 · 📄 下载</button>) }
+            const settlementOpen = new Date().getFullYear() > parseInt(c.end_date?.slice(0,4) || '0')
 
             // Material group for settlement
             const matKg = {}; pkg.forEach(item => { const mk = item.material_type || item.material_key; matKg[mk] = (matKg[mk] || 0) + (parseFloat(item.estimated_quantity_kg || item.kg) || 0) })
@@ -262,13 +263,19 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                         </>
                       ) : pkg.some(p => p.submitted_at) ? (
                         (() => { const actByMat = {}; pkg.forEach(item => { const mk = item.material_type || item.material_key; const ak = parseFloat(item.actual_quantity_kg) || 0; if (ak > 0) actByMat[mk] = (actByMat[mk] || 0) + ak }); let af = 0; Object.entries(actByMat).forEach(([mk, kg]) => { af += calcMaterialFee(mk, kg) }); af = applyFloorFee(af, 28.90); const s = calcTotalSettlement(cost, af); return s.amount > 0 ? <><span className="text-xs text-red-500 font-semibold h-[18px] flex items-center">补缴 €{s.amount.toFixed(2)}</span><span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(s.amount * rate)}</span></> : s.amount < 0 ? <><span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">退 €{Math.abs(s.amount).toFixed(2)}</span><span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(Math.abs(s.amount) * rate)}</span></> : <span className="text-xs text-blue-500 h-[18px] flex items-center">已申报</span> })()
-                      ) : (
+                      ) : settlementOpen ? (
                         <button onClick={() => setActualsCid(c.id)} className="text-yellow-600 hover:underline font-semibold text-xs h-[18px] flex items-center">申报实际量</button>
+                      ) : (
+                        <span className="text-xs text-gray-300 h-[18px] flex items-center">⏳ 次年1月开放申报</span>
                       )}
-                      <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
-                        上传付款凭证（待管理员确认） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_settlement')} disabled={uploadingCid === c.id} className="hidden" />
-                      </label>
-                      {proofLink('proof_settlement')}
+                      {settlementOpen ? (<>
+                        <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
+                          上传付款凭证（待管理员确认） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_settlement')} disabled={uploadingCid === c.id} className="hidden" />
+                        </label>
+                        {proofLink('proof_settlement')}
+                      </>) : (
+                        <span className="text-xs text-gray-300 mt-0.5">⏳ 次年1月开放</span>
+                      )}
                     </span>
                   </div>
                 </div>
