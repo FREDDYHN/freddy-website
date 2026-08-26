@@ -10,6 +10,7 @@ import { getDb, withTransaction } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
 import { calcMaterialFee, applyFloorFee } from '../../../shared/constants.js'
 import { formatInvoiceNumber, generateAndSendInvoice } from '../services/invoice.js'
+import { localDate } from '../services/date.js'
 
 const router = Router()
 
@@ -90,11 +91,13 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
           if (pmt) {
             await db.run("UPDATE payments SET status = 'paid', paid_at = datetime('now') WHERE id = ?", pmt.id)
             if (paymentType === 'contract_fee') {
-              await db.run("UPDATE contracts SET status = 'active', paid_confirmed_at = datetime('now'), activated_at = datetime('now'), start_date = date('now'), end_date = date('now','start of year','+1 year','-1 day') WHERE id = ? AND status = 'pending_payment'", upload.contract_id)
+              const today = localDate()
+              const endOfYear = `${new Date().getFullYear()}-12-31`
+              await db.run("UPDATE contracts SET status = 'active', paid_confirmed_at = datetime('now'), activated_at = datetime('now'), start_date = ?, end_date = ? WHERE id = ? AND status = 'pending_payment'", today, endOfYear, upload.contract_id)
               const contract = await db.get('SELECT contract_number FROM contracts WHERE id = ?', upload.contract_id)
               const invNo = contract?.contract_number ? formatInvoiceNumber(contract.contract_number) : ('INV-' + Date.now().toString(36).toUpperCase())
               await db.run("INSERT INTO invoices (client_id, contract_id, payment_id, invoice_number, amount_eur, status) VALUES (?,?,?,?,?,'issued')", upload.client_id, upload.contract_id, pmt.id, invNo, pmt.amount_eur)
-              invoiceToSend = { client_id: upload.client_id, contract_id: upload.contract_id, invoice_number: invNo, amount_eur: pmt.amount_eur, invoice_date: new Date().toISOString().slice(0, 10) }
+              invoiceToSend = { client_id: upload.client_id, contract_id: upload.contract_id, invoice_number: invNo, amount_eur: pmt.amount_eur, invoice_date: today }
             }
           } else if (paymentType === 'recycling_prepaid') {
             // Calculate prepaid fee from packaging data (same as client dashboard)

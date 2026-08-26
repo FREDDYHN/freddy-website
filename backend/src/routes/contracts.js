@@ -35,11 +35,15 @@ function calcBatteryFee(brandCount, yearType) {
 }
 
 /**
- * Normalize a date to ISO date-only string (YYYY-MM-DD).
- * Avoids the fragile new Date(year, month+1, 1) pattern which breaks in December.
+ * 格式化为 YYYY-MM-DD（北京时间/服务器本地时区）。
+ * 不能用 toISOString()：它按 UTC 输出，在 Asia/Shanghai(UTC+8) 会早一天，
+ * 导致合同 start_date/end_date 变成上个月最后一天 / 12-30 而非 09-01 / 12-31。
  */
 function dateStr(date) {
-  return date.toISOString().slice(0, 10)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 /**

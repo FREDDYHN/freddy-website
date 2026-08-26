@@ -11,6 +11,7 @@ import { getDb, getRate, withTransaction } from './db.js'
 import { authMiddleware, adminMiddleware } from './auth.js'
 import { AR_TIER_FEES_EUR } from '../../shared/constants.js'
 import { formatInvoiceNumber, generateAndSendInvoice } from './services/invoice.js'
+import { localDate } from './services/date.js'
 
 const SIMULATION_MODE = !process.env.WECHAT_MCH_ID && !process.env.ALIPAY_APP_ID
 
@@ -174,7 +175,10 @@ async function markPaid(tradeNo) {
     if (p.status === 'paid') return
     await db.run("UPDATE payments SET status='paid', paid_at=datetime('now') WHERE out_trade_no=?", tradeNo)
     if (p.contract_id) {
-      await db.run("UPDATE contracts SET status='active', paid_confirmed_at=datetime('now'), activated_at=datetime('now'), start_date=date('now'), end_date=date('now','start of year','+1 year','-1 day') WHERE id=? AND status='pending_payment'", p.contract_id)
+      // 北京时间：start_date = 今天，end_date = 今年 12-31（避免 date('now') 的 UTC 偏移）
+      const today = localDate()
+      const endOfYear = `${new Date().getFullYear()}-12-31`
+      await db.run("UPDATE contracts SET status='active', paid_confirmed_at=datetime('now'), activated_at=datetime('now'), start_date=?, end_date=? WHERE id=? AND status='pending_payment'", today, endOfYear, p.contract_id)
     }
     const existing = await db.get('SELECT id FROM invoices WHERE payment_id = ?', p.id)
     if (!existing) {
@@ -182,7 +186,7 @@ async function markPaid(tradeNo) {
       const contract = await db.get('SELECT contract_number FROM contracts WHERE id = ?', p.contract_id)
       const invNo = contract?.contract_number ? formatInvoiceNumber(contract.contract_number) : ('INV-' + Date.now().toString(36).toUpperCase())
       const r = await db.run("INSERT INTO invoices (client_id,contract_id,payment_id,invoice_number,amount_eur,status) VALUES (?,?,?,?,?,'issued')", p.client_id, p.contract_id, p.id, invNo, p.amount_eur)
-      invoice = { id: r.lastID, client_id: p.client_id, contract_id: p.contract_id, invoice_number: invNo, amount_eur: p.amount_eur, invoice_date: new Date().toISOString().slice(0, 10) }
+      invoice = { id: r.lastID, client_id: p.client_id, contract_id: p.contract_id, invoice_number: invNo, amount_eur: p.amount_eur, invoice_date: localDate() }
     }
   })
   // 提交成功后异步发发票（仅授权代表年费 contract_fee），不阻塞确认响应

@@ -17,6 +17,7 @@ import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import Docxtemplater from 'docxtemplater'
 import PizZip from 'pizzip'
+import { localDate } from './date.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootPath = join(__dirname, '..', '..', '..')
@@ -69,7 +70,7 @@ export async function generateContract({ type, clientLocation, data }) {
     contact_phone: data.contact_phone || data.phone || '',
     wechat_id: data.wechat_id || '',
     contract_number: data.contract_number || '',
-    contract_date: data.contract_date || new Date().toISOString().slice(0, 10),
+    contract_date: data.contract_date || localDate(),
     start_date: data.start_date || '',
     end_date: data.end_date || '',
     annual_fee_eur: data.annual_fee_eur || data.fee_eur || '',
@@ -82,7 +83,7 @@ export async function generateContract({ type, clientLocation, data }) {
     packaging_items: pkgItems,
     signer_name: data.signer_name || '',
     signer_title: data.signer_title || '',
-    sign_date: data.sign_date || new Date().toISOString().slice(0, 10),
+    sign_date: data.sign_date || localDate(),
   }
 
   const filledTags = Object.keys(tags).filter(k => tags[k])

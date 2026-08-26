@@ -24,6 +24,7 @@ import { docxToPdf } from './services/pdf.js'
 import { decryptLucid } from './services/crypto.js'
 import { markPaid } from './payment.js'
 import { rateLimit } from './rate-limiter.js'
+import { localDate, beijingDateFromUtc } from './services/date.js'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -317,7 +318,7 @@ app.get('/api/admin/clients/export', authMiddleware, adminMiddleware, async (req
   try {
     const db = await getDb()
     const headers = ['公司名称','联系人','邮箱','电话','LUCID号','客户状态','注册日期','合同编号','套餐','合同状态','年费€','年费状态','回收费预缴€','回收费预缴状态','年终结算€','年终结算状态']
-    const dateStr = new Date().toISOString().slice(0, 10)
+    const dateStr = localDate()
     res.setHeader('Content-Type', 'text/csv; charset=utf-8')
     res.setHeader('Content-Disposition', `attachment; filename="freddy-clients-${dateStr}.csv"`)
     res.write('﻿' + headers.join(',') + '\n') // BOM for Excel
@@ -488,8 +489,8 @@ app.post('/api/contracts/:id/generate', authMiddleware, async (req, res) => {
       data: {
         ...contract,
         packaging_items: pkgItems,
-        contract_date: contract.created_at?.slice(0, 10) || new Date().toISOString().slice(0, 10),
-        sign_date: new Date().toISOString().slice(0, 10),
+        contract_date: beijingDateFromUtc(contract.created_at),
+        sign_date: localDate(),
       },
     })
 
