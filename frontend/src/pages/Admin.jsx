@@ -237,8 +237,13 @@ export default function Admin() {
 
   const currentList = (() => {
     let list = tab === 'packaging' ? pkgContracts : tab === 'weee' ? weeeContracts : batteryContracts
-    // Status filter (dropdown)
-    if (statusFilter) {
+    // Status filter (dropdown) — 'signed'/'expired' 不是真实 status，改用 signed_at / end_date 判断
+    if (statusFilter === 'signed') {
+      list = list.filter(c => c.signed_at)
+    } else if (statusFilter === 'expired') {
+      const today = new Date().toISOString().slice(0, 10)
+      list = list.filter(c => c.end_date && String(c.end_date).slice(0, 10) < today)
+    } else if (statusFilter) {
       list = list.filter(c => c.status === statusFilter)
     }
     // Pending toggle
@@ -303,7 +308,7 @@ export default function Admin() {
           <div className="flex flex-wrap gap-3 justify-between items-center">
             <div className="flex gap-2">
               <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ id: cl.contract_id||cl.id, client_id: cl.id, company_name: cl.company_name, contact_email: cl.contact_email, contact_name: cl.contact_name, contact_phone: cl.contact_phone, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, start_date: cl.start_date, end_date: cl.end_date, lucid_confirmed: !!cl.lucid_confirmed, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0, _uploads:{}, _packaging:[] }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
-                <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setShowPending(false) }}
+                <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, !!v || showAll) }}
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary">
                   <option value="">全部状态</option>
                   {Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
