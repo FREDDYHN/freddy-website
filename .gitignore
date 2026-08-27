@@ -21,3 +21,6 @@ outputs/*.pdf
 node_modules/
 *.tar.gz
 docs/*.html
+
+# 业务导出数据（客户信息/对账等敏感数据，不入版本库）
+projects/CSV导出/
