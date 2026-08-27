@@ -155,8 +155,8 @@ SECTIONS = [
         'rows': [
             ('(1) Die Parteien verarbeiten personenbezogene Daten ausschließlich zur Durchführung dieser Vereinbarung und im Einklang mit der Datenschutz-Grundverordnung (DSGVO).',
              '(1) 双方仅为本合同履行之目的，并依据《通用数据保护条例》（GDPR）处理个人数据。'),
-            ('(2) Soweit personenbezogene Daten zwischen der Volksrepublik China und Deutschland übermittelt werden, erfolgt dies auf Grundlage der EU-Standardvertragsklauseln gemäß Durchführungsbeschluss (EU) 2021/914 der Europäischen Kommission (SCC) sowie ergänzend der geltenden chinesischen Datenschutzbestimmungen (PIPL).',
-             '(2) 凡个人数据在中华人民共和国与德国之间传输，基于欧盟委员会执行决定 (EU) 2021/914 项下的欧盟标准合同条款（SCC），并补充适用中国《个人信息保护法》（PIPL）的相关规定。'),
+            ('(2) Für die Übermittlung personenbezogener Daten von Deutschland in die Volksrepublik China (von LIVANTO an FREDDY) gelten die EU-Standardvertragsklauseln gemäß Durchführungsbeschluss (EU) 2021/914 der Europäischen Kommission (SCC). Für die Übermittlung personenbezogener Daten aus der Volksrepublik China nach Deutschland (von FREDDY an LIVANTO) gelten die Bestimmungen des chinesischen Gesetzes zum Schutz personenbezogener Informationen (PIPL).',
+             '(2) 凡个人数据从德国传输至中华人民共和国（由 LIVANTO 传至福瑞笛），适用欧盟委员会执行决定 (EU) 2021/914 项下的欧盟标准合同条款（SCC）。凡个人数据从中华人民共和国传输至德国（由福瑞笛传至 LIVANTO），适用中国《个人信息保护法》（PIPL）的相关规定。'),
             ('(3) Die Parteien treffen geeignete technische und organisatorische Maßnahmen zum Schutz personenbezogener Daten gemäß Art. 32 DSGVO.',
              '(3) 双方依据 GDPR 第32条采取适当的技术和组织措施保护个人数据。'),
         ],
