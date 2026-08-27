@@ -30,7 +30,7 @@ export default function Profile() {
       if (!/^\d{17}[\dXx]$/.test(taxForm.id_number.trim())) { setTaxMsg('❌ 身份证号码格式不正确（18位）'); return }
     } else {
       if (!taxForm.uscc.trim()) { setTaxMsg('❌ 请输入统一社会信用代码'); return }
-      if (!/^[0-9A-Za-z]{18}$/.test(taxForm.uscc.trim())) { setTaxMsg('❌ 统一社会信用代码格式不正确（18位）'); return }
+      if (!/^([0-9A-Za-z]{18}|\d{8})$/.test(taxForm.uscc.trim())) { setTaxMsg('❌ 税号格式不正确（18位统一社会信用代码，或8位香港商业登记号）'); return }
     }
     setTaxMsg('')
     try {
@@ -141,7 +141,7 @@ export default function Profile() {
           </div>
           {taxForm.entity_type === 'company' ? (
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">统一社会信用代码（税号）*</label>
+              <label className="block text-xs font-medium text-gray-400 mb-1">统一社会信用代码（税号）* <span className="text-gray-300">（香港客户填 8 位商业登记号）</span></label>
               <input value={taxForm.uscc} onChange={e => setTaxForm(f => ({ ...f, uscc: e.target.value }))} className={inpCls} placeholder="91340400MADDK97K4X" />
             </div>
           ) : (

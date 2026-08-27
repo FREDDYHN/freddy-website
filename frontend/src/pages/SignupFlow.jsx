@@ -81,7 +81,7 @@ export default function SignupFlow() {
         else if (!/^\d{17}[\dXx]$/.test(form.id_number.trim())) e.id_number = '身份证号码格式不正确（18位）'
       } else {
         if (!form.uscc.trim()) e.uscc = '请输入统一社会信用代码'
-        else if (!/^[0-9A-Za-z]{18}$/.test(form.uscc.trim())) e.uscc = '统一社会信用代码格式不正确（18位）'
+        else if (!/^([0-9A-Za-z]{18}|\d{8})$/.test(form.uscc.trim())) e.uscc = '税号格式不正确（18位统一社会信用代码，或8位香港商业登记号）'
       }
     }
     setErrors(e); return Object.keys(e).length === 0
@@ -235,7 +235,7 @@ export default function SignupFlow() {
 
           {form.entity_type === 'company' ? (
             <div>
-              <label className="block text-xs font-semibold mb-1 text-gray-500">统一社会信用代码（税号）*</label>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">统一社会信用代码（税号）* <span className="font-normal text-gray-400">（香港客户填 8 位商业登记号）</span></label>
               <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={`${inputCls} ${errCls('uscc', errors)}`} placeholder="91340400MADDK97K4X" />
               {fe('uscc')}
             </div>
