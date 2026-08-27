@@ -89,6 +89,8 @@ SECTIONS = [
              '(2) 应向双元系统支付的许可费用（系统参与费）为代收代付项目，不参与分成，由 FREDDY 替 LIVANTO 代转付给相应双元系统。因人民币兑欧元汇率波动而产生的盈余或损失，由双方按 50%:50% 的比例分享或承担。'),
             ('(3) Zusätzliche Servicegebühren (z. B. ZSVR-Klassifizierungsantrag, Bearbeitungsgebühr Vollständigkeitserklärung, Mahngebühren) werden ebenfalls im Verhältnis 50 % zu 50 % geteilt.',
              '(3) 附加服务费（如 ZSVR 分类申请、完整性声明手续费、催款费等）同样按 50%:50% 的比例分成。'),
+            ('(4) Sämtliche in dieser Vereinbarung genannten Beträge verstehen sich brutto (einschließlich Umsatzsteuer). Die von LIVANTO gegenüber Kunden außerhalb Deutschlands erbrachten Leistungen sind steuerfreie Ausfuhrleistungen (deutsche Umsatzsteuer 0 %). FREDDY erbringt ihre Leistungen gegenüber LIVANTO mit einem chinesischen Umsatzsteuersatz von 1 %, der in der Umsatzbeteiligung von 50 % bereits enthalten ist. Jede Partei trägt und erklärt die auf ihre eigenen Leistungen entfallende Umsatzsteuer selbst; eine gegenseitige Überwälzung findet nicht statt.',
+             '(4) 本合同所列全部金额均为含税金额（含增值税）。LIVANTO 向德国境外客户提供的服务为免税的出口服务（德国增值税 0%）。FREDDY 向 LIVANTO 提供的服务，按中国小规模纳税人 1% 征收率缴纳增值税，该 1% 已包含在 50% 分成金额中。各方各自承担并申报自身服务项下的增值税，不相互转嫁。'),
         ],
     },
     {
@@ -200,8 +202,32 @@ SECTIONS = [
     },
 ]
 
-ANLAGE_D_TITLE = ('Anlage D: EU-Standardvertragsklauseln (SCC) – Modul 1', '附件 D：欧盟标准合同条款（SCC）— 模块 1')
-ANLAGE_D_ROWS = [
+ANLAGE_A_TITLE = ('Anlage A: Gebührenordnung', '附件 A：费用表')
+ANLAGE_A_ROWS = [
+    ('(1) Jahresgrundgebühren (brutto, pro Jahr):\n• Basis: EUR 29,00\n• Standard: EUR 49,00\n• Premium: EUR 79,00',
+     '(1) 年度基本费用（含税，每年）：\n• 基础：29.00 欧元\n• 标准：49.00 欧元\n• 高级：79.00 欧元'),
+    ('(2) Zusätzliche Servicegebühren:\n• ZSVR-Klassifizierungsantrag: EUR 150,00\n• Bearbeitungsgebühr Vollständigkeitserklärung: EUR 50,00 (zzgl. Prüferkosten)\n• Mahngebühr: EUR 15,00',
+     '(2) 附加服务费：\n• ZSVR 分类申请：150.00 欧元\n• 完整性声明手续费：50.00 欧元（另加审计师费用）\n• 逾期催款：15.00 欧元'),
+    ('(3) Umsatzbeteiligung:\n• Jahresgrundgebühren und zusätzliche Servicegebühren: 50 % zu 50 %\n• Lizenzentgelte (duale Systeme): durchlaufende Posten, nicht geteilt, von FREDDY im Auftrag von LIVANTO weitergeleitet\n• Gewinne oder Verluste aus Wechselkursschwankungen: 50 % zu 50 %',
+     '(3) 分成规则：\n• 年费及附加服务费：50%:50%\n• 双元系统许可费：代收代付项目，不分成，由 FREDDY 替 LIVANTO 代转付\n• 汇率波动产生的盈余或损失：50%:50%'),
+    ('(4) Umsatzsteuer:\n• Sämtliche Beträge verstehen sich brutto.\n• LIVANTO: steuerfreie Ausfuhrleistungen gegenüber Kunden außerhalb Deutschlands (0 %).\n• FREDDY: chinesischer Umsatzsteuersatz von 1 %, in der 50-%-Beteiligung enthalten.\n• Jede Partei trägt ihre eigene Umsatzsteuer.',
+     '(4) 增值税：\n• 所有金额均为含税金额。\n• LIVANTO：对德国境外客户的免税出口服务（0%）。\n• FREDDY：中国 1% 征收率，已包含在 50% 分成中。\n• 各方各自承担自身增值税。'),
+]
+
+ANLAGE_B_TITLE = ('Anlage B: Abrechnungsformular', '附件 B：季度结算单模板')
+ANLAGE_B_ROWS = [
+    ('(1) Abrechnungszeitraum: jeweils ein Kalenderquartal (1. Januar – 31. März; 1. April – 30. Juni; 1. Juli – 30. September; 1. Oktober – 31. Dezember).',
+     '(1) 结算期间：每个自然季度（1月1日–3月31日；4月1日–6月30日；7月1日–9月30日；10月1日–12月31日）。'),
+    ('(2) Kundenliste:\nVertragsnummer / Kundenname / Servicestufe / Jahresgrundgebühr',
+     '(2) 客户清单：\n合同编号 / 客户名称 / 服务等级 / 年度基本费用'),
+    ('(3) Berechnung:\n• Summe der Jahresgrundgebühren × 50 % = an LIVANTO zu überweisender Betrag (EUR)\n• Lizenzentgelte (duale Systeme): durchlaufende Posten (Aufstellung beigefügt)\n• Gewinne oder Verluste aus Wechselkursschwankungen: 50 % zu 50 %',
+     '(3) 结算计算：\n• 年度基本费用合计 × 50% = 应转 LIVANTO 金额（欧元）\n• 双元系统许可费：代收代付项目（附明细）\n• 汇率波动产生的盈余或损失：50%:50%'),
+    ('(4) Überweisungsbetrag an LIVANTO (EUR): ____________________\nOrt / Datum: ____________________\nFREDDY (Unterschrift / Stempel): ____________________\nLIVANTO (Unterschrift / Stempel): ____________________',
+     '(4) 应转 LIVANTO 金额（欧元）：____________________\n地点 / 日期：____________________\n福瑞笛（签字 / 盖章）：____________________\nLIVANTO（签字 / 盖章）：____________________'),
+]
+
+ANLAGE_C_TITLE = ('Anlage C: EU-Standardvertragsklauseln (SCC) – Modul 1', '附件 C：欧盟标准合同条款（SCC）— 模块 1')
+ANLAGE_C_ROWS = [
     ('(1) Die Parteien vereinbaren, dass für die Übermittlung personenbezogener Daten von LIVANTO an FREDDY in die Volksrepublik China die Standardvertragsklauseln gemäß Durchführungsbeschluss (EU) 2021/914 der Europäischen Kommission in der Fassung von Modul 1 (Übermittlung von Verantwortlichem an Verantwortlichen) Anwendung finden. Die Standardvertragsklauseln einschließlich ihrer Anhänge sind Bestandteil dieser Anlage.',
      '(1) 双方约定，LIVANTO 向中华人民共和国境内的福瑞笛传输个人数据，适用欧盟委员会执行决定 (EU) 2021/914 项下标准合同条款的模块 1（控制者向控制者传输）。该标准合同条款及其附录为本附件的组成部分。'),
     ('(2) Anhang I A. – Liste der Parteien:\nDatenexporteur: LIVANTO GmbH, Luisenhoffnung 3C, 44225 Dortmund, Deutschland; Rolle: Verantwortlicher.\nDatenimporteur: FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN, Zhonghuan International Plaza, Finanzzentrum 158, 4. Etage, Raum 418, Huainan, Anhui, Volksrepublik China; Rolle: Verantwortlicher.',
@@ -387,9 +413,15 @@ def build():
     for s in SECTIONS:
         _add_section(doc, s['title'][0], s['title'][1], s['rows'])
 
-    # Annex D (SCC)
-    _add_bilingual_table(doc, [ANLAGE_D_TITLE], bold_rows=True)
-    _add_bilingual_table(doc, ANLAGE_D_ROWS)
+    # Annex A (Gebührenordnung)
+    _add_bilingual_table(doc, [ANLAGE_A_TITLE], bold_rows=True)
+    _add_bilingual_table(doc, ANLAGE_A_ROWS)
+    # Annex B (Abrechnungsformular)
+    _add_bilingual_table(doc, [ANLAGE_B_TITLE], bold_rows=True)
+    _add_bilingual_table(doc, ANLAGE_B_ROWS)
+    # Annex C (SCC)
+    _add_bilingual_table(doc, [ANLAGE_C_TITLE], bold_rows=True)
+    _add_bilingual_table(doc, ANLAGE_C_ROWS)
 
     # signature
     _add_bilingual_table(doc, [SIGN_TITLE], bold_rows=True)
@@ -453,9 +485,17 @@ def build_html():
         parts.append(_brow(s['title'][0], s['title'][1], title=True))
         for de, zh in s['rows']:
             parts.append(_brow(de, zh))
-    # Annex D (SCC)
-    parts.append(_brow(*ANLAGE_D_TITLE, title=True))
-    for de, zh in ANLAGE_D_ROWS:
+    # Annex A (Gebührenordnung)
+    parts.append(_brow(*ANLAGE_A_TITLE, title=True))
+    for de, zh in ANLAGE_A_ROWS:
+        parts.append(_brow(de, zh))
+    # Annex B (Abrechnungsformular)
+    parts.append(_brow(*ANLAGE_B_TITLE, title=True))
+    for de, zh in ANLAGE_B_ROWS:
+        parts.append(_brow(de, zh))
+    # Annex C (SCC)
+    parts.append(_brow(*ANLAGE_C_TITLE, title=True))
+    for de, zh in ANLAGE_C_ROWS:
         parts.append(_brow(de, zh))
     # signature
     parts.append(_brow(*SIGN_TITLE, title=True))
