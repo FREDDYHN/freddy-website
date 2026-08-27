@@ -32,8 +32,8 @@ PARTIES = [
      '(1) LIVANTO 有限责任公司，地址：德国多特蒙德 Luisenhoffnung 3C（邮编 44225），于多特蒙德地方法院商业登记处登记（登记号 HRB 38628），增值税识别号 DE 464031041，由总经理钱子风代表 —— 作为委托方 ——'),
     ('– nachfolgend „LIVANTO“ genannt –,', '—— 以下称“LIVANTO”——，'),
     ('und', '与'),
-    ('(2) FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN, Zweigniederlassung Huainan, Zhonghuan International Plaza, Finanzzentrum 158, 4. Etage, Raum 418, Huainan, Anhui, Volksrepublik China, handelnd durch ihre Hauptniederlassung FREDDY (SHANGHAI) INFORMATION CONSULTING LTD., – als Auftragnehmerin –',
-     '(2) FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN（福瑞笛（上海）信息咨询有限公司淮南分公司），地址：中华人民共和国安徽省淮南市中环国际广场158金融中心四层418室，由其总公司福瑞笛（上海）信息咨询有限公司授权行事 —— 作为受托方 ——'),
+    ('(2) FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN, Zweigniederlassung Huainan, Zhonghuan International Plaza, Finanzzentrum 158, 4. Etage, Raum 418, Huainan, Anhui, Volksrepublik China – als Auftragnehmerin –',
+     '(2) FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN（福瑞笛（上海）信息咨询有限公司淮南分公司），地址：中华人民共和国安徽省淮南市中环国际广场158金融中心四层418室 —— 作为受托方 ——'),
     ('– nachfolgend „FREDDY“ genannt –,', '—— 以下称“福瑞笛”——，'),
     ('– LIVANTO und FREDDY gemeinsam nachfolgend auch „Parteien“ genannt –', '—— LIVANTO 与福瑞笛以下合称“双方”——'),
 ]
@@ -56,8 +56,8 @@ SECTIONS = [
         'rows': [
             ('(1) LIVANTO verfügt über eine eingerichtete Niederlassung im Sinne des § 4 Absatz 3 GewO in Deutschland und ist als Bevollmächtigter im Verpackungsregister LUCID registriert (Bevollmächtigten-ID: DE8514687609035).',
              '(1) LIVANTO 在德国设有符合《营业条例》（GewO）第4条第3款规定的经营机构，并已在包装品登记处 LUCID 注册为授权代表（授权代表ID：DE8514687609035）。'),
-            ('(2) FREDDY handelt als Zweigniederlassung Huainan der FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. („FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN“) und ist von ihrer Hauptniederlassung zur Unterzeichnung und Durchführung dieser Vereinbarung ermächtigt.',
-             '(2) 福瑞笛作为福瑞笛（上海）信息咨询有限公司的淮南分公司（FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN）行事，并获其总公司授权签署和履行本合同。'),
+            ('(2) FREDDY handelt als Zweigniederlassung Huainan der FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. („FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN“).',
+             '(2) 福瑞笛作为福瑞笛（上海）信息咨询有限公司的淮南分公司（FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN）行事。'),
         ],
     },
     {
