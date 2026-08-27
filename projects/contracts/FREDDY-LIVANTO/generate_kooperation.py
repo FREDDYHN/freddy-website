@@ -63,8 +63,8 @@ SECTIONS = [
     {
         'title': ('§ 2  Vertragsgegenstand und Zweck', '§ 2  合同标的与目的'),
         'rows': [
-            ('(1) Gegenstand dieser Vereinbarung ist die Zusammenarbeit der Parteien bei der Erbringung von Bevollmächtigungsleistungen nach dem VerpackG/VerpackDG gegenüber Kunden mit Sitz außerhalb von Deutschland.',
-             '(1) 本合同标的为双方在向德国境外的客户提供《包装法》/《包装法实施法》授权代表服务方面的合作。'),
+            ('(1) Gegenstand dieser Vereinbarung ist die Zusammenarbeit der Parteien bei der Erbringung von Bevollmächtigungsleistungen nach dem VerpackG/VerpackDG gegenüber Kunden mit Sitz außerhalb von Deutschland, insbesondere Kunden in der Volksrepublik China.',
+             '(1) 本合同标的为双方在向德国境外的客户提供《包装法》/《包装法实施法》授权代表服务方面的合作，尤其是中国客户。'),
             ('(2) Zweck der Zusammenarbeit ist es, die von den Parteien jeweils erbrachten Leistungen zu bündeln: FREDDY erbringt die markt- und kundenseitigen Leistungen (Marketing, Vertrieb, Kundenbetreuung, Zahlungsabwicklung), LIVANTO erbringt die rechtlichen und regulatorischen Leistungen (Bevollmächtigung, Systembeteiligung, Datenmeldung, Behördenkorrespondenz).',
              '(2) 合作目的是整合双方各自提供的服务：福瑞笛提供市场及客户侧服务（市场推广、销售、客户维护、支付处理），LIVANTO 提供法律及监管服务（授权代表、系统参与、数据申报、官方通信）。'),
             ('(3) Diese Vereinbarung begründet keine Gesellschaft bürgerlichen Rechts (§ 705 BGB) und kein gemeinsames Handeln als Gesamtschuldner; jede Partei handelt im eigenen Namen und auf eigene Rechnung.',
