@@ -228,8 +228,8 @@ ANLAGE_B_ROWS = [
 
 ANLAGE_C_TITLE = ('Anlage C: EU-Standardvertragsklauseln (SCC) – Modul 1', '附件 C：欧盟标准合同条款（SCC）— 模块 1')
 ANLAGE_C_ROWS = [
-    ('(1) Die Parteien vereinbaren, dass für die Übermittlung personenbezogener Daten von LIVANTO an FREDDY in die Volksrepublik China die Standardvertragsklauseln gemäß Durchführungsbeschluss (EU) 2021/914 der Europäischen Kommission in der Fassung von Modul 1 (Übermittlung von Verantwortlichem an Verantwortlichen) Anwendung finden. Die Standardvertragsklauseln einschließlich ihrer Anhänge sind Bestandteil dieser Anlage.',
-     '(1) 双方约定，LIVANTO 向中华人民共和国境内的福瑞笛传输个人数据，适用欧盟委员会执行决定 (EU) 2021/914 项下标准合同条款的模块 1（控制者向控制者传输）。该标准合同条款及其附录为本附件的组成部分。'),
+    ('(1) Die Parteien vereinbaren, dass für die Übermittlung personenbezogener Daten von LIVANTO an FREDDY in die Volksrepublik China gemäß Artikel 46 DSGVO die Standardvertragsklauseln gemäß Durchführungsbeschluss (EU) 2021/914 der Europäischen Kommission in der Fassung von Modul 1 (Übermittlung von Verantwortlichem an Verantwortlichen) Anwendung finden. Die Standardvertragsklauseln einschließlich ihrer Anhänge sind Bestandteil dieser Anlage und binden die Parteien unmittelbar.',
+     '(1) 双方约定，依据 GDPR 第46条，LIVANTO 向中华人民共和国境内的福瑞笛传输个人数据，适用欧盟委员会执行决定 (EU) 2021/914 项下标准合同条款的模块 1（控制者向控制者传输）。该标准合同条款及其附录为本附件的组成部分，并对双方直接具有约束力。'),
     ('(2) Anhang I A. – Liste der Parteien:\nDatenexporteur: LIVANTO GmbH, Luisenhoffnung 3C, 44225 Dortmund, Deutschland; Rolle: Verantwortlicher.\nDatenimporteur: FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN, Zhonghuan International Plaza, Finanzzentrum 158, 4. Etage, Raum 418, Huainan, Anhui, Volksrepublik China; Rolle: Verantwortlicher.',
      '(2) 附录 I A. – 双方名单：\n数据出口方：LIVANTO GmbH，德国多特蒙德 Luisenhoffnung 3C（邮编 44225）；角色：控制者。\n数据进口方：FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN，中华人民共和国安徽省淮南市中环国际广场158金融中心四层418室；角色：控制者。'),
     ('(3) Anhang I B. – Beschreibung der Übermittlung:\nKategorien betroffener Personen: Kontaktpersonen und gesetzliche Vertreter der Kunden.\nKategorien personenbezogener Daten: Name, Firma, Anschrift, E-Mail-Adresse, Telefonnummer, WeChat-ID, Steuernummer, Verpackungsdaten.\nZweck: Durchführung dieser Vereinbarung (Kundenbetreuung, Abrechnung und Zahlungsabwicklung).\nHäufigkeit: fortlaufend nach Bedarf.\nAufbewahrungsdauer: für die Dauer der Zusammenarbeit und die Dauer gesetzlicher Aufbewahrungspflichten.',
@@ -240,51 +240,6 @@ ANLAGE_C_ROWS = [
      '(5) 附录 II. – 技术与组织措施：数据传输加密（TLS）、访问与权限控制、数据的保密处理、删除方案、防止未经授权的访问。'),
     ('(6) Für die Übermittlung personenbezogener Daten von FREDDY an LIVANTO (aus der Volksrepublik China nach Deutschland) gelten die Bestimmungen des chinesischen Gesetzes zum Schutz personenbezogener Informationen (PIPL); die Parteien schließen hierzu gesondert einen Standardvertrag für die Übermittlung personenbezogener Informationen ins Ausland ab.',
      '(6) 对于福瑞笛向 LIVANTO（自中华人民共和国至德国）传输个人数据，适用中国《个人信息保护法》（PIPL）；双方就此另行签署《个人信息出境标准合同》。'),
-]
-
-# SCC (EU) 2021/914 官方标准条款（Module 1：Controller to Controller）
-# 说明：以下为欧盟委员会标准合同条款的德文/中文对照，以官方文本 (EU) 2021/914 为准。
-SCC_CLAUSES = [
-    ('Section I — Clauses 1 to 6', '第一部分 — 条款 1 至 6'),
-    ('Clause 1 — Purpose and scope. Zweck dieser Klauseln ist es, ein der DSGVO im Wesentlichen gleichwertiges Schutzniveau für betroffene Personen sicherzustellen, deren personenbezogene Daten vom Datenexporteur an einen Datenimporteur in einem Drittland übermittelt werden.',
-     '条款 1 — 目的与范围。本条款旨在确保，当数据出口方将个人数据传输给第三国的数据进口方时，数据主体获得与 GDPR 实质等同的保护水平。'),
-    ('Clause 2 — Effect and invariability of the Clauses. Diese Klauseln sind für die Parteien bindend und dürfen nicht geändert werden; sie begründen unmittelbare Rechte zugunsten der betroffenen Personen.',
-     '条款 2 — 条款的效力与不可变更性。本条款对双方具有约束力，不得修改；其直接赋予数据主体权利。'),
-    ('Clause 3 — Interpretation. Die in diesen Klauseln verwendeten Begriffe sind im Einklang mit der DSGVO auszulegen. Bei Widersprüchen gehen diese Klauseln vor, soweit sie betroffene Personen begünstigen.',
-     '条款 3 — 解释。本条款所用术语应依据 GDPR 解释。条款与其他约定冲突时，在有利于数据主体的范围内，本条款优先。'),
-    ('Clause 4 — Hierarchy. Im Falle eines Widerspruchs zwischen diesen Klauseln und einer anderen Vereinbarung zwischen den Parteien gelten diese Klauseln vorrangig.',
-     '条款 4 — 层级。本条款与双方之间的其他协议冲突时，本条款优先。'),
-    ('Clause 5 — Docking clause. Weitere Einrichtungen können diesen Klauseln als Datenexporteur oder Datenimporteur beitreten, sofern die übrigen Parteien zustimmen.',
-     '条款 5 — 加入条款。经其余方同意，其他主体可作为数据出口方或数据进口方加入本条款。'),
-    ('Clause 6 — Description of the transfer(s). Die Einzelheiten der Übermittlung, insbesondere die Kategorien personenbezogener Daten, Zwecke und Verarbeitungstätigkeiten, sind in Anhang I beschrieben.',
-     '条款 6 — 传输描述。传输的详细情况，特别是个人数据类别、目的及处理活动，见附录 I。'),
-    ('Section II — Obligations of the Parties (Clauses 7 to 13)', '第二部分 — 双方的义务（条款 7 至 13）'),
-    ('Clause 7 — Data protection safeguards. Der Datenexporteur und der Datenimporteur stellen sicher, dass die personenbezogenen Daten nach Maßgabe dieses Moduls geschützt werden.',
-     '条款 7 — 数据保护保障。数据出口方与数据进口方确保个人数据按本模块规定受到保护。'),
-    ('Clause 8 — Data protection safeguards (Module One: Transfer controller to controller).\n8.1 Purpose limitation: Verarbeitung nur zu den in Anhang I genannten Zwecken.\n8.2 Transparency: Information der betroffenen Personen über die Verarbeitung.\n8.3 Accuracy and data minimisation: Daten richtig halten und auf das notwendige Maß beschränken.\n8.4 Storage limitation: Aufbewahrung nur so lange wie erforderlich.\n8.5 Security of processing: geeignete technische und organisatorische Maßnahmen (z. B. Verschlüsselung, Zugriffskontrolle).\n8.6 Sensitive data: besondere Beschränkungen für sensible Daten.\n8.7 Onward transfers: Weitergabe an Dritte nur unter Bindung an diese Klauseln.\n8.8 Processing under the authority of the data importer: Verarbeitung nur auf dokumentierte Weisung.\n8.9 Documentation and compliance: Nachweis der Einhaltung dieser Klauseln.',
-     '条款 8 — 数据保护保障（模块一：控制者到控制者）。\n8.1 目的限制：仅按附录 I 所述目的处理。\n8.2 透明度：向数据主体告知处理情况。\n8.3 准确性与数据最小化：保持数据准确并限制在必要范围。\n8.4 存储限制：仅保存必要的期限。\n8.5 处理安全：采取适当技术与组织措施（如加密、访问控制）。\n8.6 敏感数据：对敏感数据施加特别限制。\n8.7 后续传输：仅在第三方受本条款约束时方可向其提供。\n8.8 数据进口方权限下的处理：仅按书面指示处理。\n8.9 文档与合规：证明对本条款的遵守。'),
-    ('Clause 9 — Use of sub-processors. Für den Transfer von Verantwortlichem zu Verantwortlichem (Module One) nicht anwendbar; Weitergaben unterliegen Ziffer 8.7.',
-     '条款 9 — 分包商的使用。控制者到控制者（模块一）不适用；后续传输适用第 8.7 条。'),
-    ('Clause 10 — Data subject rights. Der Datenimporteur unterstützt die betroffenen Personen bei der Wahrnehmung ihrer Rechte auf Auskunft, Berichtigung und Löschung.',
-     '条款 10 — 数据主体权利。数据进口方协助数据主体行使查阅、更正和删除等权利。'),
-    ('Clause 11 — Redress. Betroffene Personen können Ansprüche gegenüber dem Datenimporteur geltend machen; Streitigkeiten können vor der zuständigen Aufsichtsbehörde oder einem Gericht verfolgt werden.',
-     '条款 11 — 救济。数据主体可向数据进口方主张权利；争议可向主管监管机构或法院寻求解决。'),
-    ('Clause 12 — Liability. Jede Partei haftet der anderen und den betroffenen Personen für Schäden, die durch eine Verletzung dieser Klauseln entstehen.',
-     '条款 12 — 责任。双方对因违反本条款给对方及数据主体造成的损害承担责任。'),
-    ('Clause 13 — Supervision. Der Datenimporteur unterwirft sich der Zuständigkeit der in Anhang I genannten Aufsichtsbehörde und befolgt deren Anordnungen.',
-     '条款 13 — 监督。数据进口方接受附录 I 所述监管机构的管辖并遵守其决定。'),
-    ('Section III — Local Laws and Obligations in Case of Access by Public Authorities (Clauses 14 to 15)', '第三部分 — 当地法律与公共机构访问的义务（条款 14 至 15）'),
-    ('Clause 14 — Local laws and practices affecting compliance with the Clauses. Die Parteien versichern, keine Rechtsvorschriften zu kennen, die die Erfüllung dieser Klauseln verhindern; der Datenimporteur teilt Änderungen unverzüglich mit.',
-     '条款 14 — 影响条款合规的当地法律与惯例。双方保证不知悉有阻碍履行本条款的法律规定；数据进口方应即时告知相关变化。'),
-    ('Clause 15 — Obligations in case of access by public authorities. Der Datenimporteur informiert den Datenexporteur unverzüglich über behördliche Zugriffsverlangen und prüft deren Rechtmäßigkeit.',
-     '条款 15 — 公共机构访问时的义务。数据进口方即时将公共机构的访问要求告知数据出口方，并审查其合法性。'),
-    ('Section IV — Final Provisions (Clauses 16 to 18)', '第四部分 — 最终条款（条款 16 至 18）'),
-    ('Clause 16 — Non-compliance with the Clauses and termination. Der Datenexporteur kann die Übermittlung aussetzen und die Klauseln kündigen, wenn der Datenimporteur diese Klauseln nicht einhalten kann.',
-     '条款 16 — 不合规与终止。数据进口方无法遵守本条款的，数据出口方可暂停传输并终止条款。'),
-    ('Clause 17 — Governing law. Auf diese Klauseln findet das Recht eines EU-Mitgliedstaats Anwendung, das den betroffenen Personen einen Drittbegünstigtenanspruch gewährt.',
-     '条款 17 — 管辖法律。本条款适用某一赋予数据主体第三方受益权的欧盟成员国法律。'),
-    ('Clause 18 — Choice of forum and jurisdiction. Streitigkeiten aus diesen Klauseln werden vor den Gerichten des in Anhang I genannten Mitgliedstaats verhandelt.',
-     '条款 18 — 法院与管辖选择。因本条款产生的争议由附录 I 所述成员国法院审理。'),
 ]
 
 SIGN_TITLE = ('Unterzeichnung', '签署')
@@ -466,9 +421,7 @@ def build():
     _add_bilingual_table(doc, ANLAGE_B_ROWS)
     # Annex C (SCC)
     _add_bilingual_table(doc, [ANLAGE_C_TITLE], bold_rows=True)
-    _add_bilingual_table(doc, [ANLAGE_C_ROWS[0]])   # (1) SCC 采用说明
-    _add_bilingual_table(doc, SCC_CLAUSES)           # SCC 官方 18 条
-    _add_bilingual_table(doc, ANLAGE_C_ROWS[1:])     # Annex I/II + PIPL
+    _add_bilingual_table(doc, ANLAGE_C_ROWS)
 
     # signature
     _add_bilingual_table(doc, [SIGN_TITLE], bold_rows=True)
@@ -542,10 +495,7 @@ def build_html():
         parts.append(_brow(de, zh))
     # Annex C (SCC)
     parts.append(_brow(*ANLAGE_C_TITLE, title=True))
-    parts.append(_brow(*ANLAGE_C_ROWS[0]))
-    for de, zh in SCC_CLAUSES:
-        parts.append(_brow(de, zh))
-    for de, zh in ANLAGE_C_ROWS[1:]:
+    for de, zh in ANLAGE_C_ROWS:
         parts.append(_brow(de, zh))
     # signature
     parts.append(_brow(*SIGN_TITLE, title=True))
