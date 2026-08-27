@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
     cb(null, safeName)
   },
 })
-const upload = multer({ storage, limits: { fileSize: 20 * 1024 * 1024 } }) // 20MB
+const upload = multer({ storage, limits: { fileSize: 100 * 1024 * 1024 } }) // 100MB
 
 const router = Router()
 

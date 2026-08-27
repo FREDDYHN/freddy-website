@@ -632,7 +632,7 @@ app.post('/api/admin/reset-password', authMiddleware, adminMiddleware, async (re
 })
 
 // ── Admin: Upload stamped contract for a client ──
-const adminUpload = multer({ dest: pathJoin(rootPath, 'uploads'), limits: { fileSize: 20 * 1024 * 1024 } })
+const adminUpload = multer({ dest: pathJoin(rootPath, 'uploads'), limits: { fileSize: 100 * 1024 * 1024 } })
 app.post('/api/admin/uploads', authMiddleware, adminMiddleware, adminUpload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file provided' })
