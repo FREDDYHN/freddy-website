@@ -32,8 +32,8 @@ PARTIES = [
      '(1) LIVANTO 有限责任公司，地址：德国多特蒙德 Luisenhoffnung 3C（邮编 44225），于多特蒙德地方法院商业登记处登记（登记号 HRB 38628），增值税识别号 DE 464031041，由总经理钱子风代表 —— 作为委托方 ——'),
     ('– nachfolgend „LIVANTO“ genannt –,', '—— 以下称“LIVANTO”——，'),
     ('und', '与'),
-    ('(2) FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN, Zweigniederlassung Huainan, Zhonghuan International Plaza, Finanzzentrum 158, 4. Etage, Raum 418, Huainan, Anhui, Volksrepublik China – als Auftragnehmerin –',
-     '(2) FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN（福瑞笛（上海）信息咨询有限公司淮南分公司），地址：中华人民共和国安徽省淮南市中环国际广场158金融中心四层418室 —— 作为受托方 ——'),
+    ('(2) FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN, Zweigniederlassung Huainan, Zhonghuan International Plaza, Finanzzentrum 158, 4. Etage, Raum 418, Huainan, Anhui, Volksrepublik China, Steuernummer (USCC): 91340400MADDK97K4X, Verantwortlicher: Gui Chengcheng – als Auftragnehmerin –',
+     '(2) FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN（福瑞笛（上海）信息咨询有限公司淮南分公司），地址：中华人民共和国安徽省淮南市中环国际广场158金融中心四层418室，税号：91340400MADDK97K4X，负责人：桂程程 —— 作为受托方 ——'),
     ('– nachfolgend „FREDDY“ genannt –,', '—— 以下称“福瑞笛”——，'),
     ('– LIVANTO und FREDDY gemeinsam nachfolgend auch „Parteien“ genannt –', '—— LIVANTO 与福瑞笛以下合称“双方”——'),
 ]
