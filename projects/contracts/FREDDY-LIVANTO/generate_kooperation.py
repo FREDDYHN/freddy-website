@@ -200,6 +200,22 @@ SECTIONS = [
     },
 ]
 
+ANLAGE_D_TITLE = ('Anlage D: EU-Standardvertragsklauseln (SCC) – Modul 1', '附件 D：欧盟标准合同条款（SCC）— 模块 1')
+ANLAGE_D_ROWS = [
+    ('(1) Die Parteien vereinbaren, dass für die Übermittlung personenbezogener Daten von LIVANTO an FREDDY in die Volksrepublik China die Standardvertragsklauseln gemäß Durchführungsbeschluss (EU) 2021/914 der Europäischen Kommission in der Fassung von Modul 1 (Übermittlung von Verantwortlichem an Verantwortlichen) Anwendung finden. Die Standardvertragsklauseln einschließlich ihrer Anhänge sind Bestandteil dieser Anlage.',
+     '(1) 双方约定，LIVANTO 向中华人民共和国境内的福瑞笛传输个人数据，适用欧盟委员会执行决定 (EU) 2021/914 项下标准合同条款的模块 1（控制者向控制者传输）。该标准合同条款及其附录为本附件的组成部分。'),
+    ('(2) Anhang I A. – Liste der Parteien:\nDatenexporteur: LIVANTO GmbH, Luisenhoffnung 3C, 44225 Dortmund, Deutschland; Rolle: Verantwortlicher.\nDatenimporteur: FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN, Zhonghuan International Plaza, Finanzzentrum 158, 4. Etage, Raum 418, Huainan, Anhui, Volksrepublik China; Rolle: Verantwortlicher.',
+     '(2) 附录 I A. – 双方名单：\n数据出口方：LIVANTO GmbH，德国多特蒙德 Luisenhoffnung 3C（邮编 44225）；角色：控制者。\n数据进口方：FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN，中华人民共和国安徽省淮南市中环国际广场158金融中心四层418室；角色：控制者。'),
+    ('(3) Anhang I B. – Beschreibung der Übermittlung:\nKategorien betroffener Personen: Kontaktpersonen und gesetzliche Vertreter der Kunden.\nKategorien personenbezogener Daten: Name, Firma, Anschrift, E-Mail-Adresse, Telefonnummer, WeChat-ID, Steuernummer, Verpackungsdaten.\nZweck: Durchführung dieser Vereinbarung (Kundenbetreuung, Abrechnung und Zahlungsabwicklung).\nHäufigkeit: fortlaufend nach Bedarf.\nAufbewahrungsdauer: für die Dauer der Zusammenarbeit und die Dauer gesetzlicher Aufbewahrungspflichten.',
+     '(3) 附录 I B. – 传输描述：\n数据主体类别：客户的联系人及法定代表人。\n个人数据类别：姓名、公司名称、地址、电子邮箱、电话号码、微信号、税号、包装数据。\n传输目的：履行本合同（客户维护、结算及支付处理）。\n传输频率：持续、按需。\n保留期限：合作期间及法定保存义务期间。'),
+    ('(4) Anhang I C. – Zuständige Aufsichtsbehörde: Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen (LDI NRW).',
+     '(4) 附录 I C. – 主管监管机构：北莱茵-威斯特法伦州数据保护与信息自由专员（LDI NRW）。'),
+    ('(5) Anhang II. – Technische und organisatorische Maßnahmen: Verschlüsselung der Datenübertragung (TLS), Zugriffs- und Berechtigungskontrolle, vertrauliche Behandlung, Löschkonzept, Schutz vor unbefugtem Zugriff.',
+     '(5) 附录 II. – 技术与组织措施：数据传输加密（TLS）、访问与权限控制、数据的保密处理、删除方案、防止未经授权的访问。'),
+    ('(6) Für die Übermittlung personenbezogener Daten von FREDDY an LIVANTO (aus der Volksrepublik China nach Deutschland) gelten die Bestimmungen des chinesischen Gesetzes zum Schutz personenbezogener Informationen (PIPL); die Parteien schließen hierzu gesondert einen Standardvertrag für die Übermittlung personenbezogener Informationen ins Ausland ab.',
+     '(6) 对于福瑞笛向 LIVANTO（自中华人民共和国至德国）传输个人数据，适用中国《个人信息保护法》（PIPL）；双方就此另行签署《个人信息出境标准合同》。'),
+]
+
 SIGN_TITLE = ('Unterzeichnung', '签署')
 SIGN_ROWS = [
     ('LIVANTO GmbH\nDortmund\n\nOrt / Datum: ____________________\n\nUnterschrift / Stempel:', 'LIVANTO 有限责任公司\n多特蒙德\n\n地点 / 日期：____________________\n\n签字 / 盖章：'),
@@ -371,6 +387,10 @@ def build():
     for s in SECTIONS:
         _add_section(doc, s['title'][0], s['title'][1], s['rows'])
 
+    # Annex D (SCC)
+    _add_bilingual_table(doc, [ANLAGE_D_TITLE], bold_rows=True)
+    _add_bilingual_table(doc, ANLAGE_D_ROWS)
+
     # signature
     _add_bilingual_table(doc, [SIGN_TITLE], bold_rows=True)
     _add_bilingual_table(doc, SIGN_ROWS)
@@ -433,6 +453,10 @@ def build_html():
         parts.append(_brow(s['title'][0], s['title'][1], title=True))
         for de, zh in s['rows']:
             parts.append(_brow(de, zh))
+    # Annex D (SCC)
+    parts.append(_brow(*ANLAGE_D_TITLE, title=True))
+    for de, zh in ANLAGE_D_ROWS:
+        parts.append(_brow(de, zh))
     # signature
     parts.append(_brow(*SIGN_TITLE, title=True))
     parts.append('<div class="sign-wrap"><div class="sign-grid">')
