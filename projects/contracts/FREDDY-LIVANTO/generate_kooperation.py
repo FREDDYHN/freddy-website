@@ -28,14 +28,14 @@ SUBTITLE_ZH = '关于《德国包装法》（VerpackG）/《包装法实施法�
 # 抬头双方（zwischen ... und ...）
 PARTIES = [
     ('zwischen', '由'),
-    ('(1) FREDDY (SHANGHAI) INFORMATION CONSULTING LTD., Zweigniederlassung Huainan, Nr. 21, Longhu Road, Huainan, Anhui, Volksrepublik China, handelnd durch ihre Hauptniederlassung FREDDY (SHANGHAI) INFORMATION CONSULTING LTD.',
-     '(1) 福瑞笛（上海）信息咨询有限公司淮南分公司，地址：中华人民共和国安徽省淮南市龙湖路21号，由其总公司福瑞笛（上海）信息咨询有限公司授权行事'),
-    ('– nachfolgend „FREDDY“ genannt –,', '—— 以下称“福瑞笛”——，'),
-    ('und', '与'),
-    ('(2) LIVANTO GmbH, Luisenhoffnung 3C, 44225 Dortmund, Deutschland, eingetragen im Handelsregister des Amtsgerichts Dortmund unter HRB 38628, Umsatzsteuer-Identifikationsnummer DE 464031041, vertreten durch ihren Geschäftsführer Zifeng Qian,',
-     '(2) LIVANTO 有限责任公司，地址：德国多特蒙德 Luisenhoffnung 3C（邮编 44225），于多特蒙德地方法院商业登记处登记（登记号 HRB 38628），增值税识别号 DE 464031041，由总经理钱子风代表'),
+    ('(1) LIVANTO GmbH, Luisenhoffnung 3C, 44225 Dortmund, Deutschland, eingetragen im Handelsregister des Amtsgerichts Dortmund unter HRB 38628, Umsatzsteuer-Identifikationsnummer DE 464031041, vertreten durch ihren Geschäftsführer Zifeng Qian, – als Auftraggeberin –',
+     '(1) LIVANTO 有限责任公司，地址：德国多特蒙德 Luisenhoffnung 3C（邮编 44225），于多特蒙德地方法院商业登记处登记（登记号 HRB 38628），增值税识别号 DE 464031041，由总经理钱子风代表 —— 作为委托方 ——'),
     ('– nachfolgend „LIVANTO“ genannt –,', '—— 以下称“LIVANTO”——，'),
-    ('– FREDDY und LIVANTO gemeinsam nachfolgend auch „Parteien“ genannt –', '—— 福瑞笛与 LIVANTO 以下合称“双方”——'),
+    ('und', '与'),
+    ('(2) FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN, Zweigniederlassung Huainan, Nr. 21, Longhu Road, Huainan, Anhui, Volksrepublik China, handelnd durch ihre Hauptniederlassung FREDDY (SHANGHAI) INFORMATION CONSULTING LTD., – als Auftragnehmerin –',
+     '(2) FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN（福瑞笛（上海）信息咨询有限公司淮南分公司），地址：中华人民共和国安徽省淮南市龙湖路21号，由其总公司福瑞笛（上海）信息咨询有限公司授权行事 —— 作为受托方 ——'),
+    ('– nachfolgend „FREDDY“ genannt –,', '—— 以下称“福瑞笛”——，'),
+    ('– LIVANTO und FREDDY gemeinsam nachfolgend auch „Parteien“ genannt –', '—— LIVANTO 与福瑞笛以下合称“双方”——'),
 ]
 
 # 序言
@@ -54,10 +54,10 @@ SECTIONS = [
     {
         'title': ('§ 1  Vertragsparteien', '§ 1  合同双方'),
         'rows': [
-            ('(1) FREDDY handelt als Zweigniederlassung Huainan der FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. und ist von ihrer Hauptniederlassung zur Unterzeichnung und Durchführung dieser Vereinbarung ermächtigt.',
-             '(1) 福瑞笛作为福瑞笛（上海）信息咨询有限公司的淮南分公司行事，并获其总公司授权签署和履行本合同。'),
-            ('(2) LIVANTO verfügt über eine eingerichtete Niederlassung im Sinne des § 4 Absatz 3 GewO in Deutschland und ist als Bevollmächtigter im Verpackungsregister LUCID registriert (Bevollmächtigten-ID: DE8514687609035).',
-             '(2) LIVANTO 在德国设有符合《营业条例》（GewO）第4条第3款规定的经营机构，并已在包装品登记处 LUCID 注册为授权代表（授权代表ID：DE8514687609035）。'),
+            ('(1) LIVANTO verfügt über eine eingerichtete Niederlassung im Sinne des § 4 Absatz 3 GewO in Deutschland und ist als Bevollmächtigter im Verpackungsregister LUCID registriert (Bevollmächtigten-ID: DE8514687609035).',
+             '(1) LIVANTO 在德国设有符合《营业条例》（GewO）第4条第3款规定的经营机构，并已在包装品登记处 LUCID 注册为授权代表（授权代表ID：DE8514687609035）。'),
+            ('(2) FREDDY handelt als Zweigniederlassung Huainan der FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. („FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN“) und ist von ihrer Hauptniederlassung zur Unterzeichnung und Durchführung dieser Vereinbarung ermächtigt.',
+             '(2) 福瑞笛作为福瑞笛（上海）信息咨询有限公司的淮南分公司（FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN）行事，并获其总公司授权签署和履行本合同。'),
         ],
     },
     {
@@ -74,10 +74,10 @@ SECTIONS = [
     {
         'title': ('§ 3  Aufgabenverteilung', '§ 3  职责划分'),
         'rows': [
-            ('(1) FREDDY übernimmt insbesondere folgende Aufgaben:\na) Markterschließung und Kundenakquise im chinesischsprachigen Raum;\nb) Kundenbetreuung, Kundenservice und laufende Kommunikation mit den Kunden;\nc) Betrieb und Pflege des Online-Portals sowie der Vertrags- und Zahlungsabwicklung;\nd) Einziehung sämtlicher von den Kunden zu leistenden Zahlungen und Weiterleitung gemäß § 4.',
-             '(1) 福瑞笛特别承担以下任务：\na) 中文地区的市场拓展与客户开发；\nb) 客户维护、客户服务及与客户的日常沟通；\nc) 在线门户的运营与维护，以及合同与支付处理；\nd) 代收客户应付的全部款项，并按第4条转付。'),
-            ('(2) LIVANTO übernimmt insbesondere folgende Aufgaben:\na) Übernahme sämtlicher verpackungsrechtlicher Pflichten als Bevollmächtigter nach § 35 Absatz 2 VerpackG/VerpackDG;\nb) Abschluss und Aufrechterhaltung der Systembeteiligungsverträge mit dualen Systemen;\nc) Datenmeldung an die ZSVR und, soweit erforderlich, Abgabe von Vollständigkeitserklärungen;\nd) Entgegennahme behördlicher Mitteilungen und Bescheide;\ne) Beobachtung und Kommunikation wesentlicher Änderungen der gesetzlichen Rahmenbedingungen.',
-             '(2) LIVANTO 特别承担以下任务：\na) 作为授权代表依据《包装法》/《包装法实施法》第35条第2款承担全部包装法义务；\nb) 与双元系统签订并维持系统参与合同；\nc) 向 ZSVR 进行数据申报，并在必要时提交完整性声明；\nd) 接收主管部门的通知和决定；\ne) 跟踪并传达法律框架的重大变更。'),
+            ('(1) LIVANTO übernimmt insbesondere folgende Aufgaben:\na) Übernahme sämtlicher verpackungsrechtlicher Pflichten als Bevollmächtigter nach § 35 Absatz 2 VerpackG/VerpackDG;\nb) Abschluss und Aufrechterhaltung der Systembeteiligungsverträge mit dualen Systemen;\nc) Datenmeldung an die ZSVR und, soweit erforderlich, Abgabe von Vollständigkeitserklärungen;\nd) Entgegennahme behördlicher Mitteilungen und Bescheide;\ne) Beobachtung und Kommunikation wesentlicher Änderungen der gesetzlichen Rahmenbedingungen.',
+             '(1) LIVANTO 特别承担以下任务：\na) 作为授权代表依据《包装法》/《包装法实施法》第35条第2款承担全部包装法义务；\nb) 与双元系统签订并维持系统参与合同；\nc) 向 ZSVR 进行数据申报，并在必要时提交完整性声明；\nd) 接收主管部门的通知和决定；\ne) 跟踪并传达法律框架的重大变更。'),
+            ('(2) FREDDY übernimmt insbesondere folgende Aufgaben:\na) Markterschließung und Kundenakquise im chinesischsprachigen Raum;\nb) Kundenbetreuung, Kundenservice und laufende Kommunikation mit den Kunden;\nc) Betrieb und Pflege des Online-Portals sowie der Vertrags- und Zahlungsabwicklung;\nd) Einziehung sämtlicher von den Kunden zu leistenden Zahlungen und Weiterleitung gemäß § 4.',
+             '(2) 福瑞笛特别承担以下任务：\na) 中文地区的市场拓展与客户开发；\nb) 客户维护、客户服务及与客户的日常沟通；\nc) 在线门户的运营与维护，以及合同与支付处理；\nd) 代收客户应付的全部款项，并按第4条转付。'),
         ],
     },
     {
@@ -107,25 +107,25 @@ SECTIONS = [
         ],
     },
     {
-        'title': ('§ 6  Pflichten des FREDDY', '§ 6  福瑞笛的义务'),
+        'title': ('§ 6  Pflichten der LIVANTO', '§ 6  LIVANTO 的义务'),
         'rows': [
-            ('(1) FREDDY erbringt die in § 3 Absatz 1 genannten Leistungen mit der Sorgfalt eines ordentlichen Kaufmanns.',
-             '(1) 福瑞笛以诚实商人的审慎履行第3条第1款所述服务。'),
-            ('(2) FREDDY zieht die Kundenbeträge rechtzeitig ein und führt die Abrechnung gemäß § 5 durch.',
-             '(2) 福瑞笛及时代收客户款项，并按第5条进行结算。'),
-            ('(3) FREDDY informiert LIVANTO unverzüglich über für die Bevollmächtigung erhebliche Kundenangaben und über Änderungen im Kundenbestand.',
-             '(3) 福瑞笛应立即将影响授权的重要客户信息及客户变动情况告知 LIVANTO。'),
-        ],
-    },
-    {
-        'title': ('§ 7  Pflichten der LIVANTO', '§ 7  LIVANTO 的义务'),
-        'rows': [
-            ('(1) LIVANTO erbringt die in § 3 Absatz 2 genannten Leistungen fachgerecht und im Einklang mit dem jeweils geltenden Verpackungsrecht.',
-             '(1) LIVANTO 专业、合规地履行第3条第2款所述服务，并符合现行包装法规定。'),
+            ('(1) LIVANTO erbringt die in § 3 Absatz 1 genannten Leistungen fachgerecht und im Einklang mit dem jeweils geltenden Verpackungsrecht.',
+             '(1) LIVANTO 专业、合规地履行第3条第1款所述服务，并符合现行包装法规定。'),
             ('(2) LIVANTO hält ihre Registrierung als Bevollmächtigter im Verpackungsregister LUCID während der gesamten Laufzeit aufrecht.',
              '(2) LIVANTO 在整个合同期内维持其在包装品登记处 LUCID 的授权代表注册。'),
             ('(3) LIVANTO informiert FREDDY über wesentliche Änderungen der gesetzlichen Rahmenbedingungen, die die Kunden betreffen.',
              '(3) LIVANTO 就涉及客户的重大法律框架变更通知福瑞笛。'),
+        ],
+    },
+    {
+        'title': ('§ 7  Pflichten des FREDDY', '§ 7  福瑞笛的义务'),
+        'rows': [
+            ('(1) FREDDY erbringt die in § 3 Absatz 2 genannten Leistungen mit der Sorgfalt eines ordentlichen Kaufmanns.',
+             '(1) 福瑞笛以诚实商人的审慎履行第3条第2款所述服务。'),
+            ('(2) FREDDY zieht die Kundenbeträge rechtzeitig ein und führt die Abrechnung gemäß § 5 durch.',
+             '(2) 福瑞笛及时代收客户款项，并按第5条进行结算。'),
+            ('(3) FREDDY informiert LIVANTO unverzüglich über für die Bevollmächtigung erhebliche Kundenangaben und über Änderungen im Kundenbestand.',
+             '(3) 福瑞笛应立即将影响授权的重要客户信息及客户变动情况告知 LIVANTO。'),
         ],
     },
     {
@@ -202,8 +202,8 @@ SECTIONS = [
 
 SIGN_TITLE = ('Unterzeichnung', '签署')
 SIGN_ROWS = [
-    ('FREDDY (SHANGHAI) INFORMATION CONSULTING LTD.\nZweigniederlassung Huainan\n\nOrt / Datum: ____________________\n\nUnterschrift / Stempel:', '福瑞笛（上海）信息咨询有限公司淮南分公司\n\n地点 / 日期：____________________\n\n签字 / 盖章：'),
     ('LIVANTO GmbH\nDortmund\n\nOrt / Datum: ____________________\n\nUnterschrift / Stempel:', 'LIVANTO 有限责任公司\n多特蒙德\n\n地点 / 日期：____________________\n\n签字 / 盖章：'),
+    ('FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN\nZweigniederlassung Huainan\n\nOrt / Datum: ____________________\n\nUnterschrift / Stempel:', 'FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN\n（福瑞笛（上海）信息咨询有限公司淮南分公司）\n\n地点 / 日期：____________________\n\n签字 / 盖章：'),
 ]
 
 
