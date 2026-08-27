@@ -14,6 +14,7 @@ from docx.oxml.ns import qn
 from generate_kooperation import (
     _add_bilingual_table, _add_para, _h, _brow,
     _set_run_font, _fill_cell, _set_cell_border_none, _set_cell_bottom_border,
+    _add_page_number,
     OUT_DIR, FONT_DE, FONT_CN, BODY_SIZE, TITLE_SIZE, SUBTITLE_SIZE,
 )
 
@@ -255,6 +256,7 @@ def build():
     _add_bilingual_table(doc, [SIGN_TITLE], bold_rows=True)
     _add_bilingual_table(doc, SIGN_ROWS)
 
+    _add_page_number(doc)
     doc.save(OUT_PATH)
     print('Generated:', OUT_PATH)
 

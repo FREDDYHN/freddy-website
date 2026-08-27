@@ -261,6 +261,25 @@ SUBTITLE_SIZE = Pt(11)
 SECTION_TITLE_SIZE = Pt(11)
 
 
+def _add_page_number(doc):
+    """页脚中央添加页码 (PAGE field)。"""
+    footer = doc.sections[0].footer
+    footer.is_linked_to_previous = False
+    p = footer.paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    for r in list(p.runs):
+        r._element.getparent().remove(r._element)
+    run1 = p.add_run()
+    fld1 = OxmlElement('w:fldChar'); fld1.set(qn('w:fldCharType'), 'begin')
+    run1._element.append(fld1)
+    run2 = p.add_run()
+    instr = OxmlElement('w:instrText'); instr.set(qn('xml:space'), 'preserve'); instr.text = ' PAGE '
+    run2._element.append(instr)
+    run3 = p.add_run()
+    fld2 = OxmlElement('w:fldChar'); fld2.set(qn('w:fldCharType'), 'end')
+    run3._element.append(fld2)
+
+
 def _set_run_font(run, size=BODY_SIZE, bold=False, color=None):
     run.font.name = FONT_DE
     run.font.size = size
@@ -427,6 +446,7 @@ def build():
     _add_bilingual_table(doc, [SIGN_TITLE], bold_rows=True)
     _add_bilingual_table(doc, SIGN_ROWS)
 
+    _add_page_number(doc)
     doc.save(OUT_PATH)
     print('Generated:', OUT_PATH)
 

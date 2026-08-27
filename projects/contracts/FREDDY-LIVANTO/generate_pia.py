@@ -5,6 +5,7 @@ from docx import Document
 from docx.shared import Pt, Mm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 
 OUT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUT_PATH = os.path.join(OUT_DIR, '个人信息保护影响评估报告.docx')
@@ -91,6 +92,25 @@ def _set_run(run, size=Pt(12), bold=False):
     rfonts.set(qn('w:eastAsia'), FONT)
 
 
+def _add_page_number(doc):
+    """页脚中央添加页码 (PAGE field)。"""
+    footer = doc.sections[0].footer
+    footer.is_linked_to_previous = False
+    p = footer.paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    for r in list(p.runs):
+        r._element.getparent().remove(r._element)
+    run1 = p.add_run()
+    fld1 = OxmlElement('w:fldChar'); fld1.set(qn('w:fldCharType'), 'begin')
+    run1._element.append(fld1)
+    run2 = p.add_run()
+    instr = OxmlElement('w:instrText'); instr.set(qn('xml:space'), 'preserve'); instr.text = ' PAGE '
+    run2._element.append(instr)
+    run3 = p.add_run()
+    fld2 = OxmlElement('w:fldChar'); fld2.set(qn('w:fldCharType'), 'end')
+    run3._element.append(fld2)
+
+
 def build():
     doc = Document()
     sec = doc.sections[0]
@@ -127,6 +147,7 @@ def build():
             p.paragraph_format.line_spacing = 1.5
             p.paragraph_format.space_after = Pt(2)
 
+    _add_page_number(doc)
     doc.save(OUT_PATH)
     print('Generated:', OUT_PATH)
 
