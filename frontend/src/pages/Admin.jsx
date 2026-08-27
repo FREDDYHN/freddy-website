@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { PACKAGING_MATERIALS, getRecyclingRate, calcMaterialFee, applyFloorFee } from '@shared/constants.js'
+import { PACKAGING_MATERIALS, getRecyclingRate, calcMaterialFee, applyFloorFee, CLIENT_CHANGEABLE_FIELDS } from '@shared/constants.js'
 
 const TABS = [
   { key: 'packaging', label: '📦 包装法 AR' },
@@ -180,6 +180,48 @@ export default function Admin() {
     } catch { alert('请求失败') }
   }
 
+  const reviewApplication = async (appId, action) => {
+    let comment = ''
+    if (action === 'reject') {
+      const c = window.prompt('拒绝原因（可留空）：')
+      if (c === null) return
+      comment = c
+    }
+    try {
+      const r = await fetch(`/api/admin/applications/${appId}/review`, {
+        method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, comment }),
+      })
+      const d = await r.json()
+      if (r.ok) {
+        setApplications(prev => prev.map(a => a.id === appId ? { ...a, status: action === 'approve' ? 'approved' : 'rejected' } : a))
+        load(page)
+      } else alert('操作失败：' + (d.error || '未知错误'))
+    } catch (e) { alert('请求失败：' + e.message) }
+  }
+
+  const renderChanges = (a) => {
+    let changes = {}
+    try { changes = (JSON.parse(a.data_json || '{}') || {}).changes || {} } catch {}
+    const entries = Object.entries(changes)
+    if (!entries.length) return <span className="text-gray-400">—</span>
+    return (
+      <div className="space-y-0.5">
+        {entries.map(([field, val]) => {
+          const old = a[field]
+          return (
+            <div key={field}>
+              {CLIENT_CHANGEABLE_FIELDS[field] || field}：
+              {old ? <span className="text-gray-400 line-through">{old}</span> : <span className="text-gray-300">（空）</span>}
+              <span className="mx-1">→</span>
+              <span className="font-medium">{val}</span>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   useEffect(() => { load(); loadApps(); fetchRate() }, [])
 
   const saveRate = async () => {
@@ -289,6 +331,7 @@ export default function Admin() {
     return list
   })()
   const appList = applications.filter(a => a.type === tab)
+  const infoChangeApps = applications.filter(a => a.type === 'info_change')
   const pendingCount = (() => {
     const list = tab === 'packaging' ? pkgContracts : tab === 'weee' ? weeeContracts : batteryContracts
     return list.filter(c => {
@@ -621,6 +664,37 @@ export default function Admin() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left"><tr><th className="p-3">ID</th><th className="p-3">客户</th><th className="p-3">类型</th><th className="p-3">状态</th><th className="p-3">日期</th><th className="p-3">操作</th></tr></thead>
             <tbody>{appList.map(a => <tr key={a.id} className="border-t border-gray-50"><td className="p-3 font-mono text-xs">{a.id}</td><td className="p-3">{a.company_name || '—'}</td><td className="p-3">{a.type}</td><td className="p-3"><span className="text-xs px-2 py-0.5 rounded bg-gray-100">{a.status}</span></td><td className="p-3 text-xs text-gray-400">{a.created_at?.slice(0, 10)}</td><td className="p-3"><button onClick={() => deleteApplication(a.id)} className="text-[10px] text-gray-300 hover:text-red-500">🗑 删除</button></td></tr>)}</tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Info Change Applications */}
+      {infoChangeApps.length > 0 && (
+        <div className="bg-white border border-gray-100 rounded-lg overflow-hidden mb-6">
+          <div className="p-4 border-b border-gray-100"><h2 className="font-bold text-sm text-gray-700">📝 信息修改申请</h2></div>
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-left"><tr><th className="p-3">ID</th><th className="p-3">客户</th><th className="p-3">修改内容</th><th className="p-3">状态</th><th className="p-3">日期</th><th className="p-3">操作</th></tr></thead>
+            <tbody>
+              {infoChangeApps.map(a => (
+                <tr key={a.id} className="border-t border-gray-50 align-top">
+                  <td className="p-3 font-mono text-xs">{a.id}</td>
+                  <td className="p-3">{a.company_name || '—'}</td>
+                  <td className="p-3 text-xs">{renderChanges(a)}</td>
+                  <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded ${a.status === 'approved' ? 'bg-green-100 text-green-700' : a.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-gray-100'}`}>{a.status === 'pending' ? '待审核' : a.status === 'approved' ? '已通过' : '已拒绝'}</span></td>
+                  <td className="p-3 text-xs text-gray-400">{a.created_at?.slice(0, 10)}</td>
+                  <td className="p-3">
+                    {a.status === 'pending' ? (
+                      <div className="flex gap-2">
+                        <button onClick={() => reviewApplication(a.id, 'approve')} className="text-xs text-green-600 hover:underline font-medium">✅ 通过</button>
+                        <button onClick={() => reviewApplication(a.id, 'reject')} className="text-xs text-red-500 hover:underline font-medium">❌ 拒绝</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => deleteApplication(a.id)} className="text-[10px] text-gray-300 hover:text-red-500">🗑 删除</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       )}

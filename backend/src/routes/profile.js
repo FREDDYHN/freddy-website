@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import { getDb } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
 import { encryptLucid } from '../services/crypto.js'
+import { CLIENT_CHANGEABLE_FIELDS } from '../../../shared/constants.js'
 
 const router = Router()
 
@@ -53,6 +54,40 @@ router.put('/', authMiddleware, async (req, res) => {
     res.json({ success: true })
   } catch (e) {
     console.error('[profile] update error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// POST /api/profile/change-request — 提交信息修改申请（客户 → 管理员审核）
+router.post('/change-request', authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const { changes } = req.body
+
+    // 校验：changes 必须是「字段名 → 新值」的对象
+    if (!changes || typeof changes !== 'object' || Array.isArray(changes)) {
+      return res.status(400).json({ error: '请提供要修改的字段' })
+    }
+
+    // 白名单过滤，忽略非法字段；跳过空值（客户未填的字段）
+    const valid = {}
+    for (const [field, value] of Object.entries(changes)) {
+      if (!(field in CLIENT_CHANGEABLE_FIELDS)) continue
+      const v = String(value ?? '').trim()
+      if (v) valid[field] = v
+    }
+    if (Object.keys(valid).length === 0) {
+      return res.status(400).json({ error: '请至少填写一个要修改的字段' })
+    }
+
+    const result = await db.run(
+      "INSERT INTO applications (client_id, type, data_json, status) VALUES (?, 'info_change', ?, 'pending')",
+      req.user.client_id, JSON.stringify({ changes: valid })
+    )
+
+    res.status(201).json({ success: true, application_id: result.lastID })
+  } catch (e) {
+    console.error('[profile] change-request error:', e)
     res.status(500).json({ error: e.message })
   }
 })

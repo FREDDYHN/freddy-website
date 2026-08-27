@@ -26,6 +26,25 @@ export const AR_TIER_NAMES = Object.fromEntries(
 )
 
 // ══════════════════════════════════════════════
+//  CLIENT INFO CHANGE REQUEST — 客户信息修改申请
+// ══════════════════════════════════════════════
+
+// 客户可申请修改的字段（key = DB 列名，value = 中文标签）。
+// 不含税号（uscc/id_number），税号由客户在「账户管理」自行保存。
+export const CLIENT_CHANGEABLE_FIELDS = {
+  company_name: '公司名称',
+  company_name_en: '英文名',
+  registered_address: '注册地址',
+  registered_address_en: '注册地址(英文)',
+  legal_representative: '法定代表人',
+  legal_representative_en: '法定代表人(英文)',
+  contact_name: '联系人',
+  contact_phone: '手机号',
+  wechat_id: '微信',
+  lucid_registration_number: 'LUCID 注册号',
+}
+
+// ══════════════════════════════════════════════
 //  WEEE — 电子电气设备法
 // ══════════════════════════════════════════════
 
@@ -122,7 +141,7 @@ export const PHONE_RE = /^\+?[\d\s\-()]{7,20}$/
 // ══════════════════════════════════════════════
 
 export default {
-  AR_TIERS, AR_TIER_FEES_EUR, AR_TIER_NAMES,
+  AR_TIERS, AR_TIER_FEES_EUR, AR_TIER_NAMES, CLIENT_CHANGEABLE_FIELDS,
   WEEE_PRICES, WEEE_STARTING_PRICE,
   BATTERY_PRICES, BATTERY_STARTING_PRICE,
   EUR_CNY_RATE, PACKAGING_MATERIALS,

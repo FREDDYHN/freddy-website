@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { CLIENT_CHANGEABLE_FIELDS } from '@shared/constants.js'
 
 const inpCls = 'w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-primary'
 const btnCls = 'px-5 py-2.5 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary-light disabled:opacity-50'
@@ -12,6 +13,9 @@ export default function Profile() {
   const [pwMsg, setPwMsg] = useState('')
   const [taxForm, setTaxForm] = useState(null)
   const [taxMsg, setTaxMsg] = useState('')
+  const [changeOpen, setChangeOpen] = useState(false)
+  const [changeForm, setChangeForm] = useState({})
+  const [changeSubmitting, setChangeSubmitting] = useState(false)
 
   const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}`, 'Content-Type': 'application/json' } : {} }
 
@@ -42,6 +46,45 @@ export default function Profile() {
       if (r.ok) { setTaxMsg('✅ 已保存'); setP({ ...p, entity_type: taxForm.entity_type, uscc: taxForm.uscc.trim(), id_number: taxForm.id_number.trim() }) }
       else setTaxMsg('❌ ' + (d.error || '保存失败'))
     } catch (e) { setTaxMsg('❌ ' + e.message) }
+  }
+
+  const openChange = () => {
+    setChangeForm({
+      company_name: p?.company_name || '',
+      company_name_en: p?.company_name_en || '',
+      registered_address: p?.registered_address || '',
+      registered_address_en: p?.registered_address_en || '',
+      legal_representative: p?.legal_representative || '',
+      legal_representative_en: p?.legal_representative_en || '',
+      contact_name: p?.contact_name || '',
+      contact_phone: p?.contact_phone || '',
+      wechat_id: p?.wechat_id || '',
+      lucid_registration_number: p?.lucid_registration_number || '',
+    })
+    setMsg('')
+    setChangeOpen(true)
+  }
+
+  const submitChange = async () => {
+    // 只提交与当前值不同的字段
+    const changes = {}
+    for (const [field, val] of Object.entries(changeForm)) {
+      const cur = (p?.[field] || '').toString().trim()
+      const next = String(val ?? '').trim()
+      if (next && next !== cur) changes[field] = next
+    }
+    if (Object.keys(changes).length === 0) { setMsg('❌ 未修改任何字段'); return }
+    setChangeSubmitting(true)
+    try {
+      const r = await fetch('/api/profile/change-request', {
+        method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ changes }),
+      })
+      const d = await r.json()
+      if (r.ok) { setChangeOpen(false); setMsg('✅ 已提交，等待管理员审核') }
+      else setMsg('❌ ' + (d.error || '申请失败，请联系客服'))
+    } catch { setMsg('❌ 网络错误') }
+    setChangeSubmitting(false)
   }
 
   const user = (() => { try { return JSON.parse(sessionStorage.getItem('user')) } catch { return null } })()
@@ -78,16 +121,7 @@ export default function Profile() {
             </div>
           ) : null)}
         </div>
-        <button onClick={async () => {
-          try {
-            const r = await fetch('/api/admin/messages', {
-              method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' },
-              body: JSON.stringify({ client_id: p.id, title: '📝 信息修改申请', message: `客户 ${p.company_name} 申请修改公司信息，请管理员处理。` }),
-            })
-            if (r.ok) setMsg('✅ 已通知管理员，请等待审核')
-            else setMsg('❌ 申请失败，请联系客服')
-          } catch { setMsg('❌ 网络错误') }
-        }} className="px-4 py-2 border border-primary text-primary rounded-md text-sm font-medium hover:bg-primary/5">
+        <button onClick={openChange} className="px-4 py-2 border border-primary text-primary rounded-md text-sm font-medium hover:bg-primary/5">
           📝 申请修改信息
         </button>
         {msg && <p className={`text-xs ${msg.startsWith('✅') ? 'text-green-600' : 'text-red-500'}`}>{msg}</p>}
@@ -131,6 +165,27 @@ export default function Profile() {
         {pwMsg && <p className={`text-xs ${pwMsg.startsWith('✅') ? 'text-green-600' : 'text-red-500'}`}>{pwMsg}</p>}
         <button type="submit" className={btnCls}>修改密码</button>
       </form>
+
+      {changeOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setChangeOpen(false)}>
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 p-6 space-y-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-lg">申请修改公司信息</h3>
+              <button onClick={() => setChangeOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            </div>
+            <p className="text-xs text-gray-400">只填写需要修改的字段，提交后由管理员审核，通过后生效。</p>
+            <div className="space-y-3">
+              {Object.entries(CLIENT_CHANGEABLE_FIELDS).map(([field, label]) => (
+                <div key={field}>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">{label}</label>
+                  <input value={changeForm[field] || ''} onChange={e => setChangeForm(f => ({ ...f, [field]: e.target.value }))} className={inpCls} />
+                </div>
+              ))}
+            </div>
+            <button onClick={submitChange} disabled={changeSubmitting} className={btnCls}>提交申请</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

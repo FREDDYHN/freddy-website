@@ -8,7 +8,7 @@
 import { Router } from 'express'
 import { getDb, withTransaction } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
-import { calcMaterialFee, applyFloorFee } from '../../../shared/constants.js'
+import { calcMaterialFee, applyFloorFee, CLIENT_CHANGEABLE_FIELDS } from '../../../shared/constants.js'
 import { formatInvoiceNumber, generateAndSendInvoice } from '../services/invoice.js'
 import { localDate } from '../services/date.js'
 
@@ -214,6 +214,66 @@ router.post('/messages', authMiddleware, adminMiddleware, async (req, res) => {
     res.status(201).json({ success: true })
   } catch (e) {
     console.error('[admin] message error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// POST /api/admin/applications/:id/review — 审核信息修改申请（通过/拒绝）
+router.post('/applications/:id/review', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const { action, comment } = req.body
+    if (!['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ error: 'action must be "approve" or "reject"' })
+    }
+
+    const app = await db.get('SELECT * FROM applications WHERE id = ?', req.params.id)
+    if (!app) return res.status(404).json({ error: 'Application not found' })
+    if (app.type !== 'info_change') return res.status(400).json({ error: 'Not an info_change application' })
+    if (app.status !== 'pending') return res.status(400).json({ error: 'Application already processed' })
+
+    if (action === 'approve') {
+      // 解析待改字段，白名单校验后 UPDATE clients
+      let changes = {}
+      try { changes = (JSON.parse(app.data_json || '{}') || {}).changes || {} } catch { changes = {} }
+
+      const fields = []
+      const values = []
+      for (const [field, value] of Object.entries(changes)) {
+        if (!(field in CLIENT_CHANGEABLE_FIELDS)) continue
+        const v = String(value ?? '').trim()
+        if (!v) continue
+        fields.push(`${field} = ?`)
+        values.push(v)
+      }
+      if (fields.length === 0) {
+        return res.status(400).json({ error: 'No valid fields to apply' })
+      }
+
+      await db.run(
+        `UPDATE clients SET ${fields.join(', ')}, updated_at = datetime('now') WHERE id = ?`,
+        ...values, app.client_id
+      )
+
+      await db.run("UPDATE applications SET status = 'approved' WHERE id = ?", app.id)
+      await db.run(
+        `INSERT INTO notifications (client_id, contract_id, type, title, message)
+         VALUES (?, NULL, 'admin_message', '✅ 信息修改已通过', ?)`,
+        app.client_id, '您申请的公司信息修改已由管理员审核通过并生效。'
+      )
+    } else {
+      await db.run("UPDATE applications SET status = 'rejected' WHERE id = ?", app.id)
+      await db.run(
+        `INSERT INTO notifications (client_id, contract_id, type, title, message)
+         VALUES (?, NULL, 'admin_message', '❌ 信息修改申请未通过', ?)`,
+        app.client_id, comment ? `您申请的公司信息修改未通过。原因：${comment}` : '您申请的公司信息修改未通过，请联系管理员。'
+      )
+    }
+
+    console.log(`[admin] Application ${app.id} ${action} — notified client ${app.client_id}`)
+    res.json({ success: true, application_id: app.id, status: action === 'approve' ? 'approved' : 'rejected' })
+  } catch (e) {
+    console.error('[admin] application review error:', e)
     res.status(500).json({ error: e.message })
   }
 })

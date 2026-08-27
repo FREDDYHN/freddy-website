@@ -404,7 +404,11 @@ app.get('/api/admin/applications', authMiddleware, adminMiddleware, async (req, 
   try {
     const db = await getDb()
     const rows = await db.all(
-      `SELECT a.*, cl.company_name, cl.contact_email FROM applications a
+      `SELECT a.*, cl.company_name, cl.contact_email, cl.company_name_en,
+              cl.registered_address, cl.registered_address_en,
+              cl.legal_representative, cl.legal_representative_en,
+              cl.contact_name, cl.contact_phone, cl.wechat_id, cl.lucid_registration_number
+       FROM applications a
        LEFT JOIN clients cl ON a.client_id = cl.id
        ORDER BY a.id DESC LIMIT 100`
     )
