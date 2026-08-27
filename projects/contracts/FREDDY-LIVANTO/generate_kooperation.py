@@ -85,8 +85,8 @@ SECTIONS = [
         'rows': [
             ('(1) Die Parteien teilen die Umsätze aus den Jahresgrundgebühren der Bevollmächtigungsverträge (Servicestufen Basis EUR 29,00, Standard EUR 49,00, Premium EUR 79,00 pro Jahr) im Verhältnis von 50 % zu 50 %.',
              '(1) 双方按 50%:50% 的比例分享授权代表合同的年度基本费用收入（服务等级：基础 29.00欧元/年、标准 49.00欧元/年、高级 79.00欧元/年）。'),
-            ('(2) Die an die dualen Systeme zu entrichtenden Lizenzentgelte (Systembeteiligungsgebühren) sind durchlaufende Posten. Sie werden nicht geteilt und von FREDDY im Auftrag von LIVANTO in tatsächlicher Höhe ohne Aufschlag an die jeweiligen dualen Systeme weitergeleitet.',
-             '(2) 应向双元系统支付的许可费用（系统参与费）为代收代付项目，不参与分成，由 FREDDY 替 LIVANTO 按实际金额、不加价代转付给相应双元系统。'),
+            ('(2) Die an die dualen Systeme zu entrichtenden Lizenzentgelte (Systembeteiligungsgebühren) sind durchlaufende Posten. Sie werden nicht geteilt und von FREDDY im Auftrag von LIVANTO an die jeweiligen dualen Systeme weitergeleitet. Gewinne oder Verluste aus Wechselkursschwankungen zwischen CNY und EUR werden von den Parteien im Verhältnis 50 % zu 50 % geteilt bzw. getragen.',
+             '(2) 应向双元系统支付的许可费用（系统参与费）为代收代付项目，不参与分成，由 FREDDY 替 LIVANTO 代转付给相应双元系统。因人民币兑欧元汇率波动而产生的盈余或损失，由双方按 50%:50% 的比例分享或承担。'),
             ('(3) Zusätzliche Servicegebühren (z. B. ZSVR-Klassifizierungsantrag, Bearbeitungsgebühr Vollständigkeitserklärung, Mahngebühren) werden ebenfalls im Verhältnis 50 % zu 50 % geteilt.',
              '(3) 附加服务费（如 ZSVR 分类申请、完整性声明手续费、催款费等）同样按 50%:50% 的比例分成。'),
         ],
