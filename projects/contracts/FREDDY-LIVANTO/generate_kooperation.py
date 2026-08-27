@@ -14,6 +14,7 @@ import os
 
 OUT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUT_PATH = os.path.join(OUT_DIR, 'Kooperationsvereinbarung_FREDDY-LIVANTO.docx')
+OUT_HTML = os.path.join(OUT_DIR, 'Kooperationsvereinbarung_FREDDY-LIVANTO.html')
 
 # ══════════════════════════════════════════════
 #  CONTENT
@@ -86,8 +87,8 @@ SECTIONS = [
              '(1) 双方按 50%:50% 的比例分享授权代表合同的年度基本费用收入（服务等级：基础 29.00欧元/年、标准 49.00欧元/年、高级 79.00欧元/年）。'),
             ('(2) Die an die dualen Systeme zu entrichtenden Lizenzentgelte (Systembeteiligungsgebühren) sind durchlaufende Posten. Sie werden nicht geteilt und von LIVANTO in tatsächlicher Höhe ohne Aufschlag an die jeweiligen dualen Systeme weitergeleitet.',
              '(2) 应向双元系统支付的许可费用（系统参与费）为代收代付项目，不参与分成，由 LIVANTO 按实际金额、不加价转付给相应双元系统。'),
-            ('(3) Zusätzliche Servicegebühren (z. B. ZSVR-Klassifizierungsantrag, Bearbeitungsgebühr Vollständigkeitserklärung, Mahngebühren) sind nicht Gegenstand der Umsatzbeteiligung; sie stehen derjenigen Partei zu, die die jeweilige Leistung erbringt und die damit verbundenen Kosten trägt.',
-             '(3) 附加服务费（如 ZSVR 分类申请、完整性声明手续费、催款费等）不属于营收分成对象，归实际提供相应服务并承担相关成本的一方所有。'),
+            ('(3) Zusätzliche Servicegebühren (z. B. ZSVR-Klassifizierungsantrag, Bearbeitungsgebühr Vollständigkeitserklärung, Mahngebühren) werden ebenfalls im Verhältnis 50 % zu 50 % geteilt.',
+             '(3) 附加服务费（如 ZSVR 分类申请、完整性声明手续费、催款费等）同样按 50%:50% 的比例分成。'),
         ],
     },
     {
@@ -172,10 +173,10 @@ SECTIONS = [
     {
         'title': ('§ 12  Laufzeit und Kündigung', '§ 12  期限与终止'),
         'rows': [
-            ('(1) Diese Vereinbarung tritt mit Unterzeichnung durch beide Parteien in Kraft und wird auf unbestimmte Zeit geschlossen.',
-             '(1) 本合同自双方签署之日起生效，无固定期限。'),
-            ('(2) Jede Partei kann diese Vereinbarung mit einer Frist von drei Monaten zum Ende eines Kalenderquartals schriftlich kündigen.',
-             '(2) 任何一方可提前三个月、于自然季度末书面通知终止本合同。'),
+            ('(1) Diese Vereinbarung tritt mit Unterzeichnung und Stempelung durch beide Parteien in Kraft und wird zunächst für die Dauer von einem Jahr geschlossen.',
+             '(1) 本合同自双方签字盖章之日起生效，初始期限为一年。'),
+            ('(2) Die Vereinbarung verlängert sich jeweils automatisch um ein weiteres Jahr, sofern sie nicht von einer Partei mit einer Frist von drei Monaten vor Ablauf der jeweiligen Laufzeit schriftlich gekündigt wird.',
+             '(2) 本合同自动续期一年，除非一方在相应期限届满前三个月书面通知终止。'),
             ('(3) Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt unberührt.',
              '(3) 因重大事由特别终止的权利不受影响。'),
             ('(4) Mit Beendigung der Vereinbarung sind bereits abgeschlossene und begonnene Kundenverträge durch LIVANTO bis zum jeweiligen Vertragsende ordnungsgemäß fortzuführen; die Umsatzbeteiligung nach § 4 gilt für diese Kundenverträge fort, bis diese enden.',
@@ -378,5 +379,73 @@ def build():
     print('Generated:', OUT_PATH)
 
 
+# ══════════════════════════════════════════════
+#  HTML RENDER (browser preview)
+# ══════════════════════════════════════════════
+
+def _h(s):
+    return (s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')).replace('\n', '<br>')
+
+
+def _brow(de, zh, title=False):
+    cls = 'brow title' if title else 'brow'
+    return f'<div class="{cls}"><div class="de">{_h(de)}</div><div class="zh">{_h(zh)}</div></div>'
+
+
+def build_html():
+    css = """
+    :root { --ink:#1a1a2e; --muted:#6b7280; --line:#cbd5e1; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:#eef0f3; font-family:"Times New Roman","SimSun","宋体",serif; color:var(--ink); line-height:1.65; }
+    .contract { max-width:960px; margin:24px auto; background:#fff; padding:56px 64px; box-shadow:0 2px 24px rgba(0,0,0,.12); }
+    .title-de { text-align:center; font-size:24px; font-weight:700; margin:0 0 4px; }
+    .title-zh { text-align:center; font-size:22px; font-weight:700; margin:0 0 14px; }
+    .subtitle { text-align:center; font-size:13px; color:var(--muted); margin:0 0 30px; }
+    .brow { display:grid; grid-template-columns:1fr 1fr; gap:36px; padding:6px 0; font-size:13.5px; }
+    .brow.title { grid-template-columns:1fr 1fr; gap:36px; padding:16px 0 8px; margin-top:12px; border-bottom:1.5px solid var(--line); font-weight:700; font-size:14.5px; }
+    .brow.title .de, .brow.title .zh { font-weight:700; }
+    .sign-wrap { margin-top:36px; }
+    .sign-grid { display:grid; grid-template-columns:1fr 1fr; gap:36px; }
+    .sign-box { border-top:1px solid var(--line); padding-top:14px; font-size:13.5px; }
+    .sign-box .de, .sign-box .zh { white-space:pre-line; }
+    @media print {
+      body { background:#fff; }
+      .contract { box-shadow:none; margin:0; max-width:none; padding:0 12mm; }
+    }
+    """
+    parts = []
+    parts.append('<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">')
+    parts.append('<meta name="viewport" content="width=device-width, initial-scale=1.0">')
+    parts.append(f'<title>{_h(TITLE_DE)} / {_h(TITLE_ZH)}</title>')
+    parts.append(f'<style>{css}</style></head><body><div class="contract">')
+    parts.append(f'<div class="title-de">{_h(TITLE_DE)}</div>')
+    parts.append(f'<div class="title-zh">{_h(TITLE_ZH)}</div>')
+    parts.append(f'<div class="subtitle">{_h(SUBTITLE_DE)}<br>{_h(SUBTITLE_ZH)}</div>')
+    # parties
+    for de, zh in PARTIES:
+        parts.append(_brow(de, zh))
+    # preamble
+    parts.append(_brow(*PREAMBLE_TITLE, title=True))
+    for de, zh in PREAMBLE:
+        parts.append(_brow(de, zh))
+    # sections
+    for s in SECTIONS:
+        parts.append(_brow(s['title'][0], s['title'][1], title=True))
+        for de, zh in s['rows']:
+            parts.append(_brow(de, zh))
+    # signature
+    parts.append(_brow(*SIGN_TITLE, title=True))
+    parts.append('<div class="sign-wrap"><div class="sign-grid">')
+    for de, zh in SIGN_ROWS:
+        parts.append(f'<div class="sign-box"><div class="de">{_h(de)}</div><div class="zh">{_h(zh)}</div></div>')
+    parts.append('</div></div>')
+    parts.append('</div></body></html>')
+    html = '\n'.join(parts)
+    with open(OUT_HTML, 'w', encoding='utf-8') as f:
+        f.write(html)
+    print('Generated:', OUT_HTML)
+
+
 if __name__ == '__main__':
     build()
+    build_html()
