@@ -448,32 +448,32 @@ export default function Admin() {
             <div className="flex gap-2">
               <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ id: cl.contract_id||cl.id, client_id: cl.id, company_name: cl.company_name, contact_email: cl.contact_email, contact_name: cl.contact_name, contact_phone: cl.contact_phone, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, start_date: cl.start_date, end_date: cl.end_date, lucid_confirmed: !!cl.lucid_confirmed, lucid_rep_accepted: !!cl.lucid_rep_accepted, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0, _uploads:{}, _packaging:[] }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
                 <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, !!v || showAll) }}
-                  className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary">
+                  className="border border-gray-300 rounded-md px-2 py-1.5 text-xs bg-white focus:outline-none focus:border-primary">
                   <option value="">全部状态</option>
                   {Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
                 <button type="button" onClick={() => setShowPending(!showPending)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                  className={`px-2 py-1.5 rounded-md text-xs font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                   🔔 待办 {pendingCount > 0 && `(${pendingCount})`}
                 </button>
                 <button type="button" onClick={() => setShowMissingTax(!showMissingTax)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${showMissingTax ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                  className={`px-2 py-1.5 rounded-md text-xs font-medium ${showMissingTax ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                   ⚠️ 缺失税号
                 </button>
                 <button type="button" onClick={remindMissingTax}
-                  className="px-3 py-2 rounded-md text-sm font-medium border border-amber-300 text-amber-700 hover:bg-amber-50">
+                  className="px-2 py-1.5 rounded-md text-xs font-medium border border-amber-300 text-amber-700 hover:bg-amber-50">
                   📧 提醒补税号
                 </button>
                 <button type="button" onClick={remindMissingLucid}
-                  className="px-3 py-2 rounded-md text-sm font-medium border border-blue-300 text-blue-700 hover:bg-blue-50">
+                  className="px-2 py-1.5 rounded-md text-xs font-medium border border-blue-300 text-blue-700 hover:bg-blue-50">
                   📧 提醒补LUCID号
                 </button>
                 <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer select-none">
                   <input type="checkbox" checked={showAll} onChange={e => { setShowAll(e.target.checked); load(1, e.target.checked) }} className="w-3.5 h-3.5" /> 含待验证
                 </label>
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="公司 / 手机号 / 联系人 / 法人 / 合同号后4位" className="border border-gray-300 rounded-md px-3 py-2 text-sm w-72 focus:outline-none focus:border-primary" />
-                <button type="submit" className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium">🔍 搜索</button>
-                <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); setShowMissingTax(false); setShowAll(false); load(1, false); setPage(1) }} className="px-4 py-2 border border-gray-200 rounded-md text-sm text-gray-500">重置</button>
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="公司 / 手机号 / 联系人 / 法人 / 合同号后4位" className="border border-gray-300 rounded-md px-2 py-1.5 text-xs w-56 focus:outline-none focus:border-primary" />
+                <button type="submit" className="px-3 py-1.5 bg-primary text-white rounded-md text-xs font-medium">🔍 搜索</button>
+                <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); setShowMissingTax(false); setShowAll(false); load(1, false); setPage(1) }} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-500">重置</button>
               </form>
             </div>
           </div>
