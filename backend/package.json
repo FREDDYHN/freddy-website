@@ -12,6 +12,7 @@
     "docx": "^9.7.1",
     "docxtemplater": "^3.69.0",
     "dotenv": "^17.4.2",
+    "exceljs": "^4.4.0",
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.0",
     "multer": "^2.2.0",

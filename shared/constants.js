@@ -83,6 +83,34 @@ export const BATTERY_STARTING_PRICE = 258 // Display: "€258/年起"
 export const EUR_CNY_RATE = 7.8
 
 // ══════════════════════════════════════════════
+//  EKO-PUNKT 客户信息表导出 — 常量
+// ══════════════════════════════════════════════
+
+// EKO-PUNKT 导入模板固定值（下拉列的默认取值）
+export const EKO_PUNKT = {
+  kundengruppe: 'EASY-LIZE China',   // Kundengruppe（客户组）
+  zahlungsart:  'Rechnung',          // Zahlungsart（支付方式）
+  sprache:      'EN',                // Sprache（语言）
+  anrede:       'Mr',                // Anrede（称呼，无法可靠判定性别，默认 Mr）
+  land:         'CN',                // Land（客户中国实际地址）
+}
+
+// 材料 key → EKO-PUNKT 模板德文列头（Z~AG，与 PACKAGING_MATERIALS 顺序一致）
+export const EKO_PUNKT_MATERIAL_COLS = [
+  { key: 'glass',      col: 26, header: 'Glas' },
+  { key: 'paper',      col: 27, header: 'Papier/Pappe/Karton' },
+  { key: 'ferrous',    col: 28, header: 'Eisenmetalle' },
+  { key: 'aluminium',  col: 29, header: 'Aluminium' },
+  { key: 'plastics',   col: 30, header: 'Kunststoff' },
+  { key: 'cartons',    col: 31, header: 'Getränkekartonverbunde' },
+  { key: 'composites', col: 32, header: 'Sonstige Verbunde' },
+  { key: 'other',      col: 33, header: 'Sonstiges Material' },
+]
+
+// 服务等级 → 中文（LIVANTO 季度结算单用）
+export const AR_TIER_ZH = { basic: '基础', standard: '标准', premium: '高级' }
+
+// ══════════════════════════════════════════════
 //  PACKAGING MATERIALS
 // ══════════════════════════════════════════════
 
@@ -145,6 +173,7 @@ export default {
   WEEE_PRICES, WEEE_STARTING_PRICE,
   BATTERY_PRICES, BATTERY_STARTING_PRICE,
   EUR_CNY_RATE, PACKAGING_MATERIALS,
+  EKO_PUNKT, EKO_PUNKT_MATERIAL_COLS, AR_TIER_ZH,
   REMINDER_WINDOWS, REPORTING_DEADLINE_MONTH, REPORTING_DEADLINE_DAY,
   EMAIL_RE, PHONE_RE,
 }

@@ -17,6 +17,7 @@ import profileRoutes from './routes/profile.js'
 import uploadsRoutes from './routes/uploads.js'
 import notificationsRoutes from './routes/notifications.js'
 import adminNotificationsRoutes from './routes/admin-notifications.js'
+import exportRoutes from './routes/exports.js'
 import { authMiddleware, adminMiddleware } from './auth.js'
 import { checkReminders, startReminderScheduler } from './services/reminders.js'
 import { generateContract } from './services/contract-gen.js'
@@ -86,6 +87,7 @@ app.use('/api/profile', profileRoutes)
 app.use('/api/uploads', uploadsRoutes)
 app.use('/api/notifications', notificationsRoutes)
 app.use('/api/admin', adminNotificationsRoutes)
+app.use('/api/admin/export', exportRoutes)
 
 // Serve generated contract files (auth + ownership verified)
 app.get('/api/contracts/:id/download', authMiddleware, async (req, res) => {

@@ -35,6 +35,15 @@ export default function Admin() {
   const [lucidPwd, setLucidPwd] = useState(null)
   const [taxEdit, setTaxEdit] = useState(null)
   const [taxSaveMsg, setTaxSaveMsg] = useState('')
+  const [exportModal, setExportModal] = useState(false)
+  const [ekYear, setEkYear] = useState(new Date().getFullYear())
+  const [ekMode, setEkMode] = useState('initial')
+  const [bhFrom, setBhFrom] = useState(`${new Date().getFullYear()}-01-01`)
+  const [bhTo, setBhTo] = useState(`${new Date().getFullYear()}-12-31`)
+  const [lvYear, setLvYear] = useState(new Date().getFullYear())
+  const [lvQuarter, setLvQuarter] = useState('Q1')
+
+  const years = [new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1]
 
   const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}` } : {} }
 
@@ -145,6 +154,10 @@ export default function Admin() {
   }
 
   const exportCSV = async () => { try { const r = await fetch('/api/admin/clients/export', { headers: ah() }); if (!r.ok) throw new Error('Export failed'); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `freddy-clients-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(u) } catch (e) { alert('导出失败') } }
+
+  const doEkoPunkt = () => authDownload(`/api/admin/export/eko-punkt?year=${ekYear}&mode=${ekMode}`, `freddy-eko-punkt-${ekYear}-${ekMode}.xlsx`)
+  const doBuchhaltung = () => authDownload(`/api/admin/export/buchhaltung?from=${bhFrom}&to=${bhTo}`, `freddy-buchhaltung-${bhFrom}_${bhTo}.xlsx`)
+  const doLivanto = () => authDownload(`/api/admin/export/livanto?year=${lvYear}&quarter=${lvQuarter}`, `freddy-livanto-${lvYear}-${lvQuarter}.xlsx`)
 
   const toggleSpam = async (contractId) => {
     try {
@@ -355,7 +368,8 @@ export default function Admin() {
           {[{ l: '总客户', v: stats.total_clients }, { l: '活跃合同', v: stats.active_contracts }, { l: '待付款', v: stats.pending_payments, w: stats.pending_payments > 0 }, { l: '年收入 €', v: (stats.annual_revenue_eur || 0).toFixed(0) }].map((s, i) => (
             <div key={i} className="flex items-center gap-1.5"><span className="text-xs text-gray-400">{s.l}</span><span className={`text-sm font-bold ${s.w ? 'text-red-600' : 'text-gray-700'}`}>{s.v}</span></div>
           ))}
-          <button onClick={exportCSV} className="px-3 py-1.5 border border-green-300 text-green-700 rounded-md text-xs hover:bg-green-50">📥</button>
+          <button onClick={exportCSV} className="px-3 py-1.5 border border-green-300 text-green-700 rounded-md text-xs hover:bg-green-50" title="导出客户 CSV">📥</button>
+          <button onClick={() => setExportModal(true)} className="px-3 py-1.5 border border-blue-300 text-blue-700 rounded-md text-xs hover:bg-blue-50">📤 导出</button>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-md">
             <span className="text-xs text-amber-700">EUR/CNY</span>
             <span className="text-sm font-bold text-amber-800">{(rateInfo.rate||8.10).toFixed(2)}</span>
@@ -813,6 +827,61 @@ export default function Admin() {
                 className="px-5 py-2 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary-light disabled:opacity-50">
                 {feeSubmitting ? '提交中...' : '✅ 确认设置'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Modal — 三份 XLSX 导出 */}
+      {exportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setExportModal(false)}>
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-lg">📤 数据导出（XLSX）</h3>
+              <button onClick={() => setExportModal(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            </div>
+
+            {/* 1. EKO-PUNKT */}
+            <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+              <h4 className="font-semibold text-sm">1. EKO-PUNKT 客户信息表</h4>
+              <p className="text-xs text-gray-400">提交双元系统，按申报年份 + 预申报/年终申报</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <select value={ekYear} onChange={e => setEkYear(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                  {years.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+                <select value={ekMode} onChange={e => setEkMode(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                  <option value="initial">预申报（预估量）</option>
+                  <option value="final">年终申报（实际量）</option>
+                </select>
+                <button onClick={doEkoPunkt} className="ml-auto px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">导出</button>
+              </div>
+            </div>
+
+            {/* 2. Buchhaltung */}
+            <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+              <h4 className="font-semibold text-sm">2. 财务对账单（Buchhaltung）</h4>
+              <p className="text-xs text-gray-400">按付款时间日期范围</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <input type="date" value={bhFrom} onChange={e => setBhFrom(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
+                <span className="text-gray-400 text-sm">至</span>
+                <input type="date" value={bhTo} onChange={e => setBhTo(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
+                <button onClick={doBuchhaltung} className="ml-auto px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">导出</button>
+              </div>
+            </div>
+
+            {/* 3. LIVANTO */}
+            <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+              <h4 className="font-semibold text-sm">3. LIVANTO 季度结算单</h4>
+              <p className="text-xs text-gray-400">按自然季度（年费 50% 分成）</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <select value={lvYear} onChange={e => setLvYear(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                  {years.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+                <select value={lvQuarter} onChange={e => setLvQuarter(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                  {['Q1', 'Q2', 'Q3', 'Q4'].map(q => <option key={q} value={q}>{q}</option>)}
+                </select>
+                <button onClick={doLivanto} className="ml-auto px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">导出</button>
+              </div>
             </div>
           </div>
         </div>
