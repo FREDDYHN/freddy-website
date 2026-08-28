@@ -50,6 +50,9 @@ ssh "${SSH_TARGET}" << 'ENDSSH'
 set -e
 cd /root/freddy-epr
 
+# 解压前清理旧 dist（避免历史 bundle 堆积）
+rm -rf frontend/dist
+
 # 解压
 tar xzf freddy-epr-deploy.tar.gz
 rm freddy-epr-deploy.tar.gz
