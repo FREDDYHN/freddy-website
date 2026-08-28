@@ -582,6 +582,26 @@ app.patch('/api/admin/clients/:id', authMiddleware, adminMiddleware, async (req,
   }
 })
 
+// ── Admin: Update client LUCID 注册号（直填，配合 LUCID 里 Annehmen 时回填）──
+app.patch('/api/admin/clients/:id/lucid', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const { lucid_registration_number } = req.body
+    const regNo = (lucid_registration_number || '').trim()
+    if (!regNo) return res.status(400).json({ error: 'LUCID 注册号必填' })
+    const client = await db.get('SELECT id FROM clients WHERE id = ?', req.params.id)
+    if (!client) return res.status(404).json({ error: 'Client not found' })
+    await db.run(
+      "UPDATE clients SET lucid_registration_number = ?, updated_at = datetime('now') WHERE id = ?",
+      regNo, req.params.id
+    )
+    res.json({ success: true, lucid_registration_number: regNo })
+  } catch (e) {
+    console.error('[server] update lucid number error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // ── Admin: Remind clients missing tax number (in-app notification + email) ──
 app.post('/api/admin/remind-missing-tax', authMiddleware, adminMiddleware, async (req, res) => {
   try {

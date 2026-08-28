@@ -43,6 +43,8 @@ export default function Admin() {
   const [rateNew, setRateNew] = useState('')
   const [rateSubmitting, setRateSubmitting] = useState(false)
   const [lucidPwd, setLucidPwd] = useState(null)
+  const [lucidEdit, setLucidEdit] = useState('')
+  const [lucidSaveMsg, setLucidSaveMsg] = useState('')
   const [taxEdit, setTaxEdit] = useState(null)
   const [taxSaveMsg, setTaxSaveMsg] = useState('')
   const [exportModal, setExportModal] = useState(false)
@@ -70,6 +72,21 @@ export default function Admin() {
       if (r.ok) { const d = await r.json(); setLucidPwd(d.password ?? '') }
       else { const d = await r.json().catch(() => ({})); alert(d.error || '获取失败') }
     } catch { alert('网络错误') }
+  }
+
+  const saveLucidNumber = async () => {
+    if (!infoModal) return
+    const val = lucidEdit.trim()
+    if (!val) { setLucidSaveMsg('❌ 请输入 LUCID 注册号'); return }
+    try {
+      const r = await fetch(`/api/admin/clients/${infoModal.client_id}/lucid`, { method: 'PATCH', headers: { ...ah(), 'Content-Type': 'application/json' }, body: JSON.stringify({ lucid_registration_number: val }) })
+      const d = await r.json()
+      if (r.ok) {
+        setLucidSaveMsg('✅ 已保存')
+        setInfoModal({ ...infoModal, lucid_registration_number: val })
+        setContracts(prev => prev.map(c => c.client_id === infoModal.client_id ? { ...c, lucid_registration_number: val } : c))
+      } else setLucidSaveMsg('❌ ' + (d.error || '保存失败'))
+    } catch (e) { setLucidSaveMsg('❌ ' + e.message) }
   }
 
   const saveAdminTax = async () => {
@@ -266,6 +283,10 @@ export default function Admin() {
   }
 
   useEffect(() => { load(); loadApps(); fetchRate() }, [])
+
+  useEffect(() => {
+    if (infoModal) { setLucidEdit(infoModal.lucid_registration_number || ''); setLucidSaveMsg('') }
+  }, [infoModal])
 
   const saveRate = async () => {
     if (!rateNew) return
@@ -791,6 +812,17 @@ export default function Admin() {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* LUCID 注册号直填 */}
+            <div className="border-t border-gray-100 pt-3 space-y-2">
+              <h4 className="text-sm font-semibold text-gray-700">✏️ LUCID 注册号（直填）</h4>
+              <div className="flex gap-2">
+                <input value={lucidEdit} onChange={e => setLucidEdit(e.target.value)} placeholder="DE 开头，如 DE1234567890123"
+                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm font-mono focus:outline-none focus:border-primary" />
+                <button onClick={saveLucidNumber} className="px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">保存</button>
+              </div>
+              {lucidSaveMsg && <p className={`text-xs ${lucidSaveMsg.startsWith('✅') ? 'text-green-600' : 'text-red-500'}`}>{lucidSaveMsg}</p>}
             </div>
 
             {taxEdit && (
