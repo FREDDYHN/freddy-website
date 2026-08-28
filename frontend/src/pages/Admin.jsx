@@ -96,6 +96,16 @@ export default function Admin() {
     } catch (e) { alert('❌ ' + e.message) }
   }
 
+  const remindMissingLucid = async () => {
+    if (!window.confirm('将给所有缺失 LUCID 注册号的客户发送站内通知 + 邮件提醒，确定继续？')) return
+    try {
+      const r = await fetch('/api/admin/remind-missing-lucid', { method: 'POST', headers: ah() })
+      const d = await r.json()
+      if (r.ok) alert(`✅ 已提醒 ${d.reminded}/${d.total} 位客户`)
+      else alert('❌ ' + (d.error || '操作失败'))
+    } catch (e) { alert('❌ ' + e.message) }
+  }
+
   const load = async (p = 1, includeAll = false) => {
     setLoading(true); setError(null)
     try {
@@ -432,6 +442,10 @@ export default function Admin() {
                 <button type="button" onClick={remindMissingTax}
                   className="px-3 py-2 rounded-md text-sm font-medium border border-amber-300 text-amber-700 hover:bg-amber-50">
                   📧 提醒补税号
+                </button>
+                <button type="button" onClick={remindMissingLucid}
+                  className="px-3 py-2 rounded-md text-sm font-medium border border-blue-300 text-blue-700 hover:bg-blue-50">
+                  📧 提醒补LUCID号
                 </button>
                 <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer select-none">
                   <input type="checkbox" checked={showAll} onChange={e => { setShowAll(e.target.checked); load(1, e.target.checked) }} className="w-3.5 h-3.5" /> 含待验证

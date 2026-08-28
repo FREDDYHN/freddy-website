@@ -6,6 +6,7 @@ export default function LucidCard({ contract, client, onToggle }) {
   const [collapsed, setCollapsed] = useState(true)
 
   // LUCID 账号信息表单状态
+  const [lucidNumber, setLucidNumber] = useState(client?.lucid_registration_number || '')
   const [lucidLogin, setLucidLogin] = useState(client?.lucid_login || '')
   const [lucidPassword, setLucidPassword] = useState('')
   const [lucidConfirm, setLucidConfirm] = useState('')
@@ -30,6 +31,7 @@ export default function LucidCard({ contract, client, onToggle }) {
   }
 
   const handleSaveLucid = async () => {
+    if (!lucidNumber.trim()) { setLucidMsg('请填写 LUCID 注册号（DE 开头）'); return }
     if (!lucidLogin.trim()) { setLucidMsg('请填写 LUCID 登录名'); return }
     if (!lucidPassword) { setLucidMsg('请填写 LUCID 密码'); return }
     if (lucidPassword !== lucidConfirm) { setLucidMsg('两次输入的密码不一致'); return }
@@ -40,7 +42,7 @@ export default function LucidCard({ contract, client, onToggle }) {
       const r = await fetch('/api/profile/lucid', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...(t ? { Authorization: `Bearer ${t}` } : {}) },
-        body: JSON.stringify({ lucid_login: lucidLogin.trim(), lucid_password: lucidPassword }),
+        body: JSON.stringify({ lucid_login: lucidLogin.trim(), lucid_password: lucidPassword, lucid_registration_number: lucidNumber.trim() }),
       })
       const d = await r.json()
       if (r.ok) {
@@ -159,10 +161,15 @@ export default function LucidCard({ contract, client, onToggle }) {
           <div className="border-t border-gray-100 pt-4 space-y-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-gray-700">🔐 LUCID 账号信息</span>
-              {client?.lucid_login && <span className="text-xs text-gray-400">已保存：{client.lucid_login}</span>}
+              {client?.lucid_registration_number && <span className="text-xs text-gray-400">已保存：{client.lucid_registration_number}</span>}
             </div>
-            <p className="text-xs text-gray-500">授权代表将来需要您的 LUCID 登录账号和密码，代您申报包装种类和数量。密码加密存储，仅管理员可查看。</p>
+            <p className="text-xs text-gray-500">请填写您的 LUCID 注册号（DE 开头）及登录账号密码，授权代表将据此代您申报包装种类和数量。密码加密存储，仅管理员可查看。</p>
             <div className="space-y-2.5">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">LUCID 注册号 <span className="text-red-400">*</span></label>
+                <input value={lucidNumber} onChange={e => setLucidNumber(e.target.value)} placeholder="DE 开头的编号，如 DE1234567890123"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+              </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">LUCID 登录邮箱</label>
                 <input value={lucidLogin} onChange={e => setLucidLogin(e.target.value)} placeholder="请输入 LUCID 登录邮箱"

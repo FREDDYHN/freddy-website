@@ -92,19 +92,28 @@ router.post('/change-request', authMiddleware, async (req, res) => {
   }
 })
 
-// PUT /api/profile/lucid — Save LUCID login credentials (encrypted)
+// PUT /api/profile/lucid — Save LUCID login credentials (encrypted) + LUCID 注册号
 router.put('/lucid', authMiddleware, async (req, res) => {
   try {
     const db = await getDb()
-    const { lucid_login, lucid_password } = req.body
+    const { lucid_login, lucid_password, lucid_registration_number } = req.body
     if (!lucid_login || !lucid_login.trim()) return res.status(400).json({ error: 'LUCID 登录名必填' })
     if (!lucid_password) return res.status(400).json({ error: 'LUCID 密码必填' })
 
     const enc = encryptLucid(lucid_password)
-    await db.run(
-      "UPDATE clients SET lucid_login = ?, lucid_password_enc = ?, updated_at = datetime('now') WHERE id = ?",
-      lucid_login.trim(), enc, req.user.client_id
-    )
+    const regNo = (lucid_registration_number || '').trim()
+    // 提供了 LUCID 注册号才更新（避免仅更新登录密码时误清空已有注册号）
+    if (regNo) {
+      await db.run(
+        "UPDATE clients SET lucid_login = ?, lucid_password_enc = ?, lucid_registration_number = ?, updated_at = datetime('now') WHERE id = ?",
+        lucid_login.trim(), enc, regNo, req.user.client_id
+      )
+    } else {
+      await db.run(
+        "UPDATE clients SET lucid_login = ?, lucid_password_enc = ?, updated_at = datetime('now') WHERE id = ?",
+        lucid_login.trim(), enc, req.user.client_id
+      )
+    }
     res.json({ success: true })
   } catch (e) {
     console.error('[profile] lucid save error:', e)

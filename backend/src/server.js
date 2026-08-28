@@ -26,7 +26,7 @@ import { decryptLucid } from './services/crypto.js'
 import { markPaid } from './payment.js'
 import { rateLimit } from './rate-limiter.js'
 import { localDate, beijingDateFromUtc } from './services/date.js'
-import { sendTaxNumberRequest } from './services/email.js'
+import { sendTaxNumberRequest, sendLucidNumberRequest } from './services/email.js'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -611,6 +611,38 @@ app.post('/api/admin/remind-missing-tax', authMiddleware, adminMiddleware, async
     res.json({ success: true, reminded: notified, total: missing.length })
   } catch (e) {
     console.error('[server] remind-missing-tax error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ── Admin: Remind clients missing LUCID 注册号 (in-app notification + email) ──
+app.post('/api/admin/remind-missing-lucid', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const missing = await db.all(
+      `SELECT cl.id, cl.company_name, cl.contact_name, cl.contact_email
+       FROM clients cl
+       JOIN contracts c ON c.client_id = cl.id
+       WHERE c.status != 'pending_verification'
+         AND (cl.lucid_registration_number IS NULL OR trim(cl.lucid_registration_number) = '')
+       GROUP BY cl.id`
+    )
+    let notified = 0
+    for (const cl of missing) {
+      try {
+        await db.run(
+          `INSERT INTO notifications (client_id, contract_id, type, title, message) VALUES (?, NULL, 'admin_message', ?, ?)`,
+          cl.id, '⚠️ 请补充 LUCID 注册号', '为完成授权代表注册（提交双元系统），请进入「面板」→「LUCID 授权」卡片，填写您的 LUCID 注册号（DE 开头）、LUCID 登录邮箱和密码。'
+        )
+        await sendLucidNumberRequest({ email: cl.contact_email, name: cl.contact_name || cl.company_name })
+        notified++
+      } catch (e) {
+        console.error(`[server] remind-missing-lucid failed for client ${cl.id}:`, e.message)
+      }
+    }
+    res.json({ success: true, reminded: notified, total: missing.length })
+  } catch (e) {
+    console.error('[server] remind-missing-lucid error:', e)
     res.status(500).json({ error: e.message })
   }
 })

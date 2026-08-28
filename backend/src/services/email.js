@@ -102,6 +102,26 @@ export async function sendTaxNumberRequest({ email, name }) {
   })
 }
 
+export async function sendLucidNumberRequest({ email, name }) {
+  await send({
+    to: email,
+    subject: '[FREDDY] 请补充 LUCID 注册号',
+    html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+<h2 style="color:#c8a44e">请补充 LUCID 注册号</h2>
+<p>${esc(name)}，您好！</p>
+<p>为完成授权代表注册并提交双元系统（包装回收），我们需要您的 <strong>LUCID 注册号</strong>（DE 开头的编号，可在 LUCID 后台查看）。</p>
+<p>请登录我们的平台：</p>
+<ol>
+<li>进入「面板 / Dashboard」</li>
+<li>打开「🛡️ LUCID 授权」卡片</li>
+<li>在「LUCID 账号信息」中填写您的 <strong>LUCID 注册号</strong>（DE 开头）、<strong>LUCID 登录邮箱</strong> 和 <strong>密码</strong></li>
+<li>点击「保存 LUCID 账号」</li>
+</ol>
+<p style="margin-top:24px;color:#999;font-size:12px">如需帮助，请联系 +86 152 2138 0610 或 info@freddy-epr.com</p>
+</div>`,
+  })
+}
+
 export async function sendInvoiceEmail({ email, name, invoiceNumber, amount, pdfBuffer }) {
   const attachments = pdfBuffer && pdfBuffer.length
     ? [{ filename: `Rechnung-${invoiceNumber}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
