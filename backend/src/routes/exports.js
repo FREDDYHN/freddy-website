@@ -1,13 +1,13 @@
 /**
  * Admin 导出（XLSX）— 三份下游对账单
  *
- * 1. GET /api/admin/export/eko-punkt?year=2026&mode=initial|final
+ * 1. GET /api/admin/export/eko-punkt?year=2026&mode=initial|final&from=YYYY-MM-DD&to=YYYY-MM-DD
  *    给双元系统 EKO-PUNKT 的客户信息表（填其官方导入模板，保留双语表头）。
- *    mode=initial 预申报(estimated_quantity_kg) / mode=final 年终申报(actual_quantity_kg)。
+ *    mode=initial 预申报(estimated_quantity_kg) / mode=final 年终申报(actual_quantity_kg)；from/to 按申报日期范围可选。
  * 2. GET /api/admin/export/buchhaltung?from=YYYY-MM-DD&to=YYYY-MM-DD
  *    FREDDY 财务对账单（合同号/年费/预申报费/年终申报费 + 付款时间）。
- * 3. GET /api/admin/export/livanto?year=2026&quarter=Q1..Q4
- *    LIVANTO-FREDDY 季度结算单（年费 50% 转 LIVANTO，双元系统费 pass-through 不分）。
+ * 3. GET /api/admin/export/livanto?from=YYYY-MM-DD&to=YYYY-MM-DD
+ *    LIVANTO-FREDDY 结算单（年费 50% 转 LIVANTO，双元系统费 pass-through 不分），默认当前季度。
  *
  * 输出 XLSX（exceljs）。模板位于 backend/src/templates/，随 backend/src 一起部署。
  */
@@ -62,6 +62,17 @@ router.get('/eko-punkt', async (req, res) => {
     const year = parseInt(req.query.year) || new Date().getFullYear()
     const mode = req.query.mode === 'final' ? 'final' : 'initial'
     const kgField = mode === 'final' ? 'actual_quantity_kg' : 'estimated_quantity_kg'
+    const from = req.query.from || ''
+    const to = req.query.to || ''
+
+    // 日期范围：预申报按申报创建时间(pd.created_at)，年终申报按实际量提交时间(submitted_at)
+    const dateCol = mode === 'final' ? 'coalesce(pd.submitted_at, pd.created_at)' : 'pd.created_at'
+    let where = 'pd.declaration_year = ?'
+    const params = [year]
+    if (from && to) {
+      where += ` AND date(${dateCol}, '+8 hours') BETWEEN ? AND ?`
+      params.push(from, to)
+    }
 
     const rows = await db.all(
       `SELECT pd.contract_id, pd.material_type, pd.${kgField} AS kg,
@@ -72,9 +83,9 @@ router.get('/eko-punkt', async (req, res) => {
        FROM packaging_data pd
        JOIN contracts c ON c.id = pd.contract_id
        JOIN clients cl ON cl.id = c.client_id
-       WHERE pd.declaration_year = ?
+       WHERE ${where}
        ORDER BY pd.contract_id, pd.id`,
-      year
+      ...params
     )
 
     // 按合同聚合：每个客户一行，材料透视成 8 列
@@ -216,11 +227,14 @@ router.get('/buchhaltung', async (req, res) => {
 router.get('/livanto', async (req, res) => {
   try {
     const db = await getDb()
-    const year = parseInt(req.query.year) || new Date().getFullYear()
-    const quarter = ['Q1', 'Q2', 'Q3', 'Q4'].includes(req.query.quarter) ? req.query.quarter : 'Q1'
-    const [from, to] = quarterRange(year, quarter)
+    // 默认当前自然季度，可用 from/to 覆盖为任意日期范围
+    const now = new Date()
+    const defQuarter = 'Q' + (Math.floor(now.getMonth() / 3) + 1)
+    const [defFrom, defTo] = quarterRange(now.getFullYear(), defQuarter)
+    const from = req.query.from || defFrom
+    const to = req.query.to || defTo
 
-    // 该季度「实收年费」的合同（contract_fee 已付且付款时间落在季度内）
+    // 该时间段内「实收年费」的合同（contract_fee 已付且付款时间落在范围内）
     const rows = await db.all(
       `SELECT c.id AS contract_id, c.contract_number, c.tier, c.annual_fee_eur,
               cl.company_name_en, cl.company_name
@@ -251,7 +265,7 @@ router.get('/livanto', async (req, res) => {
     }
 
     const wb = new ExcelJS.Workbook()
-    const ws = wb.addWorksheet(`${year} ${quarter} 结算`)
+    const ws = wb.addWorksheet(`${from} ~ ${to} 结算`)
     const headers = ['合同编号', '客户名称', '服务等级', '年度基本费用(€)', '转 LIVANTO 50%(€)', '附加服务费(€)', '双元系统费(€,代收代付不分)', '合计转 LIVANTO(€)']
     ws.addRow(headers)
     ws.getRow(1).font = { bold: true }
@@ -286,7 +300,7 @@ router.get('/livanto', async (req, res) => {
     })
 
     const buf = await wb.xlsx.writeBuffer()
-    setXlsxHeaders(res, `freddy-livanto-${year}-${quarter}.xlsx`)
+    setXlsxHeaders(res, `freddy-livanto-${from}_${to}.xlsx`)
     res.send(buf)
   } catch (e) {
     console.error('[export] livanto error:', e)

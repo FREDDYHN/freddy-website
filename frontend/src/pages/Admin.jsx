@@ -10,6 +10,16 @@ const TABS = [
 const STATUS_MAP = { active: '已激活', pending_payment: '待付款', pending_verification: '待验证', signed: '已签署', expired: '已过期' }
 const STATUS_CLS = { active: 'bg-green-100 text-green-700', pending_payment: 'bg-yellow-100 text-yellow-700', pending_verification: 'bg-gray-100 text-gray-500', signed: 'bg-blue-100 text-blue-700', expired: 'bg-red-100 text-red-700' }
 
+/** 当前自然季度的 [起, 止] 日期（'YYYY-MM-DD'） */
+function currentQuarterRange() {
+  const n = new Date()
+  const q = Math.floor(n.getMonth() / 3)
+  const start = new Date(n.getFullYear(), q * 3, 1)
+  const end = new Date(n.getFullYear(), q * 3 + 3, 0)
+  const f = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return [f(start), f(end)]
+}
+
 export default function Admin() {
   const [tab, setTab] = useState('packaging')
   const [stats, setStats] = useState(null)
@@ -38,10 +48,12 @@ export default function Admin() {
   const [exportModal, setExportModal] = useState(false)
   const [ekYear, setEkYear] = useState(new Date().getFullYear())
   const [ekMode, setEkMode] = useState('initial')
+  const [ekFrom, setEkFrom] = useState(`${new Date().getFullYear()}-01-01`)
+  const [ekTo, setEkTo] = useState(`${new Date().getFullYear()}-12-31`)
   const [bhFrom, setBhFrom] = useState(`${new Date().getFullYear()}-01-01`)
   const [bhTo, setBhTo] = useState(`${new Date().getFullYear()}-12-31`)
-  const [lvYear, setLvYear] = useState(new Date().getFullYear())
-  const [lvQuarter, setLvQuarter] = useState('Q1')
+  const [lvFrom, setLvFrom] = useState(() => currentQuarterRange()[0])
+  const [lvTo, setLvTo] = useState(() => currentQuarterRange()[1])
 
   const years = [new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1]
 
@@ -155,9 +167,9 @@ export default function Admin() {
 
   const exportCSV = async () => { try { const r = await fetch('/api/admin/clients/export', { headers: ah() }); if (!r.ok) throw new Error('Export failed'); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `freddy-clients-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(u) } catch (e) { alert('导出失败') } }
 
-  const doEkoPunkt = () => authDownload(`/api/admin/export/eko-punkt?year=${ekYear}&mode=${ekMode}`, `freddy-eko-punkt-${ekYear}-${ekMode}.xlsx`)
+  const doEkoPunkt = () => authDownload(`/api/admin/export/eko-punkt?year=${ekYear}&mode=${ekMode}&from=${ekFrom}&to=${ekTo}`, `freddy-eko-punkt-${ekYear}-${ekMode}.xlsx`)
   const doBuchhaltung = () => authDownload(`/api/admin/export/buchhaltung?from=${bhFrom}&to=${bhTo}`, `freddy-buchhaltung-${bhFrom}_${bhTo}.xlsx`)
-  const doLivanto = () => authDownload(`/api/admin/export/livanto?year=${lvYear}&quarter=${lvQuarter}`, `freddy-livanto-${lvYear}-${lvQuarter}.xlsx`)
+  const doLivanto = () => authDownload(`/api/admin/export/livanto?from=${lvFrom}&to=${lvTo}`, `freddy-livanto-${lvFrom}_${lvTo}.xlsx`)
 
   const toggleSpam = async (contractId) => {
     try {
@@ -844,7 +856,7 @@ export default function Admin() {
             {/* 1. EKO-PUNKT */}
             <div className="border border-gray-200 rounded-lg p-4 space-y-3">
               <h4 className="font-semibold text-sm">1. EKO-PUNKT 客户信息表</h4>
-              <p className="text-xs text-gray-400">提交双元系统，按申报年份 + 预申报/年终申报</p>
+              <p className="text-xs text-gray-400">提交双元系统，按申报年份 + 预申报/年终申报 + 申报日期范围</p>
               <div className="flex items-center gap-2 flex-wrap">
                 <select value={ekYear} onChange={e => setEkYear(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
                   {years.map(y => <option key={y} value={y}>{y}</option>)}
@@ -853,6 +865,9 @@ export default function Admin() {
                   <option value="initial">预申报（预估量）</option>
                   <option value="final">年终申报（实际量）</option>
                 </select>
+                <input type="date" value={ekFrom} onChange={e => setEkFrom(e.target.value)} className="border border-gray-300 rounded-md px-2 py-2 text-sm" />
+                <span className="text-gray-400 text-sm">至</span>
+                <input type="date" value={ekTo} onChange={e => setEkTo(e.target.value)} className="border border-gray-300 rounded-md px-2 py-2 text-sm" />
                 <button onClick={doEkoPunkt} className="ml-auto px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">导出</button>
               </div>
             </div>
@@ -871,15 +886,12 @@ export default function Admin() {
 
             {/* 3. LIVANTO */}
             <div className="border border-gray-200 rounded-lg p-4 space-y-3">
-              <h4 className="font-semibold text-sm">3. LIVANTO 季度结算单</h4>
-              <p className="text-xs text-gray-400">按自然季度（年费 50% 分成）</p>
+              <h4 className="font-semibold text-sm">3. LIVANTO 结算单</h4>
+              <p className="text-xs text-gray-400">按实收年费的付款日期范围（年费 50% 分成）</p>
               <div className="flex items-center gap-2 flex-wrap">
-                <select value={lvYear} onChange={e => setLvYear(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
-                  {years.map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
-                <select value={lvQuarter} onChange={e => setLvQuarter(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
-                  {['Q1', 'Q2', 'Q3', 'Q4'].map(q => <option key={q} value={q}>{q}</option>)}
-                </select>
+                <input type="date" value={lvFrom} onChange={e => setLvFrom(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
+                <span className="text-gray-400 text-sm">至</span>
+                <input type="date" value={lvTo} onChange={e => setLvTo(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
                 <button onClick={doLivanto} className="ml-auto px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">导出</button>
               </div>
             </div>
