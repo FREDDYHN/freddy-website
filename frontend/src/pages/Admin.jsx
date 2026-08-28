@@ -46,7 +46,6 @@ export default function Admin() {
   const [taxEdit, setTaxEdit] = useState(null)
   const [taxSaveMsg, setTaxSaveMsg] = useState('')
   const [exportModal, setExportModal] = useState(false)
-  const [ekYear, setEkYear] = useState(new Date().getFullYear())
   const [ekMode, setEkMode] = useState('initial')
   const [ekFrom, setEkFrom] = useState(`${new Date().getFullYear()}-01-01`)
   const [ekTo, setEkTo] = useState(`${new Date().getFullYear()}-12-31`)
@@ -54,8 +53,6 @@ export default function Admin() {
   const [bhTo, setBhTo] = useState(`${new Date().getFullYear()}-12-31`)
   const [lvFrom, setLvFrom] = useState(() => currentQuarterRange()[0])
   const [lvTo, setLvTo] = useState(() => currentQuarterRange()[1])
-
-  const years = [new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1]
 
   const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}` } : {} }
 
@@ -167,7 +164,7 @@ export default function Admin() {
 
   const exportCSV = async () => { try { const r = await fetch('/api/admin/clients/export', { headers: ah() }); if (!r.ok) throw new Error('Export failed'); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `freddy-clients-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(u) } catch (e) { alert('导出失败') } }
 
-  const doEkoPunkt = () => authDownload(`/api/admin/export/eko-punkt?year=${ekYear}&mode=${ekMode}&from=${ekFrom}&to=${ekTo}`, `freddy-eko-punkt-${ekYear}-${ekMode}.xlsx`)
+  const doEkoPunkt = () => authDownload(`/api/admin/export/eko-punkt?mode=${ekMode}&from=${ekFrom}&to=${ekTo}`, `freddy-eko-punkt-${ekFrom}_${ekTo}-${ekMode}.xlsx`)
   const doBuchhaltung = () => authDownload(`/api/admin/export/buchhaltung?from=${bhFrom}&to=${bhTo}`, `freddy-buchhaltung-${bhFrom}_${bhTo}.xlsx`)
   const doLivanto = () => authDownload(`/api/admin/export/livanto?from=${lvFrom}&to=${lvTo}`, `freddy-livanto-${lvFrom}_${lvTo}.xlsx`)
 
@@ -856,11 +853,8 @@ export default function Admin() {
             {/* 1. EKO-PUNKT */}
             <div className="border border-gray-200 rounded-lg p-4 space-y-3">
               <h4 className="font-semibold text-sm">1. EKO-PUNKT 客户信息表</h4>
-              <p className="text-xs text-gray-400">提交双元系统，按申报年份 + 预申报/年终申报 + 申报日期范围</p>
+              <p className="text-xs text-gray-400">提交双元系统，按预申报/年终申报 + 申报日期范围</p>
               <div className="flex items-center gap-2 flex-wrap">
-                <select value={ekYear} onChange={e => setEkYear(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
-                  {years.map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
                 <select value={ekMode} onChange={e => setEkMode(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
                   <option value="initial">预申报（预估量）</option>
                   <option value="final">年终申报（实际量）</option>

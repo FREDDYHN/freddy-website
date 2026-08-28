@@ -1,9 +1,9 @@
 /**
  * Admin 导出（XLSX）— 三份下游对账单
  *
- * 1. GET /api/admin/export/eko-punkt?year=2026&mode=initial|final&from=YYYY-MM-DD&to=YYYY-MM-DD
+ * 1. GET /api/admin/export/eko-punkt?mode=initial|final&from=YYYY-MM-DD&to=YYYY-MM-DD
  *    给双元系统 EKO-PUNKT 的客户信息表（填其官方导入模板，保留双语表头）。
- *    mode=initial 预申报(estimated_quantity_kg) / mode=final 年终申报(actual_quantity_kg)；from/to 按申报日期范围可选。
+ *    mode=initial 预申报(estimated_quantity_kg) / mode=final 年终申报(actual_quantity_kg)；from/to 按申报日期范围（默认本年度）。
  * 2. GET /api/admin/export/buchhaltung?from=YYYY-MM-DD&to=YYYY-MM-DD
  *    FREDDY 财务对账单（合同号/年费/预申报费/年终申报费 + 付款时间）。
  * 3. GET /api/admin/export/livanto?from=YYYY-MM-DD&to=YYYY-MM-DD
@@ -59,23 +59,17 @@ function setXlsxHeaders(res, filename) {
 router.get('/eko-punkt', async (req, res) => {
   try {
     const db = await getDb()
-    const year = parseInt(req.query.year) || new Date().getFullYear()
     const mode = req.query.mode === 'final' ? 'final' : 'initial'
     const kgField = mode === 'final' ? 'actual_quantity_kg' : 'estimated_quantity_kg'
-    const from = req.query.from || ''
-    const to = req.query.to || ''
+    const year = new Date().getFullYear()
+    const from = req.query.from || `${year}-01-01`
+    const to = req.query.to || `${year}-12-31`
 
     // 日期范围：预申报按申报创建时间(pd.created_at)，年终申报按实际量提交时间(submitted_at)
     const dateCol = mode === 'final' ? 'coalesce(pd.submitted_at, pd.created_at)' : 'pd.created_at'
-    let where = 'pd.declaration_year = ?'
-    const params = [year]
-    if (from && to) {
-      where += ` AND date(${dateCol}, '+8 hours') BETWEEN ? AND ?`
-      params.push(from, to)
-    }
 
     const rows = await db.all(
-      `SELECT pd.contract_id, pd.material_type, pd.${kgField} AS kg,
+      `SELECT pd.contract_id, pd.declaration_year, pd.material_type, pd.${kgField} AS kg,
               c.contract_number,
               cl.company_name_en, cl.company_name, cl.contact_name_en, cl.contact_email,
               cl.contact_phone, cl.wechat_id, cl.registered_address_en,
@@ -83,9 +77,9 @@ router.get('/eko-punkt', async (req, res) => {
        FROM packaging_data pd
        JOIN contracts c ON c.id = pd.contract_id
        JOIN clients cl ON cl.id = c.client_id
-       WHERE ${where}
+       WHERE date(${dateCol}, '+8 hours') BETWEEN ? AND ?
        ORDER BY pd.contract_id, pd.id`,
-      ...params
+      from, to
     )
 
     // 按合同聚合：每个客户一行，材料透视成 8 列
@@ -125,7 +119,7 @@ router.get('/eko-punkt', async (req, res) => {
       ws.getCell(rowIdx, 16).value = c.wechat_id || ''
       // 17-23 发票地址/Ust-IdNr 留空（中国客户无欧盟 VAT）
       ws.getCell(rowIdx, 24).value = taxNo
-      ws.getCell(rowIdx, 25).value = year
+      ws.getCell(rowIdx, 25).value = c.declaration_year || ''
       for (const { key, col } of EKO_PUNKT_MATERIAL_COLS) {
         const kg = c.materials[key]
         if (kg != null && Number(kg) > 0) ws.getCell(rowIdx, col).value = Number(kg)
@@ -134,7 +128,7 @@ router.get('/eko-punkt', async (req, res) => {
     }
 
     const buf = await wb.xlsx.writeBuffer()
-    setXlsxHeaders(res, `freddy-eko-punkt-${year}-${mode}.xlsx`)
+    setXlsxHeaders(res, `freddy-eko-punkt-${from}_${to}-${mode}.xlsx`)
     res.send(buf)
   } catch (e) {
     console.error('[export] eko-punkt error:', e)
