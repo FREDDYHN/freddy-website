@@ -175,6 +175,17 @@ export default function Admin() {
     } catch {}
   }
 
+  const toggleLucidAnnehmen = async (contractId, current) => {
+    const action = current ? '取消「LIVANTO 已接受」标记' : '标记为「LIVANTO 已在 LUCID 中接受」'
+    if (!confirm(`确认${action}？`)) return
+    try {
+      const r = await fetch(`/api/admin/contracts/${contractId}/lucid-annehmen`, { method: 'POST', headers: ah() })
+      const d = await r.json()
+      if (r.ok) setContracts(prev => prev.map(c => c.id === contractId ? { ...c, lucid_rep_accepted: d.lucid_rep_accepted ? 1 : 0 } : c))
+      else alert('❌ ' + (d.error || '操作失败'))
+    } catch (e) { alert('❌ ' + e.message) }
+  }
+
   const deleteContract = async (contractId) => {
     if (!confirm('⚠️ 确认删除此合同？合同相关的所有支付、上传、通知记录将一并删除。此操作不可撤销！')) return
     try {
@@ -404,7 +415,7 @@ export default function Admin() {
         <div className="p-4 border-b border-gray-100">
           <div className="flex flex-wrap gap-3 justify-between items-center">
             <div className="flex gap-2">
-              <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ id: cl.contract_id||cl.id, client_id: cl.id, company_name: cl.company_name, contact_email: cl.contact_email, contact_name: cl.contact_name, contact_phone: cl.contact_phone, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, start_date: cl.start_date, end_date: cl.end_date, lucid_confirmed: !!cl.lucid_confirmed, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0, _uploads:{}, _packaging:[] }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
+              <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ id: cl.contract_id||cl.id, client_id: cl.id, company_name: cl.company_name, contact_email: cl.contact_email, contact_name: cl.contact_name, contact_phone: cl.contact_phone, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, start_date: cl.start_date, end_date: cl.end_date, lucid_confirmed: !!cl.lucid_confirmed, lucid_rep_accepted: !!cl.lucid_rep_accepted, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0, _uploads:{}, _packaging:[] }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
                 <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, !!v || showAll) }}
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary">
                   <option value="">全部状态</option>
@@ -620,6 +631,13 @@ export default function Admin() {
                           <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_CLS[c.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_MAP[c.status] || c.status}</span>
                           <span className="text-[10px] text-gray-400">LUCID</span>
                           <span className="text-[10px]">{c.lucid_confirmed ? '✅ 已授权' : '⚠️ 待授权'}</span>
+                          <span className="text-[10px] text-gray-400">Annehmen</span>
+                          <span className="text-[10px]">{c.lucid_rep_accepted ? '✅ 已接受' : '⚠️ 待接受'}</span>
+                          <button onClick={() => toggleLucidAnnehmen(c.id, c.lucid_rep_accepted)}
+                            className="text-[10px] px-1.5 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50"
+                            title={c.lucid_rep_accepted ? '取消「已接受」标记' : 'LIVANTO 已在 LUCID 中接受该客户后点此同步'}>
+                            {c.lucid_rep_accepted ? '取消' : '🔄 同步'}
+                          </button>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <button onClick={() => toggleSpam(c.id)}

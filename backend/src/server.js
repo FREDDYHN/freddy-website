@@ -289,7 +289,7 @@ app.get('/api/admin/clients/search', authMiddleware, adminMiddleware, async (req
     if (q) {
       const like = `%${q}%`
       rows = await db.all(
-        `SELECT cl.*, c.id as contract_id, c.contract_number, c.tier, c.annual_fee_eur, c.status as contract_status, c.start_date, c.end_date, c.lucid_confirmed, c.pre_declared_status
+        `SELECT cl.*, c.id as contract_id, c.contract_number, c.tier, c.annual_fee_eur, c.status as contract_status, c.start_date, c.end_date, c.lucid_confirmed, c.lucid_rep_accepted, c.pre_declared_status
          FROM clients cl LEFT JOIN contracts c ON c.client_id = cl.id
          WHERE cl.company_name LIKE ? OR cl.company_name_en LIKE ? OR cl.contact_name LIKE ? OR cl.contact_email LIKE ? OR cl.contact_phone LIKE ? OR cl.legal_representative LIKE ? OR c.contract_number LIKE ?
          ORDER BY cl.id DESC LIMIT ? OFFSET ?`,
@@ -727,6 +727,24 @@ app.post('/api/admin/contracts/:id/spam', authMiddleware, adminMiddleware, async
     res.json({ success: true, contract_id: parseInt(req.params.id), is_spam: !!newVal })
   } catch (e) {
     console.error('[server] spam toggle error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ── Admin: Toggle LIVANTO LUCID「Annehmen（接受）」状态（手动同步）──
+app.post('/api/admin/contracts/:id/lucid-annehmen', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const contract = await db.get('SELECT id, lucid_rep_accepted FROM contracts WHERE id = ?', req.params.id)
+    if (!contract) return res.status(404).json({ error: 'Contract not found' })
+    const newVal = contract.lucid_rep_accepted ? 0 : 1
+    await db.run(
+      "UPDATE contracts SET lucid_rep_accepted = ?, lucid_rep_accepted_at = CASE WHEN ? = 1 THEN datetime('now') ELSE NULL END WHERE id = ?",
+      newVal, newVal, req.params.id
+    )
+    res.json({ success: true, contract_id: parseInt(req.params.id), lucid_rep_accepted: !!newVal })
+  } catch (e) {
+    console.error('[server] lucid-annehmen toggle error:', e)
     res.status(500).json({ error: e.message })
   }
 })
