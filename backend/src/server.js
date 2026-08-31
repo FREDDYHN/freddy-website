@@ -26,7 +26,7 @@ import { decryptLucid } from './services/crypto.js'
 import { markPaid } from './payment.js'
 import { rateLimit } from './rate-limiter.js'
 import { localDate, beijingDateFromUtc } from './services/date.js'
-import { sendTaxNumberRequest, sendLucidNumberRequest } from './services/email.js'
+import { sendTaxNumberRequest, sendLucidNumberRequest, sendLucidAcceptanceReminder } from './services/email.js'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -695,6 +695,49 @@ app.post('/api/admin/remind-missing-lucid', authMiddleware, adminMiddleware, asy
     res.json({ success: true, reminded: notified, total: missing.length })
   } catch (e) {
     console.error('[server] remind-missing-lucid error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ── Admin: Remind clients to complete the 4 prerequisites for LUCID acceptance (in-app notification + email) ──
+app.post('/api/admin/remind-lucid-acceptance', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    // 未完成 4 点中任一点的客户：回签 / 年费 / 预申报费(代缴 或 自行预申报) / LUCID 密码
+    const missing = await db.all(
+      `SELECT cl.id, cl.company_name, cl.contact_name, cl.contact_email
+       FROM clients cl
+       JOIN contracts c ON c.client_id = cl.id
+       WHERE c.status != 'pending_verification'
+         AND (c.is_spam IS NULL OR c.is_spam = 0)
+         AND (
+           c.id NOT IN (SELECT DISTINCT contract_id FROM uploads WHERE file_type = 'admin_stamped')
+           OR c.status != 'active'
+           OR NOT (
+             c.id IN (SELECT contract_id FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'paid')
+             OR c.pre_declared_status = 'approved'
+           )
+           OR cl.lucid_password_enc IS NULL OR trim(cl.lucid_password_enc) = ''
+         )
+       GROUP BY cl.id`
+    )
+    let notified = 0
+    for (const cl of missing) {
+      try {
+        await db.run(
+          `INSERT INTO notifications (client_id, contract_id, type, title, message) VALUES (?, NULL, 'admin_message', ?, ?)`,
+          cl.id, '⚠️ 请完成授权代表确认的 4 项事项',
+          '为确保授权代表在 LUCID 被接受，请完成：合同签订（回签）、年费缴纳、预申报费缴纳、LUCID 账号密码提交。已完成请忽略。'
+        )
+        await sendLucidAcceptanceReminder({ email: cl.contact_email, name: cl.contact_name || cl.company_name })
+        notified++
+      } catch (e) {
+        console.error(`[server] remind-lucid-acceptance failed for client ${cl.id}:`, e.message)
+      }
+    }
+    res.json({ success: true, reminded: notified, total: missing.length })
+  } catch (e) {
+    console.error('[server] remind-lucid-acceptance error:', e)
     res.status(500).json({ error: e.message })
   }
 })

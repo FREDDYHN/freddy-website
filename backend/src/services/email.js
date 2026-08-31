@@ -122,6 +122,27 @@ export async function sendLucidNumberRequest({ email, name }) {
   })
 }
 
+export async function sendLucidAcceptanceReminder({ email, name }) {
+  await send({
+    to: email,
+    subject: '[FREDDY] 请完成 LUCID 授权代表确认所需的 4 项事项',
+    html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+<h2 style="color:#1e3a5f">请完成授权代表确认所需的 4 项事项</h2>
+<p>${esc(name)}，您好！</p>
+<p>为确保 <strong>LIVANTO GmbH</strong> 能作为您的授权代表在 LUCID 中被接受，请您完成以下 4 项：</p>
+<ol>
+<li><strong>合同已签订</strong>（管理员回签后即完成）</li>
+<li><strong>授权代表年费已缴纳</strong></li>
+<li><strong>预申报费用已缴纳</strong>（自行预申报并上传发票；或缴纳预申报费并上传转账凭证）</li>
+<li><strong>已提交 LUCID 账号登录邮箱和密码</strong></li>
+</ol>
+<p>完成以上 4 项后，授权代表关系才会在 LUCID 正式生效。</p>
+<p style="color:#c0392b"><strong>如果您已经完成以上 4 项，请忽略此邮件。</strong></p>
+<p style="margin-top:24px;color:#999;font-size:12px">此邮件由系统自动发送。如需帮助，请联系 +86 152 2138 0610 或 info@freddy-epr.com</p>
+</div>`,
+  })
+}
+
 export async function sendInvoiceEmail({ email, name, invoiceNumber, amount, pdfBuffer }) {
   const attachments = pdfBuffer && pdfBuffer.length
     ? [{ filename: `Rechnung-${invoiceNumber}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
