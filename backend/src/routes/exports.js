@@ -107,12 +107,15 @@ router.get('/eko-punkt', async (req, res) => {
       params = [from, to]
     } else {
       const dateCol = mode === 'final' ? 'coalesce(pd.submitted_at, pd.created_at)' : 'pd.created_at'
-      // 预申报模式：仅导出「预申报已完成」的客户 ——
-      //   自行预申报(管理员已确认 pre_declared_status=approved) 或 已缴预申报费(recycling_prepaid 已付)
-      // 年终申报不筛
+      // 预申报模式：仅导出同时满足「4 项确认条件」的客户（管理员可在 LUCID 确认授权代表）；
+      //   1) 已回签(admin_stamped) 2) 年费已缴(status=active)
+      //   3) 预申报费已缴(代缴 recycling_prepaid paid) 4) LUCID 密码已提交
+      // 自行预申报(approved)客户因未付 recycling_prepaid 而自然排除。年终申报不筛。
       const statusFilter = mode === 'final' ? '' : ` AND (
-        c.pre_declared_status = 'approved'
-        OR c.id IN (SELECT contract_id FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'paid')
+        c.status = 'active'
+        AND c.id IN (SELECT contract_id FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'paid')
+        AND c.id IN (SELECT DISTINCT contract_id FROM uploads WHERE file_type = 'admin_stamped')
+        AND cl.lucid_password_enc IS NOT NULL AND trim(cl.lucid_password_enc) != ''
       )`
       whereClause = `date(${dateCol}, '+8 hours') BETWEEN ? AND ?${statusFilter}`
       params = [from, to]
