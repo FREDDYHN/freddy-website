@@ -155,8 +155,8 @@ router.get('/eko-punkt', async (req, res) => {
         const kg = c.materials[key]
         if (kg != null && Number(kg) > 0) {
           const cell = ws.getCell(rowIdx, col)
-          cell.value = Number(Number(kg).toFixed(2))
-          cell.numFmt = '0.00'                        // 保留两位小数（覆盖模板自带的 € 三位小数格式）
+          cell.value = Number(Number(kg).toFixed(3))
+          cell.numFmt = '#.##0,000'                   // 德语数字：逗号作小数点，三位小数
           cell.alignment = { horizontal: 'right' }    // 数字右对齐
         }
       }
