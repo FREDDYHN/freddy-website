@@ -153,7 +153,12 @@ router.get('/eko-punkt', async (req, res) => {
       ws.getCell(rowIdx, 25).value = c.declaration_year || ''
       for (const { key, col } of EKO_PUNKT_MATERIAL_COLS) {
         const kg = c.materials[key]
-        if (kg != null && Number(kg) > 0) ws.getCell(rowIdx, col).value = Number(kg)
+        if (kg != null && Number(kg) > 0) {
+          const cell = ws.getCell(rowIdx, col)
+          cell.value = Number(Number(kg).toFixed(2))
+          cell.numFmt = '0.00'                        // 保留两位小数（覆盖模板自带的 € 三位小数格式）
+          cell.alignment = { horizontal: 'right' }    // 数字右对齐
+        }
       }
       rowIdx++
     }
