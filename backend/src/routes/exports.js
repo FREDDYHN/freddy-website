@@ -125,7 +125,7 @@ router.get('/eko-punkt', async (req, res) => {
       `SELECT pd.contract_id, pd.declaration_year, pd.material_type, pd.${kgField} AS kg,
               c.contract_number,
               cl.company_name_en, cl.company_name, cl.contact_name, cl.contact_name_en, cl.contact_email,
-              cl.contact_phone, cl.wechat_id, cl.registered_address_en,
+              cl.contact_phone, cl.wechat_id, cl.registered_address_en, cl.registered_address,
               cl.uscc, cl.id_number, cl.entity_type, cl.lucid_registration_number
        FROM packaging_data pd
        JOIN contracts c ON c.id = pd.contract_id
@@ -164,7 +164,7 @@ router.get('/eko-punkt', async (req, res) => {
       ws.getCell(rowIdx, 6).value = EKO_PUNKT.anrede
       ws.getCell(rowIdx, 7).value = vorname
       ws.getCell(rowIdx, 8).value = nachname
-      ws.getCell(rowIdx, 9).value = c.registered_address_en || ''
+      ws.getCell(rowIdx, 9).value = c.registered_address_en || c.registered_address || ''
       // 10-12 地址补充/邮编/城市留空（地址未结构化，提交前人工补）
       ws.getCell(rowIdx, 13).value = EKO_PUNKT.land
       ws.getCell(rowIdx, 14).value = c.contact_email || ''
@@ -173,6 +173,10 @@ router.get('/eko-punkt', async (req, res) => {
       // 17-23 发票地址/Ust-IdNr 留空（中国客户无欧盟 VAT）
       ws.getCell(rowIdx, 24).value = taxNo
       ws.getCell(rowIdx, 25).value = c.declaration_year || ''
+      // 左对齐：姓名(7/8)、地址(9)、税号(24)
+      for (const col of [7, 8, 9, 24]) {
+        ws.getCell(rowIdx, col).alignment = { horizontal: 'left' }
+      }
       for (const { key, col } of EKO_PUNKT_MATERIAL_COLS) {
         const kg = c.materials[key]
         if (kg != null && Number(kg) > 0) {
