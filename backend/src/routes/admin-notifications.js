@@ -8,7 +8,7 @@
 import { Router } from 'express'
 import { getDb, withTransaction } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
-import { calcMaterialFee, applyFloorFee, CLIENT_CHANGEABLE_FIELDS } from '../../../shared/constants.js'
+import { calcMaterialFee, applyFloorFee, CLIENT_CHANGEABLE_FIELDS, containsChinese } from '../../../shared/constants.js'
 import { formatInvoiceNumber, generateAndSendInvoice } from '../services/invoice.js'
 import { localDate } from '../services/date.js'
 
@@ -248,6 +248,11 @@ router.post('/applications/:id/review', authMiddleware, adminMiddleware, async (
       }
       if (fields.length === 0) {
         return res.status(400).json({ error: 'No valid fields to apply' })
+      }
+      // 英文/拼音字段禁止中文（纵深防御，客户端提交时已校验）
+      const noChineseFields = ['company_name_en', 'legal_representative_en', 'registered_address_en']
+      if (noChineseFields.some(f => changes[f] && containsChinese(String(changes[f])))) {
+        return res.status(400).json({ error: '英文/拼音字段不能包含中文' })
       }
 
       await db.run(

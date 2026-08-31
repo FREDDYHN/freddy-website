@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt'
 import { getDb } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
 import { encryptLucid } from '../services/crypto.js'
-import { CLIENT_CHANGEABLE_FIELDS } from '../../../shared/constants.js'
+import { CLIENT_CHANGEABLE_FIELDS, containsChinese } from '../../../shared/constants.js'
 
 const router = Router()
 
@@ -37,6 +37,8 @@ router.put('/', authMiddleware, async (req, res) => {
     } else {
       if (!uscc || !String(uscc).trim()) return res.status(400).json({ error: '统一社会信用代码（税号）必填' })
     }
+    // 英文/拼音字段禁止中文
+    if (containsChinese(company_name_en)) return res.status(400).json({ error: '英文/拼音字段不能包含中文' })
 
     await db.run(
       `UPDATE clients SET
@@ -78,6 +80,11 @@ router.post('/change-request', authMiddleware, async (req, res) => {
     }
     if (Object.keys(valid).length === 0) {
       return res.status(400).json({ error: '请至少填写一个要修改的字段' })
+    }
+    // 英文/拼音字段禁止中文
+    const noChineseFields = ['company_name_en', 'legal_representative_en', 'registered_address_en']
+    if (noChineseFields.some(f => valid[f] && containsChinese(valid[f]))) {
+      return res.status(400).json({ error: '英文/拼音字段不能包含中文' })
     }
 
     const result = await db.run(

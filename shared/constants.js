@@ -164,6 +164,10 @@ export const REPORTING_DEADLINE_DAY = 15            // 15th
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 export const PHONE_RE = /^\+?[\d\s\-()]{7,20}$/
 
+// 中文字符（CJK 统一表意文字），用于「英文/拼音字段禁止中文」校验
+export const CHINESE_CHAR_RE = /[一-鿿]/
+export const containsChinese = (s) => CHINESE_CHAR_RE.test(String(s ?? ''))
+
 // ══════════════════════════════════════════════
 //  BACKEND-SPECIFIC (imported via relative path)
 // ══════════════════════════════════════════════
@@ -175,5 +179,5 @@ export default {
   EUR_CNY_RATE, PACKAGING_MATERIALS,
   EKO_PUNKT, EKO_PUNKT_MATERIAL_COLS, AR_TIER_ZH,
   REMINDER_WINDOWS, REPORTING_DEADLINE_MONTH, REPORTING_DEADLINE_DAY,
-  EMAIL_RE, PHONE_RE,
+  EMAIL_RE, PHONE_RE, CHINESE_CHAR_RE, containsChinese,
 }

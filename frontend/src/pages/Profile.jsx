@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { CLIENT_CHANGEABLE_FIELDS } from '@shared/constants.js'
+import { CLIENT_CHANGEABLE_FIELDS, containsChinese } from '@shared/constants.js'
 
 const inpCls = 'w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-primary'
 const btnCls = 'px-5 py-2.5 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary-light disabled:opacity-50'
@@ -74,6 +74,9 @@ export default function Profile() {
       if (next && next !== cur) changes[field] = next
     }
     if (Object.keys(changes).length === 0) { setMsg('❌ 未修改任何字段'); return }
+    // 英文/拼音字段禁止中文
+    const noChineseFields = ['company_name_en', 'legal_representative_en', 'registered_address_en']
+    if (noChineseFields.some(f => changes[f] && containsChinese(changes[f]))) { setMsg('❌ 请输入英文或拼音（不能包含中文）'); return }
     setChangeSubmitting(true)
     try {
       const r = await fetch('/api/profile/change-request', {

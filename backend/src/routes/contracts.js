@@ -5,7 +5,7 @@ import { createPaymentOrder, insertPaymentRow } from '../payment.js'
 import { generateContract, getContractUrl } from '../services/contract-gen.js'
 import { sendVerificationEmail, sendLucidGuide } from '../services/email.js'
 import { rateLimit } from '../rate-limiter.js'
-import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES } from '../../../shared/constants.js'
+import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES, containsChinese } from '../../../shared/constants.js'
 
 const router = Router()
 
@@ -79,6 +79,10 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
     // ── 校验（事务外，避免事务内提前 return 泄漏连接）──
     if (!company_name || !contact_person || !contact_email || !registered_address || !contact_phone || !wechat_id) {
       return res.status(400).json({ error: 'Missing required fields: company_name, registered_address, contact_person, contact_email, contact_phone, wechat_id' })
+    }
+    // 英文/拼音字段禁止中文
+    if (containsChinese(company_name_en) || containsChinese(legal_representative_en) || containsChinese(contact_person_en)) {
+      return res.status(400).json({ error: '英文/拼音字段不能包含中文' })
     }
     // 税号必填：公司 → 统一社会信用代码；个人 → 身份证号码
     const entityType = entity_type === 'individual' ? 'individual' : 'company'

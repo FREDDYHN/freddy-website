@@ -14,6 +14,7 @@
  */
 import { Router } from 'express'
 import ExcelJS from 'exceljs'
+import { pinyin } from 'pinyin-pro'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { getDb } from '../db.js'
@@ -42,6 +43,17 @@ function splitName(full) {
   const parts = s.split(/\s+/)
   if (parts.length === 1) return ['', parts[0]]
   return [parts[0], parts.slice(1).join(' ')]
+}
+
+/** 中文姓名 → [vorname, nachname]（姓=首字拼音，名=其余字拼音拼接，均首字母大写） */
+function chineseNameToPinyin(name) {
+  const chars = Array.from(String(name || '').trim()).filter(ch => /[一-鿿]/.test(ch))
+  if (chars.length === 0) return null
+  const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '')
+  const py = (ch) => (pinyin(ch, { toneType: 'none', type: 'array' }) || []).join('')
+  const nachname = cap(py(chars[0]))                  // 首字 → 姓
+  const vorname = cap(chars.slice(1).map(py).join('')) // 其余字 → 名
+  return [vorname, nachname]
 }
 
 /** 季度 → [起, 止] 日期（含端点） */
@@ -95,14 +107,16 @@ router.get('/eko-punkt', async (req, res) => {
       params = [from, to]
     } else {
       const dateCol = mode === 'final' ? 'coalesce(pd.submitted_at, pd.created_at)' : 'pd.created_at'
-      whereClause = `date(${dateCol}, '+8 hours') BETWEEN ? AND ?`
+      // 预申报模式：仅导出管理员已确认预申报(approved)的客户；年终申报不筛
+      const statusFilter = mode === 'final' ? '' : " AND c.pre_declared_status = 'approved'"
+      whereClause = `date(${dateCol}, '+8 hours') BETWEEN ? AND ?${statusFilter}`
       params = [from, to]
     }
 
     const rows = await db.all(
       `SELECT pd.contract_id, pd.declaration_year, pd.material_type, pd.${kgField} AS kg,
               c.contract_number,
-              cl.company_name_en, cl.company_name, cl.contact_name_en, cl.contact_email,
+              cl.company_name_en, cl.company_name, cl.contact_name, cl.contact_name_en, cl.contact_email,
               cl.contact_phone, cl.wechat_id, cl.registered_address_en,
               cl.uscc, cl.id_number, cl.entity_type, cl.lucid_registration_number
        FROM packaging_data pd
@@ -132,7 +146,7 @@ router.get('/eko-punkt', async (req, res) => {
 
     let rowIdx = 3
     for (const [, c] of byContract) {
-      const [vorname, nachname] = splitName(c.contact_name_en)
+      const [vorname, nachname] = chineseNameToPinyin(c.contact_name) || splitName(c.contact_name_en)
       const taxNo = c.entity_type === 'individual' ? (c.id_number || '') : (c.uscc || '')
       ws.getCell(rowIdx, 1).value = c.lucid_registration_number || ''
       ws.getCell(rowIdx, 2).value = c.company_name_en || c.company_name || ''
@@ -156,8 +170,8 @@ router.get('/eko-punkt', async (req, res) => {
         if (kg != null && Number(kg) > 0) {
           const cell = ws.getCell(rowIdx, col)
           cell.value = Number(Number(kg).toFixed(3))
-          cell.numFmt = '#.##0,000'                   // 德语数字：逗号作小数点，三位小数
-          cell.alignment = { horizontal: 'right' }    // 数字右对齐
+          cell.numFmt = '0.000'                        // 固定 3 位小数（区域无关，Excel 本地化显示）
+          cell.alignment = { horizontal: 'right' }     // 数字右对齐
         }
       }
       rowIdx++

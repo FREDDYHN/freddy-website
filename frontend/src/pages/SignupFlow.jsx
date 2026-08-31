@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { PACKAGING_MATERIALS, AR_TIERS, WEEE_PRICES, BATTERY_PRICES, EMAIL_RE } from '@shared/constants.js'
+import { PACKAGING_MATERIALS, AR_TIERS, WEEE_PRICES, BATTERY_PRICES, EMAIL_RE, containsChinese } from '@shared/constants.js'
 
 const MATERIALS = PACKAGING_MATERIALS
 
@@ -72,6 +72,9 @@ export default function SignupFlow() {
       if (!form.legal_representative_en.trim()) e.legal_representative_en = '请输入法定代表人（英文）'
       if (!form.contact_person.trim()) e.contact_person = '请输入联系人（中文）'
       if (!form.contact_person_en.trim()) e.contact_person_en = '请输入联系人（英文）'
+      if (form.company_name_en.trim() && containsChinese(form.company_name_en)) e.company_name_en = '请输入英文或拼音（不能包含中文）'
+      if (form.legal_representative_en.trim() && containsChinese(form.legal_representative_en)) e.legal_representative_en = '请输入英文或拼音（不能包含中文）'
+      if (form.contact_person_en.trim() && containsChinese(form.contact_person_en)) e.contact_person_en = '请输入英文或拼音（不能包含中文）'
       if (!phoneNumber.trim()) e.contact_phone = '请输入手机号'
       if (!form.wechat_id.trim()) e.wechat_id = '请输入微信号'
       if (!form.contact_email.trim()) e.contact_email = '请输入邮箱'

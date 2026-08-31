@@ -17,6 +17,7 @@
     "jsonwebtoken": "^9.0.0",
     "multer": "^2.2.0",
     "nodemailer": "^9.0.1",
+    "pinyin-pro": "^3.29.3",
     "pizzip": "^3.2.0",
     "sqlite": "^5.1.0",
     "sqlite3": "^5.1.0"
