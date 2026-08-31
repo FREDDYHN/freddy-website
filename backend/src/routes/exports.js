@@ -53,7 +53,11 @@ function quarterRange(year, q) {
 
 function setXlsxHeaders(res, filename) {
   res.setHeader('Content-Type', XLSX_TYPE)
-  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+  // 文件名可能含中文（如「客户信息表」），HTTP 头必须是 ASCII：
+  // 用 ASCII 回退名 + RFC 5987 filename*=UTF-8''… 百分号编码承载 UTF-8 文件名
+  const asciiFallback = String(filename).replace(/[^\x20-\x7E]/g, '_').replace(/["\\]/g, '_')
+  const encoded = encodeURIComponent(filename)
+  res.setHeader('Content-Disposition', `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encoded}`)
 }
 
 // ── 1. EKO-PUNKT 客户信息表 ──
