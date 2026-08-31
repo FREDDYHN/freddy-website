@@ -201,7 +201,7 @@ export default function Admin() {
 
   const exportCSV = async () => { try { const r = await fetch('/api/admin/clients/export', { headers: ah() }); if (!r.ok) throw new Error('Export failed'); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `freddy-clients-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(u) } catch (e) { alert('导出失败') } }
 
-  const doEkoPunkt = () => authDownload(`/api/admin/export/eko-punkt?mode=${ekMode}&from=${ekFrom}&to=${ekTo}`, `freddy-eko-punkt-${ekFrom}_${ekTo}-${ekMode}.xlsx`)
+  const doEkoPunkt = () => authDownload(`/api/admin/export/eko-punkt?mode=${ekMode}&from=${ekFrom}&to=${ekTo}`, `${ekFrom}_${ekTo.slice(5)}_EASY-LIZE-Import-China_Agencies_客户信息表.xlsx`)
   const doEkoPunktPaid = () => authDownload(`/api/admin/export/eko-punkt?scope=paid&from=${ekPaidFrom}&to=${ekPaidTo}`, `freddy-eko-punkt-dai-jiao-${ekPaidFrom}_${ekPaidTo}.xlsx`)
   const doBuchhaltung = () => authDownload(`/api/admin/export/buchhaltung?from=${bhFrom}&to=${bhTo}`, `freddy-buchhaltung-${bhFrom}_${bhTo}.xlsx`)
   const doLivanto = () => authDownload(`/api/admin/export/livanto?from=${lvFrom}&to=${lvTo}`, `freddy-livanto-${lvFrom}_${lvTo}.xlsx`)

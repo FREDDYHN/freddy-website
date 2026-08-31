@@ -154,10 +154,20 @@ router.get('/eko-punkt', async (req, res) => {
       rowIdx++
     }
 
+    // 统一字体：模板表头中德文混排 + 数据区 Arial/Calibri 混用，统一为微软雅黑（保留原字号/加粗）
+    for (let r = 1; r < rowIdx; r++) {
+      for (let c = 1; c <= 33; c++) {
+        const cell = ws.getCell(r, c)
+        if (cell.value == null) continue
+        const f = cell.font || {}
+        cell.font = { name: '微软雅黑', size: f.size || 11, bold: !!f.bold, ...(f.color ? { color: f.color } : {}) }
+      }
+    }
+
     const buf = await wb.xlsx.writeBuffer()
     const filename = isPaid
       ? `freddy-eko-punkt-dai-jiao-${from}_${to}.xlsx`
-      : `freddy-eko-punkt-${from}_${to}-${mode}.xlsx`
+      : `${from}_${to.slice(5)}_EASY-LIZE-Import-China_Agencies_客户信息表.xlsx`
     setXlsxHeaders(res, filename)
     res.send(buf)
   } catch (e) {
