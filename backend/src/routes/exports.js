@@ -107,8 +107,13 @@ router.get('/eko-punkt', async (req, res) => {
       params = [from, to]
     } else {
       const dateCol = mode === 'final' ? 'coalesce(pd.submitted_at, pd.created_at)' : 'pd.created_at'
-      // 预申报模式：仅导出管理员已确认预申报(approved)的客户；年终申报不筛
-      const statusFilter = mode === 'final' ? '' : " AND c.pre_declared_status = 'approved'"
+      // 预申报模式：仅导出「预申报已完成」的客户 ——
+      //   自行预申报(管理员已确认 pre_declared_status=approved) 或 已缴预申报费(recycling_prepaid 已付)
+      // 年终申报不筛
+      const statusFilter = mode === 'final' ? '' : ` AND (
+        c.pre_declared_status = 'approved'
+        OR c.id IN (SELECT contract_id FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'paid')
+      )`
       whereClause = `date(${dateCol}, '+8 hours') BETWEEN ? AND ?${statusFilter}`
       params = [from, to]
     }
