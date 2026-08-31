@@ -1,9 +1,10 @@
 /**
  * Admin 导出（XLSX）— 三份下游对账单
  *
- * 1. GET /api/admin/export/eko-punkt?mode=initial|final&from=YYYY-MM-DD&to=YYYY-MM-DD
+ * 1. GET /api/admin/export/eko-punkt?mode=initial|final&from=YYYY-MM-DD&to=YYYY-MM-DD[&scope=paid]
  *    给双元系统 EKO-PUNKT 的客户信息表（填其官方导入模板，保留双语表头）。
  *    mode=initial 预申报(estimated_quantity_kg) / mode=final 年终申报(actual_quantity_kg)；from/to 按申报日期范围（默认本年度）。
+ *    scope=paid → 代缴对账单：仅含已付代缴款(recycling_prepaid)的客户，按到账月(paid_at)筛，默认当前自然月。
  * 2. GET /api/admin/export/buchhaltung?from=YYYY-MM-DD&to=YYYY-MM-DD
  *    FREDDY 财务对账单（合同号/年费/预申报费/年终申报费 + 付款时间）。
  * 3. GET /api/admin/export/livanto?from=YYYY-MM-DD&to=YYYY-MM-DD
@@ -59,14 +60,40 @@ function setXlsxHeaders(res, filename) {
 router.get('/eko-punkt', async (req, res) => {
   try {
     const db = await getDb()
-    const mode = req.query.mode === 'final' ? 'final' : 'initial'
+    // scope=paid → 代缴对账单（月度，已付代缴款）；否则维持全部客户导出
+    const isPaid = req.query.scope === 'paid'
+    const mode = isPaid ? 'initial' : (req.query.mode === 'final' ? 'final' : 'initial')
     const kgField = mode === 'final' ? 'actual_quantity_kg' : 'estimated_quantity_kg'
-    const year = new Date().getFullYear()
-    const from = req.query.from || `${year}-01-01`
-    const to = req.query.to || `${year}-12-31`
 
-    // 日期范围：预申报按申报创建时间(pd.created_at)，年终申报按实际量提交时间(submitted_at)
-    const dateCol = mode === 'final' ? 'coalesce(pd.submitted_at, pd.created_at)' : 'pd.created_at'
+    // 默认日期：代缴对账单按当前自然月；普通导出按本年度
+    const now = new Date()
+    const year = now.getFullYear()
+    let from, to
+    if (isPaid) {
+      const m = String(now.getMonth() + 1).padStart(2, '0')
+      const lastDay = new Date(year, now.getMonth() + 1, 0).getDate()
+      from = req.query.from || `${year}-${m}-01`
+      to = req.query.to || `${year}-${m}-${String(lastDay).padStart(2, '0')}`
+    } else {
+      from = req.query.from || `${year}-01-01`
+      to = req.query.to || `${year}-12-31`
+    }
+
+    // WHERE：代缴按「已付代缴款 + 到账月(北京时间)」；普通按申报创建/提交日期范围
+    let whereClause, params
+    if (isPaid) {
+      whereClause = `pd.contract_id IN (
+          SELECT DISTINCT contract_id FROM payments
+          WHERE payment_type = 'recycling_prepaid' AND status = 'paid'
+            AND date(paid_at, '+8 hours') BETWEEN ? AND ?
+        )
+        AND (c.pre_declared_status IS NULL OR c.pre_declared_status != 'approved')`
+      params = [from, to]
+    } else {
+      const dateCol = mode === 'final' ? 'coalesce(pd.submitted_at, pd.created_at)' : 'pd.created_at'
+      whereClause = `date(${dateCol}, '+8 hours') BETWEEN ? AND ?`
+      params = [from, to]
+    }
 
     const rows = await db.all(
       `SELECT pd.contract_id, pd.declaration_year, pd.material_type, pd.${kgField} AS kg,
@@ -77,9 +104,9 @@ router.get('/eko-punkt', async (req, res) => {
        FROM packaging_data pd
        JOIN contracts c ON c.id = pd.contract_id
        JOIN clients cl ON cl.id = c.client_id
-       WHERE date(${dateCol}, '+8 hours') BETWEEN ? AND ?
+       WHERE ${whereClause}
        ORDER BY pd.contract_id, pd.id`,
-      from, to
+      ...params
     )
 
     // 按合同聚合：每个客户一行，材料透视成 8 列
@@ -128,7 +155,10 @@ router.get('/eko-punkt', async (req, res) => {
     }
 
     const buf = await wb.xlsx.writeBuffer()
-    setXlsxHeaders(res, `freddy-eko-punkt-${from}_${to}-${mode}.xlsx`)
+    const filename = isPaid
+      ? `freddy-eko-punkt-dai-jiao-${from}_${to}.xlsx`
+      : `freddy-eko-punkt-${from}_${to}-${mode}.xlsx`
+    setXlsxHeaders(res, filename)
     res.send(buf)
   } catch (e) {
     console.error('[export] eko-punkt error:', e)
