@@ -304,6 +304,38 @@ app.get('/api/admin/clients/search', authMiddleware, adminMiddleware, async (req
       countRow = await db.get('SELECT COUNT(*) as total FROM clients')
     }
 
+    // 富化：与 /api/admin/contracts 一致，补 payments/uploads/packaging（预缴/结算金额、凭证、材料）
+    const contractIds = rows.map(r => r.contract_id).filter(Boolean)
+    if (contractIds.length > 0) {
+      const ph = contractIds.map(() => '?').join(',')
+      const [allPayments, allUploads, allPackaging] = await Promise.all([
+        db.all(`SELECT * FROM payments WHERE contract_id IN (${ph}) ORDER BY id DESC`, ...contractIds),
+        db.all(`SELECT * FROM uploads WHERE contract_id IN (${ph}) ORDER BY uploaded_at DESC`, ...contractIds),
+        db.all(`SELECT * FROM packaging_data WHERE contract_id IN (${ph})`, ...contractIds),
+      ])
+      const payByContract = {}, uplByContract = {}
+      for (const p of allPayments) {
+        if (!payByContract[p.contract_id]) payByContract[p.contract_id] = []
+        payByContract[p.contract_id].push(p)
+      }
+      for (const u of allUploads) {
+        if (!uplByContract[u.contract_id]) uplByContract[u.contract_id] = {}
+        if (!uplByContract[u.contract_id][u.file_type]) uplByContract[u.contract_id][u.file_type] = []
+        uplByContract[u.contract_id][u.file_type].push(u)
+      }
+      for (const r of rows) {
+        const cid = r.contract_id
+        if (!cid) continue
+        const pms = payByContract[cid] || []
+        const prepaid = pms.find(p => p.payment_type === 'recycling_prepaid')
+        if (prepaid) { r.prepaid_amount = prepaid.amount_eur; r.prepaid_status = prepaid.status }
+        const settlement = pms.find(p => p.payment_type === 'recycling_settlement')
+        if (settlement) { r.settlement_amount = settlement.amount_eur; r.settlement_status = settlement.status }
+        r._uploads = uplByContract[cid] || {}
+        r._packaging = allPackaging.filter(p => p.contract_id === cid)
+      }
+    }
+
     for (const r of rows) delete r.lucid_password_enc
 
     res.json({
