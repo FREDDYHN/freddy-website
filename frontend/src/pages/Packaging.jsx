@@ -8,16 +8,16 @@ export default function Packaging() {
   const materials = PACKAGING_MATERIALS.map(m => ({ name: m.label, rate: m.tiers[0].rate.toFixed(2), minFee: m.minFee.toFixed(2) }))
   const tiers = Object.values(AR_TIERS)
   const faqs = [
-    { q: '什么是德国包装法 (VerpackG)？', a: '德国包装法规定在德国市场销售包装产品的所有生产商、进口商和电商卖家必须履行包装回收和再生利用义务。自2022年7月起，所有类型包装均须在LUCID包装品登记处注册。' },
+    { q: '什么是德国包装法 (VerpackDG)？', a: '德国包装法规定在德国市场销售包装产品的所有生产商、进口商和电商卖家必须履行包装回收和再生利用义务。自2022年7月起，所有类型包装均须在LUCID包装品登记处注册。' },
     { q: '2026年8月12日后有什么变化？', a: '欧盟《包装与包装废弃物法规》(PPWR) 2025/40 全面生效。所有在德国无分支机构的厂商必须指定德国本土授权代表，属强制性要求。' },
-    { q: 'LIVANTO 授权代表帮我做什么？', a: 'LIVANTO GmbH 作为您依据 §35(2) VerpackG 的授权代表，承担除 LUCID 注册外的全部义务：双元系统合同签订、数据申报、完整性声明、运输包装回收组织、官方通信。' },
+    { q: 'LIVANTO 授权代表帮我做什么？', a: 'LIVANTO GmbH 作为您依据 §5 VerpackDG（原 §35(2) VerpackG）的授权代表，承担除 LUCID 注册外的全部义务：双元系统合同签订、数据申报、完整性声明、运输包装回收组织、官方通信。' },
   ]
 
   return (
     <div>
       <section className="text-white text-center py-14 px-4" style={{ background: 'linear-gradient(135deg, #4a5d50, #5f7565, #4a5d50)' }}>
         <h1 className="text-4xl md:text-5xl font-extrabold mb-6">德国包装法 · 本土授权代表</h1>
-        <p className="text-sm text-white/50">依据《德国包装法》第35条第2款 / 欧盟《包装与包装废弃物法规》(PPWR) 2025/40</p>
+        <p className="text-sm text-white/50">依据《德国包装法实施法》(VerpackDG) 第5条 / 欧盟《包装与包装废弃物法规》(PPWR) 2025/40</p>
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-12">

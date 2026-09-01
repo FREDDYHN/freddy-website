@@ -1,5 +1,5 @@
 const files = [
-  { name: 'LIVANTO 授权代表合同模板', desc: '§35(2) VerpackG 授权代表合同 — 德中双语', path: '/projects/LIVANTO/VerpackG_Bevollmächtigungsvertrag.docx' },
+  { name: 'LIVANTO 授权代表合同模板', desc: '§5 VerpackDG（原 §35(2) VerpackG）授权代表合同 — 德中双语', path: '/projects/LIVANTO/包装法_授权代表合同_空白模板.docx' },
   { name: '包装法价格表 (中文)', desc: '双元系统费用 + AR 套餐价格', path: '/templates/vat-price-zh.docx' },
   { name: 'WEEE 价格表 (中文)', desc: 'EAR 注册 + 回收费用明细', path: '/templates/weee-price-zh.docx' },
   { name: '电池法价格表 (中文)', desc: 'EAR 注册 + 回收费用明细', path: '/templates/battery-price-zh.docx' },

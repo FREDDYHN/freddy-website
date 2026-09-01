@@ -14,7 +14,7 @@ export default function Terms() {
           <h2 className="text-lg font-bold text-primary">1. 服务描述</h2>
           <p>FREDDY 提供德国跨境合规一站式服务，包括但不限于：</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>德国包装法 (VerpackG) 授权代表服务（通过 LIVANTO GmbH）</li>
+            <li>德国包装法 (VerpackDG) 授权代表服务（通过 LIVANTO GmbH）</li>
             <li>德国 WEEE 电子电气设备法 (ElektroG) 授权代表服务（通过 WEEE Return GmbH）</li>
             <li>德国电池法 (BattG) 授权代表服务（通过 WEEE Return GmbH）</li>
             <li>在线生成授权代表合同、费用计算、合规咨询</li>
