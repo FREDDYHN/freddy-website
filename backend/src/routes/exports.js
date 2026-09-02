@@ -194,13 +194,12 @@ router.get('/eko-punkt', async (req, res) => {
       rowIdx++
     }
 
-    // 统一字体：模板表头 + 数据区字体混用，统一为微软雅黑（保留原字号/加粗）
+    // 统一字体：强制微软雅黑 11 号（表头加粗、数据区常规），忽略模板残留的字号/加粗/颜色
     for (let r = 1; r < rowIdx; r++) {
       for (let c = 1; c <= 33; c++) {
         const cell = ws.getCell(r, c)
         if (cell.value == null) continue
-        const f = cell.font || {}
-        cell.font = { name: '微软雅黑', size: f.size || 11, bold: !!f.bold, ...(f.color ? { color: f.color } : {}) }
+        cell.font = { name: '微软雅黑', size: 11, bold: r === 1 }
       }
     }
 
