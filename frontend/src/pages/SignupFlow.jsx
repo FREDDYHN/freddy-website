@@ -89,6 +89,9 @@ export default function SignupFlow() {
         else if (!/^([0-9A-Za-z]{18}|\d{8})$/.test(form.uscc.trim())) e.uscc = '税号格式不正确（18位统一社会信用代码，或8位香港商业登记号）'
       }
     }
+    if (s === 1 && isPkg) {
+      if (!form.packaging_items.some(p => p.kg && parseFloat(p.kg) > 0)) e.materials = '请至少填写一类包装材料的预估年量（kg）'
+    }
     setErrors(e); return Object.keys(e).length === 0
   }
 
@@ -336,9 +339,10 @@ export default function SignupFlow() {
               </div>
             ))}
           </div>
+          {fe('materials')}
           <div className="flex justify-between pt-2">
             <button onClick={() => goStep(step - 1)} className={btnGhostCls}>← 上一步</button>
-            <button onClick={() => goStep(step + 1)} className={btnCls}>下一步 →</button>
+            <button onClick={() => next(step + 1)} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}

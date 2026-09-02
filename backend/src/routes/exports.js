@@ -61,6 +61,19 @@ function clean(v) {
   return v == null ? '' : String(v).replace(/[\r\n]+/g, ' ').trim()
 }
 
+/** 从中文地址提取城市（市/自治州/地区/盟），英文或无市返回空 */
+function extractCity(address) {
+  const s = String(address || '').trim()
+  if (!s) return ''
+  // 直辖市（省市级合一）优先
+  const zx = s.match(/北京市|上海市|天津市|重庆市/)
+  if (zx) return zx[0]
+  // 去掉省级前缀，再取第一个「市/自治州/地区/盟」
+  const noProv = s.replace(/^[一-龥]{1,8}(?:省|自治区|特别行政区)/, '')
+  const m = noProv.match(/[一-龥]{2,5}(?:市|自治州|地区|盟)/)
+  return m ? m[0] : ''
+}
+
 /** 季度 → [起, 止] 日期（含端点） */
 function quarterRange(year, q) {
   const map = { Q1: ['01-01', '03-31'], Q2: ['04-01', '06-30'], Q3: ['07-01', '09-30'], Q4: ['10-01', '12-31'] }
@@ -160,7 +173,7 @@ router.get('/eko-punkt', async (req, res) => {
     let rowIdx = 2
     for (const [, c] of byContract) {
       const [vorname, nachname] = chineseNameToPinyin(c.contact_name) || splitName(c.contact_name_en)
-      const taxNo = c.entity_type === 'individual' ? (c.id_number || '') : (c.uscc || '')
+      const taxNo = c.uscc || c.id_number || ''  // 优先税号，税号空则回退身份证号（个体户/无税号客户）
       ws.getCell(rowIdx, 1).value = clean(c.lucid_registration_number)
       ws.getCell(rowIdx, 2).value = clean(c.company_name_en || c.company_name)
       ws.getCell(rowIdx, 3).value = EKO_PUNKT.kundengruppe
@@ -170,7 +183,8 @@ router.get('/eko-punkt', async (req, res) => {
       ws.getCell(rowIdx, 7).value = clean(vorname)
       ws.getCell(rowIdx, 8).value = clean(nachname)
       ws.getCell(rowIdx, 9).value = clean(c.registered_address_en || c.registered_address)
-      // 10-12 地址补充/邮编/城市留空（地址未结构化，提交前人工补）
+      // 10-11 地址补充/邮编留空（邮编暂不采集）
+      ws.getCell(rowIdx, 12).value = clean(extractCity(c.registered_address))  // 城市从中文地址提取
       ws.getCell(rowIdx, 13).value = EKO_PUNKT.land
       ws.getCell(rowIdx, 14).value = clean(c.contact_email)
       ws.getCell(rowIdx, 15).value = clean(c.contact_phone)
@@ -271,7 +285,7 @@ router.get('/buchhaltung', async (req, res) => {
       const fee = pmByContract[r.contract_id]?.contract_fee
       const prepaid = pmByContract[r.contract_id]?.recycling_prepaid
       const settle = pmByContract[r.contract_id]?.recycling_settlement
-      const taxNo = r.entity_type === 'individual' ? (r.id_number || '') : (r.uscc || '')
+      const taxNo = r.uscc || r.id_number || ''  // 优先税号，税号空则回退身份证号
       const method = fee?.payment_method || prepaid?.payment_method || settle?.payment_method || ''
       ws.getCell(rowIdx, 1).value = r.contract_number || ''
       ws.getCell(rowIdx, 2).value = r.company_name || ''
