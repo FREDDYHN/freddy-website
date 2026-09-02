@@ -211,7 +211,7 @@ export default function Admin() {
 
   const exportCSV = async () => { try { const r = await fetch('/api/admin/clients/export', { headers: ah() }); if (!r.ok) throw new Error('Export failed'); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `freddy-clients-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(u) } catch (e) { alert('导出失败') } }
 
-  const doEkoPunkt = () => authDownload(`/api/admin/export/eko-punkt?mode=${ekMode}&from=${ekFrom}&to=${ekTo}`, `${ekFrom}_${ekTo.slice(5)}_EASY-LIZE-Import-China_Agencies_客户信息表.xlsx`)
+  const doEkoPunkt = () => authDownload(`/api/admin/export/eko-punkt?mode=${ekMode}&from=${ekFrom}&to=${ekTo}`, `EASY-LIZE_Vertrag-Import-China_1.xlsx`)
   const doEkoPunktPaid = () => authDownload(`/api/admin/export/eko-punkt?scope=paid&from=${ekPaidFrom}&to=${ekPaidTo}`, `freddy-eko-punkt-dai-jiao-${ekPaidFrom}_${ekPaidTo}.xlsx`)
   const doBuchhaltung = () => authDownload(`/api/admin/export/buchhaltung?from=${bhFrom}&to=${bhTo}`, `freddy-buchhaltung-${bhFrom}_${bhTo}.xlsx`)
   const doLivanto = () => authDownload(`/api/admin/export/livanto?from=${lvFrom}&to=${lvTo}`, `freddy-livanto-${lvFrom}_${lvTo}.xlsx`)
@@ -941,8 +941,8 @@ export default function Admin() {
 
             {/* 1. EKO-PUNKT */}
             <div className="border border-gray-200 rounded-lg p-4 space-y-3">
-              <h4 className="font-semibold text-sm">1. EKO-PUNKT 客户信息表</h4>
-              <p className="text-xs text-gray-400">提交双元系统，按预申报/年终申报 + 申报日期范围</p>
+              <h4 className="font-semibold text-sm">1. EKO-PUNKT Vertrag-Import（新合同批量上传）</h4>
+              <p className="text-xs text-gray-400">提交双元系统，按预申报/年终申报 + 申报日期范围（每月提交一次）</p>
               <div className="flex items-center gap-2 flex-wrap">
                 <select value={ekMode} onChange={e => setEkMode(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
                   <option value="initial">预申报（预估量）</option>

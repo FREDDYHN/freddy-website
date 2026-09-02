@@ -56,6 +56,11 @@ function chineseNameToPinyin(name) {
   return [vorname, nachname]
 }
 
+/** 去掉单元格内换行/首尾空白（EKO-PUNKT 要求单元格内不得有换行） */
+function clean(v) {
+  return v == null ? '' : String(v).replace(/[\r\n]+/g, ' ').trim()
+}
+
 /** 季度 → [起, 止] 日期（含端点） */
 function quarterRange(year, q) {
   const map = { Q1: ['01-01', '03-31'], Q2: ['04-01', '06-30'], Q3: ['07-01', '09-30'], Q4: ['10-01', '12-31'] }
@@ -147,31 +152,31 @@ router.get('/eko-punkt', async (req, res) => {
     const ws = wb.getWorksheet('Eingabe')
     if (!ws) throw new Error('模板缺少 Eingabe 工作表')
 
-    // 清空旧数据（第 3 行样例起，保留前两行双语表头）
-    for (let r = 3; r <= Math.max(ws.rowCount, 3); r++) {
+    // 清空旧数据（第 2 行样例起，保留第 1 行德语表头）
+    for (let r = 2; r <= Math.max(ws.rowCount, 2); r++) {
       for (let c = 1; c <= 33; c++) ws.getCell(r, c).value = null
     }
 
-    let rowIdx = 3
+    let rowIdx = 2
     for (const [, c] of byContract) {
       const [vorname, nachname] = chineseNameToPinyin(c.contact_name) || splitName(c.contact_name_en)
       const taxNo = c.entity_type === 'individual' ? (c.id_number || '') : (c.uscc || '')
-      ws.getCell(rowIdx, 1).value = c.lucid_registration_number || ''
-      ws.getCell(rowIdx, 2).value = c.company_name_en || c.company_name || ''
+      ws.getCell(rowIdx, 1).value = clean(c.lucid_registration_number)
+      ws.getCell(rowIdx, 2).value = clean(c.company_name_en || c.company_name)
       ws.getCell(rowIdx, 3).value = EKO_PUNKT.kundengruppe
       ws.getCell(rowIdx, 4).value = EKO_PUNKT.zahlungsart
       ws.getCell(rowIdx, 5).value = EKO_PUNKT.sprache
       ws.getCell(rowIdx, 6).value = EKO_PUNKT.anrede
-      ws.getCell(rowIdx, 7).value = vorname
-      ws.getCell(rowIdx, 8).value = nachname
-      ws.getCell(rowIdx, 9).value = c.registered_address_en || c.registered_address || ''
+      ws.getCell(rowIdx, 7).value = clean(vorname)
+      ws.getCell(rowIdx, 8).value = clean(nachname)
+      ws.getCell(rowIdx, 9).value = clean(c.registered_address_en || c.registered_address)
       // 10-12 地址补充/邮编/城市留空（地址未结构化，提交前人工补）
       ws.getCell(rowIdx, 13).value = EKO_PUNKT.land
-      ws.getCell(rowIdx, 14).value = c.contact_email || ''
-      ws.getCell(rowIdx, 15).value = c.contact_phone || ''
-      ws.getCell(rowIdx, 16).value = c.wechat_id || ''
+      ws.getCell(rowIdx, 14).value = clean(c.contact_email)
+      ws.getCell(rowIdx, 15).value = clean(c.contact_phone)
+      ws.getCell(rowIdx, 16).value = clean(c.wechat_id)
       // 17-23 发票地址/Ust-IdNr 留空（中国客户无欧盟 VAT）
-      ws.getCell(rowIdx, 24).value = taxNo
+      ws.getCell(rowIdx, 24).value = clean(taxNo)
       ws.getCell(rowIdx, 25).value = c.declaration_year || ''
       // 左对齐：姓名(7/8)、地址(9)、税号(24)
       for (const col of [7, 8, 9, 24]) {
@@ -189,7 +194,7 @@ router.get('/eko-punkt', async (req, res) => {
       rowIdx++
     }
 
-    // 统一字体：模板表头中德文混排 + 数据区 Arial/Calibri 混用，统一为微软雅黑（保留原字号/加粗）
+    // 统一字体：模板表头 + 数据区字体混用，统一为微软雅黑（保留原字号/加粗）
     for (let r = 1; r < rowIdx; r++) {
       for (let c = 1; c <= 33; c++) {
         const cell = ws.getCell(r, c)
@@ -202,7 +207,7 @@ router.get('/eko-punkt', async (req, res) => {
     const buf = await wb.xlsx.writeBuffer()
     const filename = isPaid
       ? `freddy-eko-punkt-dai-jiao-${from}_${to}.xlsx`
-      : `${from}_${to.slice(5)}_EASY-LIZE-Import-China_Agencies_客户信息表.xlsx`
+      : `EASY-LIZE_Vertrag-Import-China_1.xlsx`
     setXlsxHeaders(res, filename)
     res.send(buf)
   } catch (e) {
