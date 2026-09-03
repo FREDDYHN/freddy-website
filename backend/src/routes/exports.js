@@ -90,6 +90,49 @@ function cityToLatin(city) {
   return joined ? joined.charAt(0).toUpperCase() + joined.slice(1) : s
 }
 
+/** 每个单词首字母大写、其余小写（ALBUFEIRA → Albufeira） */
+function titleCase(s) {
+  return String(s || '').replace(/\S+/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+}
+
+/** 从外文地址提取城市：「…, CITY, 邮编, 国家」取邮编段前一段的末词；无邮编则取倒数第二段末词 */
+function extractForeignCity(address) {
+  const s = String(address || '').trim()
+  if (!s || /[一-龥]/.test(s)) return ''          // 中文地址交给 extractCity
+  const parts = s.split(',').map((p) => p.trim()).filter(Boolean)
+  if (parts.length < 2) return ''
+  let postalIdx = -1                              // 邮编段：含数字且较短(≤12)，末段是国家跳过
+  for (let i = parts.length - 2; i >= 0; i--) {
+    if (/\d/.test(parts[i]) && parts[i].length <= 12) { postalIdx = i; break }
+  }
+  const citySeg = postalIdx >= 1 ? parts[postalIdx - 1] : parts[parts.length - 2]
+  return titleCase(citySeg.split(/\s+/).pop())
+}
+
+/** 城市解析：优先中文地址，回退外文地址 */
+function resolveCity(zhAddr, enAddr) {
+  const zh = extractCity(zhAddr)
+  if (zh) return cityToLatin(zh)
+  return extractForeignCity(enAddr || zhAddr)
+}
+
+/** 国家名 → ISO 码（覆盖常见跨境客户，缺省 CN） */
+const COUNTRY_CODES = {
+  CHINA: 'CN', PORTUGAL: 'PT', GERMANY: 'DE', FRANCE: 'FR', SPAIN: 'ES', ITALY: 'IT',
+  NETHERLANDS: 'NL', BELGIUM: 'BE', POLAND: 'PL', AUSTRIA: 'AT', SWITZERLAND: 'CH',
+  'UNITED KINGDOM': 'GB', UK: 'GB', 'UNITED STATES': 'US', USA: 'US', CANADA: 'CA',
+  AUSTRALIA: 'AU', JAPAN: 'JP', KOREA: 'KR', SINGAPORE: 'SG', 'HONG KONG': 'HK',
+}
+
+/** 国家码：中文地址 → CN；外文地址取末段国家名映射 */
+function resolveCountry(zhAddr, enAddr) {
+  if (zhAddr && /[一-龥]/.test(String(zhAddr))) return 'CN'
+  const s = String(enAddr || '').trim()
+  if (!s) return 'CN'
+  const last = s.split(',').map((p) => p.trim()).filter(Boolean).pop() || ''
+  return COUNTRY_CODES[last.toUpperCase()] || 'CN'
+}
+
 /** 季度 → [起, 止] 日期（含端点） */
 function quarterRange(year, q) {
   const map = { Q1: ['01-01', '03-31'], Q2: ['04-01', '06-30'], Q3: ['07-01', '09-30'], Q4: ['10-01', '12-31'] }
@@ -200,8 +243,8 @@ router.get('/eko-punkt', async (req, res) => {
       ws.getCell(rowIdx, 8).value = clean(nachname)
       ws.getCell(rowIdx, 9).value = clean(c.registered_address_en || c.registered_address)
       // 10-11 地址补充/邮编留空（邮编暂不采集）
-      ws.getCell(rowIdx, 12).value = clean(cityToLatin(extractCity(c.registered_address)))  // 城市从中文地址提取，转拼音/英文
-      ws.getCell(rowIdx, 13).value = EKO_PUNKT.land
+      ws.getCell(rowIdx, 12).value = clean(resolveCity(c.registered_address, c.registered_address_en))  // 城市：中文转拼音，外文取城市
+      ws.getCell(rowIdx, 13).value = resolveCountry(c.registered_address, c.registered_address_en)       // 国家：按地址判断，不再写死 CN
       ws.getCell(rowIdx, 14).value = clean(c.contact_email)
       ws.getCell(rowIdx, 15).value = clean(c.contact_phone)
       ws.getCell(rowIdx, 16).value = clean(c.wechat_id)
