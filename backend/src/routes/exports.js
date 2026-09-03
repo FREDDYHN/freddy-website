@@ -61,17 +61,33 @@ function clean(v) {
   return v == null ? '' : String(v).replace(/[\r\n]+/g, ' ').trim()
 }
 
-/** 从中文地址提取城市（市/自治州/地区/盟），英文或无市返回空 */
+/** 特别行政区 → 英文名（香港/澳门），其余城市转拼音 */
+const SPECIAL_CITY_EN = { 香港: 'HONGKONG', 澳门: 'MACAU' }
+
+/** 从中文地址提取城市（市/自治州/地区/盟），只取第一级（如「泉州市晋江市」→「泉州市」）；无市返回空 */
 function extractCity(address) {
   const s = String(address || '').trim()
   if (!s) return ''
+  // 特别行政区：香港/澳门其后无「市」层级，直接返回
+  if (/香港/.test(s)) return '香港'
+  if (/澳门/.test(s)) return '澳门'
   // 直辖市（省市级合一）优先
   const zx = s.match(/北京市|上海市|天津市|重庆市/)
   if (zx) return zx[0]
-  // 去掉省级前缀，再取第一个「市/自治州/地区/盟」
+  // 去掉省级前缀，再取第一个「市/自治州/地区/盟」（lazy，避免把后面的县级市一并吃进来）
   const noProv = s.replace(/^[一-龥]{1,8}(?:省|自治区|特别行政区)/, '')
-  const m = noProv.match(/[一-龥]{2,5}(?:市|自治州|地区|盟)/)
+  const m = noProv.match(/[一-龥]{2,6}?(?:市|自治州|地区|盟)/)
   return m ? m[0] : ''
+}
+
+/** 城市中文 → 拼音/英文：去「市/自治州/地区/盟」后缀后转拼音（首字母大写），香港/澳门用英文名 */
+function cityToLatin(city) {
+  const s = String(city || '').trim()
+  if (!s) return ''
+  if (SPECIAL_CITY_EN[s]) return SPECIAL_CITY_EN[s]
+  const base = s.replace(/(?:市|自治州|地区|盟)$/, '')
+  const joined = (pinyin(base, { toneType: 'none', type: 'array' }) || []).join('')
+  return joined ? joined.charAt(0).toUpperCase() + joined.slice(1) : s
 }
 
 /** 季度 → [起, 止] 日期（含端点） */
@@ -184,7 +200,7 @@ router.get('/eko-punkt', async (req, res) => {
       ws.getCell(rowIdx, 8).value = clean(nachname)
       ws.getCell(rowIdx, 9).value = clean(c.registered_address_en || c.registered_address)
       // 10-11 地址补充/邮编留空（邮编暂不采集）
-      ws.getCell(rowIdx, 12).value = clean(extractCity(c.registered_address))  // 城市从中文地址提取
+      ws.getCell(rowIdx, 12).value = clean(cityToLatin(extractCity(c.registered_address)))  // 城市从中文地址提取，转拼音/英文
       ws.getCell(rowIdx, 13).value = EKO_PUNKT.land
       ws.getCell(rowIdx, 14).value = clean(c.contact_email)
       ws.getCell(rowIdx, 15).value = clean(c.contact_phone)
@@ -192,8 +208,8 @@ router.get('/eko-punkt', async (req, res) => {
       // 17-23 发票地址/Ust-IdNr 留空（中国客户无欧盟 VAT）
       ws.getCell(rowIdx, 24).value = clean(taxNo)
       ws.getCell(rowIdx, 25).value = c.declaration_year || ''
-      // 左对齐：姓名(7/8)、地址(9)、税号(24)
-      for (const col of [7, 8, 9, 24]) {
+      // 左对齐：姓名(7/8)、地址(9)、微信号(16)、税号(24)
+      for (const col of [7, 8, 9, 16, 24]) {
         ws.getCell(rowIdx, col).alignment = { horizontal: 'left' }
       }
       for (const { key, col } of EKO_PUNKT_MATERIAL_COLS) {
