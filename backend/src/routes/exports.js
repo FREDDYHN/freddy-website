@@ -274,7 +274,7 @@ router.get('/eko-punkt', async (req, res) => {
       ws.getCell(rowIdx, 11).value = resolvePlz(c.registered_address, c.registered_address_en)
       ws.getCell(rowIdx, 12).value = clean(resolveCity(c.registered_address, c.registered_address_en))  // 城市：中文转拼音，外文取城市
       ws.getCell(rowIdx, 13).value = resolveCountry(c.registered_address, c.registered_address_en)       // 国家：按地址判断，不再写死 CN
-      ws.getCell(rowIdx, 14).value = clean(c.contact_email)
+      ws.getCell(rowIdx, 14).value = EKO_PUNKT.email  // 统一收发邮箱：EKO-PUNKT 材料发我们，再由我们转发客户
       ws.getCell(rowIdx, 15).value = clean(c.contact_phone)
       ws.getCell(rowIdx, 16).value = clean(c.wechat_id)
       // 17-23 发票地址/Ust-IdNr 留空（中国客户无欧盟 VAT）

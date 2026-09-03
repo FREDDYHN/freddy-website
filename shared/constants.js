@@ -93,6 +93,7 @@ export const EKO_PUNKT = {
   sprache:      'EN',                // Sprache（语言）
   anrede:       'Mr',                // Anrede（称呼，无法可靠判定性别，默认 Mr）
   land:         'CN',                // Land（客户中国实际地址）
+  email:        'info@freddy-epr.com',  // E-Mail（统一收发邮箱：EKO-PUNKT 材料发这里，再由我们转发客户）
 }
 
 // 材料 key → EKO-PUNKT 模板德文列头（Z~AG，与 PACKAGING_MATERIALS 顺序一致）
