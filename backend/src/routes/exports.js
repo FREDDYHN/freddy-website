@@ -20,7 +20,7 @@ import { dirname, join } from 'path'
 import { getDb } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
 import { localDate, beijingDateFromUtc } from '../services/date.js'
-import { EKO_PUNKT, EKO_PUNKT_MATERIAL_COLS, AR_TIER_ZH } from '../../../shared/constants.js'
+import { EKO_PUNKT, EKO_PUNKT_MATERIAL_COLS, AR_TIER_ZH, CITY_POSTCODES } from '../../../shared/constants.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const TEMPLATE_DIR = join(__dirname, '..', 'templates')
@@ -133,6 +133,27 @@ function resolveCountry(zhAddr, enAddr) {
   return COUNTRY_CODES[last.toUpperCase()] || 'CN'
 }
 
+/** 从地址提取 6 位邮编（\b 边界排除网址/电话等长数字），取末尾一个 */
+function extractPostcode(address) {
+  const s = String(address || '').trim()
+  if (!s) return ''
+  const m = s.match(/\b\d{6}\b/g)
+  return m && m.length ? m[m.length - 1] : ''
+}
+
+/** 邮编解析：优先地址里已有邮编，其次按城市查映射表（支持「中国广州市」这类带前缀的模糊匹配） */
+function resolvePlz(zhAddr, enAddr) {
+  const fromEn = extractPostcode(enAddr)
+  if (fromEn) return fromEn
+  const fromZh = extractPostcode(zhAddr)
+  if (fromZh) return fromZh
+  const city = extractCity(zhAddr)
+  if (!city) return ''
+  if (CITY_POSTCODES[city]) return CITY_POSTCODES[city]
+  const key = Object.keys(CITY_POSTCODES).sort((a, b) => b.length - a.length).find((k) => city.endsWith(k))
+  return key ? CITY_POSTCODES[key] : ''
+}
+
 /** 季度 → [起, 止] 日期（含端点） */
 function quarterRange(year, q) {
   const map = { Q1: ['01-01', '03-31'], Q2: ['04-01', '06-30'], Q3: ['07-01', '09-30'], Q4: ['10-01', '12-31'] }
@@ -242,7 +263,8 @@ router.get('/eko-punkt', async (req, res) => {
       ws.getCell(rowIdx, 7).value = clean(vorname)
       ws.getCell(rowIdx, 8).value = clean(nachname)
       ws.getCell(rowIdx, 9).value = clean(c.registered_address_en || c.registered_address)
-      // 10-11 地址补充/邮编留空（邮编暂不采集）
+      // 10 地址补充留空；11 PLZ 邮编（仅用于 EKO-PUNKT 导出，地址已有或地级市近似值）
+      ws.getCell(rowIdx, 11).value = resolvePlz(c.registered_address, c.registered_address_en)
       ws.getCell(rowIdx, 12).value = clean(resolveCity(c.registered_address, c.registered_address_en))  // 城市：中文转拼音，外文取城市
       ws.getCell(rowIdx, 13).value = resolveCountry(c.registered_address, c.registered_address_en)       // 国家：按地址判断，不再写死 CN
       ws.getCell(rowIdx, 14).value = clean(c.contact_email)
