@@ -133,12 +133,19 @@ function resolveCountry(zhAddr, enAddr) {
   return COUNTRY_CODES[last.toUpperCase()] || 'CN'
 }
 
-/** 从地址提取 6 位邮编（\b 边界排除网址/电话等长数字），取末尾一个 */
+/** 从地址提取邮编：中文取 6 位数字，外文取「…, 邮编, 国家」里的邮编段（含数字且较短） */
 function extractPostcode(address) {
   const s = String(address || '').trim()
   if (!s) return ''
-  const m = s.match(/\b\d{6}\b/g)
-  return m && m.length ? m[m.length - 1] : ''
+  // 中文 6 位邮编（\b 边界排除网址/电话等长数字），取末尾一个
+  const zh = s.match(/\b\d{6}\b/g)
+  if (zh && zh.length) return zh[zh.length - 1]
+  // 外文邮编：逗号分段里「含数字且较短(≤12)」的段（如 8200-269 / 518100），末段是国家跳过
+  const parts = s.split(',').map((p) => p.trim()).filter(Boolean)
+  for (let i = parts.length - 2; i >= 0; i--) {
+    if (/\d/.test(parts[i]) && parts[i].length <= 12) return parts[i]
+  }
+  return ''
 }
 
 /** 邮编解析：优先地址里已有邮编，其次按城市查映射表（支持「中国广州市」这类带前缀的模糊匹配） */
