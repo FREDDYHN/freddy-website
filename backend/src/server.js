@@ -3,7 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import bcrypt from 'bcrypt'
 import multer from 'multer'
-import { existsSync, readFileSync } from 'fs'
+import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { rename } from 'fs/promises'
 import { fileURLToPath } from 'url'
 import { dirname, join as pathJoin } from 'path'
@@ -992,6 +992,37 @@ app.post('/api/admin/inbound-documents/poll', authMiddleware, adminMiddleware, a
     res.json({ success: true, ...result })
   } catch (e) {
     console.error('[server] inbound poll error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// 手动上传收件材料（免费版邮箱无 IMAP，管理员从网页邮箱下载后在此上传进队列）
+// multer dest 不会自动建目录，先确保目录存在
+const inboundUpload = multer({ dest: pathJoin(rootPath, 'uploads', 'inbound'), limits: { fileSize: 100 * 1024 * 1024 } })
+mkdirSync(pathJoin(rootPath, 'uploads', 'inbound'), { recursive: true })
+app.post('/api/admin/inbound-documents/upload', authMiddleware, adminMiddleware, inboundUpload.array('files', 20), async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) return res.status(400).json({ error: '请选择要上传的文件' })
+    const db = await getDb()
+    const { subject, sender_email, sender_name } = req.body
+
+    const attachments = []
+    for (const f of req.files) {
+      const safe = `manual-${Date.now()}-${f.originalname.replace(/[^a-zA-Z0-9._\-一-龥]/g, '_')}`
+      const newPath = pathJoin(rootPath, 'uploads', 'inbound', safe)
+      await rename(f.path, newPath)
+      attachments.push({ filename: f.originalname, stored_path: `inbound/${safe}`, size: f.size, mime: f.mimetype })
+    }
+
+    const messageId = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    await db.run(
+      `INSERT INTO inbound_documents (message_id, sender_email, sender_name, subject, body_text, received_at, status, attachments_json)
+       VALUES (?,?,?,?,?, datetime('now'), 'pending', ?)`,
+      messageId, sender_email || '', sender_name || '', subject || '(手动上传)', '', JSON.stringify(attachments)
+    )
+    res.status(201).json({ success: true, files: attachments.length })
+  } catch (e) {
+    console.error('[server] inbound upload error:', e)
     res.status(500).json({ error: e.message })
   }
 })

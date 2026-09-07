@@ -106,6 +106,10 @@ export default function Admin() {
   const [inboundLoading, setInboundLoading] = useState(false)
   const [inboundPending, setInboundPending] = useState(0)
   const [inboundMsg, setInboundMsg] = useState('')
+  const [inboundUploadOpen, setInboundUploadOpen] = useState(false)
+  const [inboundUploadFiles, setInboundUploadFiles] = useState([])
+  const [inboundUploadSubject, setInboundUploadSubject] = useState('')
+  const [inboundUploading, setInboundUploading] = useState(false)
 
   const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}` } : {} }
 
@@ -390,14 +394,22 @@ export default function Admin() {
       else { const d = await r.json().catch(() => ({})); alert('❌ ' + (d.error || '操作失败')) }
     } catch (e) { alert('❌ ' + e.message) }
   }
-  const inboundPoll = async () => {
-    setInboundMsg('⏳ 正在拉取收件箱…')
+  const inboundUploadSubmit = async () => {
+    if (inboundUploadFiles.length === 0) { alert('请选择文件'); return }
+    setInboundUploading(true)
     try {
-      const r = await fetch('/api/admin/inbound-documents/poll', { method: 'POST', headers: ah() })
+      const fd = new FormData()
+      for (const f of inboundUploadFiles) fd.append('files', f)
+      if (inboundUploadSubject.trim()) fd.append('subject', inboundUploadSubject.trim())
+      const r = await fetch('/api/admin/inbound-documents/upload', { method: 'POST', headers: ah(), body: fd })
       const d = await r.json()
-      if (r.ok) { setInboundMsg(`✅ 拉取完成：新增 ${d.processed ?? 0}，跳过 ${d.skipped ?? 0}`); loadInbound() }
-      else setInboundMsg('❌ ' + (d.error || '拉取失败'))
-    } catch (e) { setInboundMsg('❌ ' + e.message) }
+      if (r.ok) {
+        setInboundMsg(`✅ 已上传 ${inboundUploadFiles.length} 个文件，进入待人工队列`)
+        setInboundUploadFiles([]); setInboundUploadSubject(''); setInboundUploadOpen(false)
+        loadInbound()
+      } else alert('❌ ' + (d.error || '上传失败'))
+    } catch (e) { alert('❌ ' + e.message) }
+    setInboundUploading(false)
   }
 
   const saveRate = async () => {
@@ -1093,11 +1105,26 @@ export default function Admin() {
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-lg">📥 收件队列（待人工）</h3>
               <div className="flex items-center gap-2">
-                <button onClick={inboundPoll} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-600 hover:bg-gray-50">↻ 拉取收件箱</button>
+                <button onClick={() => setInboundUploadOpen(!inboundUploadOpen)} className={`px-3 py-1.5 border rounded-md text-xs ${inboundUploadOpen ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}>⬆ 手动上传</button>
                 <button onClick={() => setInboundModal(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
               </div>
             </div>
-            <p className="text-xs text-gray-400">EKO-PUNKT 等合作方把材料发到 info@freddy-epr.com，在此分配客户后转发。系统每 5 分钟自动拉取，也可点「↻ 拉取收件箱」手动触发。</p>
+            {inboundUploadOpen && (
+              <div className="border border-dashed border-emerald-300 rounded-lg p-3 space-y-2 bg-emerald-50/40">
+                <p className="text-xs text-gray-500">从网页邮箱下载 EKO-PUNKT 等合作方的材料后，在此上传进队列（可多选，单个 ≤100MB）。</p>
+                <input type="file" multiple onChange={e => setInboundUploadFiles(Array.from(e.target.files || []))} className="text-xs text-gray-600" />
+                {inboundUploadFiles.length > 0 && <p className="text-xs text-emerald-700">已选 {inboundUploadFiles.length} 个文件</p>}
+                <input value={inboundUploadSubject} onChange={e => setInboundUploadSubject(e.target.value)} placeholder="主题（可选，如：EKO-PUNKT 材料 - 客户名）" className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-xs focus:outline-none focus:border-primary" />
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => { setInboundUploadOpen(false); setInboundUploadFiles([]); setInboundUploadSubject('') }} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-500 hover:bg-gray-50">取消</button>
+                  <button onClick={inboundUploadSubmit} disabled={inboundUploading || inboundUploadFiles.length === 0}
+                    className="px-4 py-1.5 bg-primary text-white rounded-md text-xs font-medium disabled:opacity-40 hover:bg-primary-light">
+                    {inboundUploading ? '上传中…' : '上传进队列'}
+                  </button>
+                </div>
+              </div>
+            )}
+            <p className="text-xs text-gray-400">EKO-PUNKT 等合作方把材料发到 info@freddy-epr.com，在此分配客户后转发。手动上传的材料同样进入此队列。</p>
             {inboundMsg && <p className="text-xs text-emerald-600">{inboundMsg}</p>}
             {inboundLoading ? <p className="text-sm text-gray-400 py-8 text-center">加载中…</p> :
               inboundDocs.filter(d => d.status === 'pending').length === 0 ? (
