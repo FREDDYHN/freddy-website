@@ -35,11 +35,11 @@ function getTransport() {
   return transporter
 }
 
-export async function send({ to, subject, html, attachments }) {
+export async function send({ to, subject, html, attachments, replyTo }) {
   const t = getTransport()
   if (t) {
     // 失败时向上抛出（调用方决定是否重试/记录），但不重置 transporter
-    await t.sendMail({ from: FROM, to, subject, html, attachments })
+    await t.sendMail({ from: FROM, to, subject, html, attachments, ...(replyTo ? { replyTo } : {}) })
   } else {
     console.log(`[email] SIMULATION — To: ${to} | Subject: ${subject}`)
     console.log(`[email] Body preview: ${html.slice(0, 200)}...`)
@@ -209,6 +209,25 @@ export async function sendVerificationEmail({ email, name, contractNumber, clien
 <p style="color:#999;font-size:13px">或复制以下链接到浏览器打开：</p>
 <p style="color:#999;font-size:12px;word-break:break-all">${link}</p>
 <p style="margin-top:24px;color:#c0392b;font-size:13px">⚠ 此链接 48 小时内有效，过期后请重新提交申请。</p>
+<p style="margin-top:24px;color:#999;font-size:12px">此邮件由系统自动发送。如需帮助，请联系 +86 152 2138 0610 或 info@freddy-epr.com</p>
+</div>`,
+  })
+}
+
+// ═══ Inbound Forwarding（统一收发邮件：EKO-PUNKT 材料转发给客户）═══
+export async function sendInboundForward({ email, name, subject, attachments }) {
+  const fileList = (attachments || []).map(a => a.filename).filter(Boolean)
+  await send({
+    to: email,
+    replyTo: 'info@freddy-epr.com',
+    subject: `[FREDDY] 您的包装回收材料 — ${subject}`,
+    attachments,
+    html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+<h2 style="color:#1e3a5f">FREDDY 福瑞笛 — 包装回收材料</h2>
+<p>${esc(name)}，您好！</p>
+<p>我们收到德国双元系统合作方 <strong>EKO-PUNKT</strong> 发来的以下材料，现转发给您：</p>
+${fileList.length > 0 ? `<ul>${fileList.map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : '<p>（见附件）</p>'}
+<p>如材料中有任何疑问或需要协助，请直接回复本邮件（<a href="mailto:info@freddy-epr.com">info@freddy-epr.com</a>），我们会协助与 EKO-PUNKT 对接。</p>
 <p style="margin-top:24px;color:#999;font-size:12px">此邮件由系统自动发送。如需帮助，请联系 +86 152 2138 0610 或 info@freddy-epr.com</p>
 </div>`,
   })

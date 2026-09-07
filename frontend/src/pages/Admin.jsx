@@ -28,6 +28,42 @@ function currentMonthRange() {
   return [f(start), f(end)]
 }
 
+/** 收件队列里给某封邮件分配客户的内联搜索器（复用 /api/admin/clients/search） */
+function InboundClientPicker({ onPick }) {
+  const [q, setQ] = useState('')
+  const [results, setResults] = useState([])
+  const [show, setShow] = useState(false)
+  async function search(v) {
+    setQ(v)
+    const t = v.trim()
+    if (t.length < 2) { setResults([]); setShow(false); return }
+    try {
+      const tok = sessionStorage.getItem('token')
+      const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(t)}&perPage=8`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} })
+      const d = await r.json()
+      setResults((d.data || []).filter(c => c.contact_email))
+      setShow(true)
+    } catch { setResults([]) }
+  }
+  return (
+    <div className="relative flex-1 min-w-[180px]">
+      <input value={q} onChange={e => search(e.target.value)} placeholder="搜公司/手机号…分配客户"
+        className="w-full border border-gray-300 rounded-md px-2 py-1 text-xs focus:outline-none focus:border-primary" />
+      {show && results.length > 0 && (
+        <div className="absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-44 overflow-y-auto">
+          {results.map(c => (
+            <button key={c.id} type="button" onClick={() => { onPick(c); setQ(''); setResults([]); setShow(false) }}
+              className="w-full text-left px-2 py-1.5 text-xs hover:bg-gray-50 border-b border-gray-100 last:border-0">
+              <div className="font-medium text-gray-700">{c.company_name || c.contact_name}{c.contract_number ? <span className="text-gray-400 ml-1">· {c.contract_number}</span> : null}</div>
+              <div className="text-gray-400">{c.contact_email}{c.contact_phone ? ' · ' + c.contact_phone : ''}</div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Admin() {
   const [tab, setTab] = useState('packaging')
   const [stats, setStats] = useState(null)
@@ -65,6 +101,11 @@ export default function Admin() {
   const [bhTo, setBhTo] = useState(`${new Date().getFullYear()}-12-31`)
   const [lvFrom, setLvFrom] = useState(() => currentQuarterRange()[0])
   const [lvTo, setLvTo] = useState(() => currentQuarterRange()[1])
+  const [inboundModal, setInboundModal] = useState(false)
+  const [inboundDocs, setInboundDocs] = useState([])
+  const [inboundLoading, setInboundLoading] = useState(false)
+  const [inboundPending, setInboundPending] = useState(0)
+  const [inboundMsg, setInboundMsg] = useState('')
 
   const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}` } : {} }
 
@@ -309,6 +350,56 @@ export default function Admin() {
     if (infoModal) { setLucidEdit(infoModal.lucid_registration_number || ''); setLucidSaveMsg('') }
   }, [infoModal])
 
+  const loadInbound = async () => {
+    setInboundLoading(true); setInboundMsg('')
+    try {
+      const r = await fetch('/api/admin/inbound-documents', { headers: ah() })
+      const d = await r.json()
+      if (r.ok) {
+        setInboundDocs(d)
+        setInboundPending(d.filter(x => x.status === 'pending').length)
+      } else setInboundMsg('❌ ' + (d.error || '加载失败'))
+    } catch (e) { setInboundMsg('❌ ' + e.message) }
+    setInboundLoading(false)
+  }
+  const openInbound = () => { setInboundModal(true); loadInbound() }
+  const inboundAssign = async (docId, client) => {
+    try {
+      const r = await fetch(`/api/admin/inbound-documents/${docId}/assign`, { method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: client.id }) })
+      const d = await r.json()
+      if (r.ok) {
+        setInboundDocs(prev => prev.map(x => x.id === docId ? { ...x, client_id: client.id, company_name: client.company_name, contact_name: client.contact_name, contact_email: client.contact_email } : x))
+      } else alert('❌ ' + (d.error || '分配失败'))
+    } catch (e) { alert('❌ ' + e.message) }
+  }
+  const inboundForward = async (doc) => {
+    if (!doc.client_id) { alert('请先分配客户'); return }
+    if (!window.confirm(`转发给 ${doc.company_name || doc.contact_name || '客户#' + doc.client_id}（${doc.contact_email}）？`)) return
+    try {
+      const r = await fetch(`/api/admin/inbound-documents/${doc.id}/forward`, { method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: doc.client_id }) })
+      const d = await r.json()
+      if (r.ok) { setInboundMsg(`✅ 已转发给 ${d.forwarded_to}`); loadInbound() }
+      else alert('❌ ' + (d.error || '转发失败'))
+    } catch (e) { alert('❌ ' + e.message) }
+  }
+  const inboundSkip = async (doc) => {
+    if (!window.confirm('跳过此邮件？（标记为已跳过，不再显示）')) return
+    try {
+      const r = await fetch(`/api/admin/inbound-documents/${doc.id}/skip`, { method: 'POST', headers: ah() })
+      if (r.ok) loadInbound()
+      else { const d = await r.json().catch(() => ({})); alert('❌ ' + (d.error || '操作失败')) }
+    } catch (e) { alert('❌ ' + e.message) }
+  }
+  const inboundPoll = async () => {
+    setInboundMsg('⏳ 正在拉取收件箱…')
+    try {
+      const r = await fetch('/api/admin/inbound-documents/poll', { method: 'POST', headers: ah() })
+      const d = await r.json()
+      if (r.ok) { setInboundMsg(`✅ 拉取完成：新增 ${d.processed ?? 0}，跳过 ${d.skipped ?? 0}`); loadInbound() }
+      else setInboundMsg('❌ ' + (d.error || '拉取失败'))
+    } catch (e) { setInboundMsg('❌ ' + e.message) }
+  }
+
   const saveRate = async () => {
     if (!rateNew) return
     setRateSubmitting(true)
@@ -442,6 +533,7 @@ export default function Admin() {
           ))}
           <button onClick={exportCSV} className="px-3 py-1.5 border border-green-300 text-green-700 rounded-md text-xs hover:bg-green-50" title="导出客户 CSV">📥</button>
           <button onClick={() => setExportModal(true)} className="px-3 py-1.5 border border-blue-300 text-blue-700 rounded-md text-xs hover:bg-blue-50">📤 导出</button>
+          <button onClick={openInbound} className={`px-3 py-1.5 border rounded-md text-xs hover:bg-emerald-50 ${inboundPending > 0 ? 'border-emerald-400 text-emerald-700 font-medium' : 'border-emerald-300 text-emerald-700'}`}>📥 收件{inboundPending > 0 ? ` (${inboundPending})` : ''}</button>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-md">
             <span className="text-xs text-amber-700">EUR/CNY</span>
             <span className="text-sm font-bold text-amber-800">{(rateInfo.rate||8.10).toFixed(2)}</span>
@@ -990,6 +1082,49 @@ export default function Admin() {
                 <button onClick={doEkoPunktPaid} className="ml-auto px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">导出</button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Inbound inbox modal — 统一收发邮件·收件队列 */}
+      {inboundModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setInboundModal(false)}>
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 p-6 space-y-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-lg">📥 收件队列（待人工）</h3>
+              <div className="flex items-center gap-2">
+                <button onClick={inboundPoll} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-600 hover:bg-gray-50">↻ 拉取收件箱</button>
+                <button onClick={() => setInboundModal(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400">EKO-PUNKT 等合作方把材料发到 info@freddy-epr.com，在此分配客户后转发。系统每 5 分钟自动拉取，也可点「↻ 拉取收件箱」手动触发。</p>
+            {inboundMsg && <p className="text-xs text-emerald-600">{inboundMsg}</p>}
+            {inboundLoading ? <p className="text-sm text-gray-400 py-8 text-center">加载中…</p> :
+              inboundDocs.filter(d => d.status === 'pending').length === 0 ? (
+                <p className="text-sm text-gray-400 py-8 text-center">无待处理邮件</p>
+              ) : (
+                <div className="space-y-3">
+                  {inboundDocs.filter(d => d.status === 'pending').map(d => (
+                    <div key={d.id} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                      <div className="flex justify-between gap-2">
+                        <div className="font-medium text-sm text-gray-800 leading-snug break-words">{d.subject}</div>
+                        <div className="text-[11px] text-gray-400 whitespace-nowrap">{d.received_at ? new Date(d.received_at).toLocaleString('zh-CN') : ''}</div>
+                      </div>
+                      <div className="text-xs text-gray-500">发件人：{d.sender_name || '—'}{d.sender_email ? ` <${d.sender_email}>` : ''} · 附件 {d.attachments.length} 个</div>
+                      {d.body_text && <div className="text-xs text-gray-400 break-words">{d.body_text.slice(0, 120)}</div>}
+                      {d.client_id && (
+                        <div className="text-xs text-emerald-700">已分配 → {d.company_name || d.contact_name || `客户#${d.client_id}`}{d.contact_email ? ` <${d.contact_email}>` : ''}</div>
+                      )}
+                      <div className="flex items-center gap-2 pt-1">
+                        <InboundClientPicker onPick={(c) => inboundAssign(d.id, c)} />
+                        <button onClick={() => inboundForward(d)} disabled={!d.client_id}
+                          className="px-3 py-1 bg-primary text-white rounded-md text-xs font-medium disabled:opacity-40 hover:bg-primary-light">转发</button>
+                        <button onClick={() => inboundSkip(d)} className="px-3 py-1 border border-gray-200 rounded-md text-xs text-gray-500 hover:bg-gray-50">跳过</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
           </div>
         </div>
       )}

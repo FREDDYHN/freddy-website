@@ -3,7 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import bcrypt from 'bcrypt'
 import multer from 'multer'
-import { existsSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import { rename } from 'fs/promises'
 import { fileURLToPath } from 'url'
 import { dirname, join as pathJoin } from 'path'
@@ -26,7 +26,8 @@ import { decryptLucid } from './services/crypto.js'
 import { markPaid } from './payment.js'
 import { rateLimit } from './rate-limiter.js'
 import { localDate, beijingDateFromUtc } from './services/date.js'
-import { sendTaxNumberRequest, sendLucidNumberRequest, sendLucidAcceptanceReminder } from './services/email.js'
+import { sendTaxNumberRequest, sendLucidNumberRequest, sendLucidAcceptanceReminder, sendInboundForward } from './services/email.js'
+import { startInboundScheduler, pollInbox } from './services/inbound-email.js'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -959,6 +960,112 @@ app.delete('/api/admin/applications/:id', authMiddleware, adminMiddleware, async
   }
 })
 
+// ── Admin: Inbound documents（统一收发邮件·收件队列）──
+// EKO-PUNKT 等合作方把客户材料发到 info@freddy-epr.com，IMAP 归档后进入「待人工」队列，
+// 管理员在此分配客户、转发给客户或跳过。
+app.get('/api/admin/inbound-documents', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const status = req.query.status
+    const rows = status
+      ? await db.all(
+          `SELECT d.*, cl.company_name, cl.contact_name, cl.contact_email
+           FROM inbound_documents d LEFT JOIN clients cl ON d.client_id = cl.id
+           WHERE d.status = ? ORDER BY d.id DESC LIMIT 200`, status
+        )
+      : await db.all(
+          `SELECT d.*, cl.company_name, cl.contact_name, cl.contact_email
+           FROM inbound_documents d LEFT JOIN clients cl ON d.client_id = cl.id
+           ORDER BY CASE WHEN d.status = 'pending' THEN 0 ELSE 1 END, d.id DESC LIMIT 200`
+        )
+    res.json(rows.map(r => ({ ...r, attachments: JSON.parse(r.attachments_json || '[]') })))
+  } catch (e) {
+    console.error('[server] inbound list error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// 手动触发一次 IMAP 轮询（测试/排障用）
+app.post('/api/admin/inbound-documents/poll', authMiddleware, adminMiddleware, async (_req, res) => {
+  try {
+    const result = await pollInbox()
+    res.json({ success: true, ...result })
+  } catch (e) {
+    console.error('[server] inbound poll error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// 分配客户（不转发，仅打标；也用于纠正自动匹配）
+app.post('/api/admin/inbound-documents/:id/assign', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const { client_id } = req.body
+    if (!client_id) return res.status(400).json({ error: 'client_id required' })
+    const doc = await db.get('SELECT id FROM inbound_documents WHERE id = ?', req.params.id)
+    if (!doc) return res.status(404).json({ error: 'Document not found' })
+    await db.run('UPDATE inbound_documents SET client_id = ? WHERE id = ?', client_id, req.params.id)
+    res.json({ success: true, id: parseInt(req.params.id), client_id: parseInt(client_id) })
+  } catch (e) {
+    console.error('[server] inbound assign error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// 转发给客户（携带附件），并标记 forwarded
+app.post('/api/admin/inbound-documents/:id/forward', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const { client_id } = req.body
+    const doc = await db.get('SELECT * FROM inbound_documents WHERE id = ?', req.params.id)
+    if (!doc) return res.status(404).json({ error: 'Document not found' })
+
+    const cid = client_id || doc.client_id
+    if (!cid) return res.status(400).json({ error: '请先分配客户 (client_id)' })
+    const cl = await db.get('SELECT contact_email, contact_name, company_name FROM clients WHERE id = ?', cid)
+    if (!cl) return res.status(404).json({ error: 'Client not found' })
+    if (!cl.contact_email) return res.status(400).json({ error: '客户邮箱缺失' })
+
+    // 从磁盘读回附件（附件文件存于 uploads/inbound/ 下）
+    const files = []
+    for (const a of JSON.parse(doc.attachments_json || '[]')) {
+      const p = pathJoin(rootPath, 'uploads', a.stored_path)
+      if (existsSync(p)) files.push({ filename: a.filename, content: readFileSync(p) })
+    }
+
+    await sendInboundForward({
+      email: cl.contact_email,
+      name: cl.contact_name || cl.company_name,
+      subject: doc.subject,
+      attachments: files,
+    })
+
+    await db.run(
+      "UPDATE inbound_documents SET client_id = ?, status = 'forwarded', forwarded_at = datetime('now') WHERE id = ?",
+      cid, doc.id
+    )
+    console.log(`[server] inbound #${doc.id} 已转发给 ${cl.contact_email}（客户 ${cl.company_name || cl.contact_name}）`)
+    res.json({ success: true, id: doc.id, forwarded_to: cl.contact_email })
+  } catch (e) {
+    console.error('[server] inbound forward error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// 跳过（垃圾/无关邮件，或无需转发）
+app.post('/api/admin/inbound-documents/:id/skip', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const doc = await db.get('SELECT id FROM inbound_documents WHERE id = ?', req.params.id)
+    if (!doc) return res.status(404).json({ error: 'Document not found' })
+    await db.run("UPDATE inbound_documents SET status = 'skipped' WHERE id = ?", req.params.id)
+    res.json({ success: true, id: parseInt(req.params.id) })
+  } catch (e) {
+    console.error('[server] inbound skip error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // ══════════════════════════════════════════════
 //  Unified Error Handler
 // ══════════════════════════════════════════════
@@ -988,6 +1095,7 @@ async function start() {
   await seedAdmin()
   startRateFetcher()
   startReminderScheduler()
+  startInboundScheduler()
   const server = app.listen(PORT, () => {
     console.log(`[server] Freddy EPR Platform running on http://localhost:${PORT}`)
     console.log(`[server] CORS origins: ${ALLOWED_ORIGINS.join(', ')}`)
