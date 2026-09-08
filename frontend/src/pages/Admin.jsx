@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { PACKAGING_MATERIALS, getRecyclingRate, calcMaterialFee, applyFloorFee, CLIENT_CHANGEABLE_FIELDS } from '@shared/constants.js'
+import { PACKAGING_MATERIALS, getRecyclingRate, calcMaterialFee, applyFloorFee, CLIENT_CHANGEABLE_FIELDS, CLIENT_COUNTRIES } from '@shared/constants.js'
 
 const TABS = [
   { key: 'packaging', label: '📦 包装法 AR' },
@@ -920,7 +920,9 @@ export default function Admin() {
               {infoModal.registered_address && <div className="flex justify-between"><span className="text-gray-400">注册地址</span><span className="font-medium text-xs">{infoModal.registered_address}</span></div>}
               {infoModal.entity_type === 'individual'
                 ? (infoModal.id_number && <div className="flex justify-between"><span className="text-gray-400">身份证号</span><span className="font-mono font-medium">{infoModal.id_number}</span></div>)
-                : (infoModal.uscc && <div className="flex justify-between"><span className="text-gray-400">信用代码</span><span className="font-mono font-medium">{infoModal.uscc}</span></div>)}
+                : (infoModal.uscc && <div className="flex justify-between"><span className="text-gray-400">税号/信用代码</span><span className="font-mono font-medium">{infoModal.uscc}</span></div>)}
+              {infoModal.country && <div className="flex justify-between"><span className="text-gray-400">国家/地区</span><span className="font-medium">{CLIENT_COUNTRIES.find(c => c.code === infoModal.country)?.label || infoModal.country}</span></div>}
+              {infoModal.vat_id && <div className="flex justify-between"><span className="text-gray-400">USt-IdNr</span><span className="font-mono font-medium">{infoModal.vat_id}</span></div>}
               <div className="flex justify-between"><span className="text-gray-400">联系人</span><span className="font-medium">{infoModal.contact_name||'—'}</span></div>
               <div className="flex justify-between"><span className="text-gray-400">邮箱</span><span className="font-medium">{infoModal.contact_email}</span></div>
               <div className="flex justify-between"><span className="text-gray-400">手机</span><span className="font-medium">{infoModal.contact_phone||'—'}</span></div>

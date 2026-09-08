@@ -5,7 +5,7 @@ import { createPaymentOrder, insertPaymentRow } from '../payment.js'
 import { generateContract, getContractUrl } from '../services/contract-gen.js'
 import { sendVerificationEmail, sendLucidGuide } from '../services/email.js'
 import { rateLimit } from '../rate-limiter.js'
-import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES, containsChinese } from '../../../shared/constants.js'
+import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES, containsChinese, taxError, needsVatId, FOREIGN_TAX_RE } from '../../../shared/constants.js'
 
 const router = Router()
 
@@ -72,7 +72,7 @@ function contractPeriod() {
 router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, res) => {
   const db = await getDb()
   try {
-    const { service_type, company_name, company_name_en, registered_address, registered_address_en, entity_type, uscc, id_number, legal_representative, legal_representative_en,
+    const { service_type, company_name, company_name_en, registered_address, registered_address_en, entity_type, uscc, id_number, country, vat_id, legal_representative, legal_representative_en,
             contact_person, contact_person_en, contact_email, contact_phone, wechat_id,
             packaging_items, tier, device_categories, brand_count, year_type } = req.body
 
@@ -84,12 +84,16 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
     if (containsChinese(company_name_en) || containsChinese(registered_address_en) || containsChinese(legal_representative_en) || containsChinese(contact_person_en)) {
       return res.status(400).json({ error: '英文/拼音字段不能包含中文' })
     }
-    // 税号必填：公司 → 统一社会信用代码；个人 → 身份证号码
+    // 税号必填：公司 → 统一社会信用代码；个人 → 身份证号码；境外 → 宽松税号
     const entityType = entity_type === 'individual' ? 'individual' : 'company'
-    if (entityType === 'individual') {
-      if (!id_number || !String(id_number).trim()) return res.status(400).json({ error: '身份证号码必填' })
-    } else {
-      if (!uscc || !String(uscc).trim()) return res.status(400).json({ error: '统一社会信用代码（税号）必填' })
+    const countryCode = (country || 'CN').trim().toUpperCase() || 'CN'
+    const taxValue = entityType === 'individual' ? id_number : uscc
+    const taxErr = taxError(countryCode, entityType, taxValue)
+    if (taxErr) return res.status(400).json({ error: taxErr })
+    if (needsVatId(countryCode)) {
+      const v = String(vat_id || '').trim()
+      if (!v) return res.status(400).json({ error: 'Umsatzsteuer ID Nummer（增值税号）必填' })
+      if (!FOREIGN_TAX_RE.test(v.toUpperCase())) return res.status(400).json({ error: '增值税号格式不正确（4-20位字母或数字）' })
     }
     if (contact_phone) {
       const phoneExists = await db.get('SELECT id FROM clients WHERE contact_phone = ? AND contact_email != ?', contact_phone, contact_email)
@@ -148,13 +152,13 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
         clientId = existingClient.id
         // Update existing client with latest info
         await db.run(
-          'UPDATE clients SET company_name=?, company_name_en=?, registered_address=?, registered_address_en=?, entity_type=?, uscc=?, id_number=?, legal_representative=?, legal_representative_en=?, contact_name=?, contact_name_en=?, contact_phone=?, wechat_id=? WHERE id=?',
-          company_name, company_name_en || '', registered_address || '', registered_address_en || '', entityType, uscc || '', id_number || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_phone || '', wechat_id || '', clientId
+          'UPDATE clients SET company_name=?, company_name_en=?, registered_address=?, registered_address_en=?, entity_type=?, uscc=?, id_number=?, country=?, vat_id=?, legal_representative=?, legal_representative_en=?, contact_name=?, contact_name_en=?, contact_phone=?, wechat_id=? WHERE id=?',
+          company_name, company_name_en || '', registered_address || '', registered_address_en || '', entityType, uscc || '', id_number || '', countryCode, vat_id || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_phone || '', wechat_id || '', clientId
         )
       } else {
         const clientResult = await db.run(
-          'INSERT INTO clients (company_name, company_name_en, registered_address, registered_address_en, entity_type, uscc, id_number, legal_representative, legal_representative_en, contact_name, contact_name_en, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          company_name, company_name_en || '', registered_address || '', registered_address_en || '', entityType, uscc || '', id_number || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_email, contact_phone || '', wechat_id || ''
+          'INSERT INTO clients (company_name, company_name_en, registered_address, registered_address_en, entity_type, uscc, id_number, country, vat_id, legal_representative, legal_representative_en, contact_name, contact_name_en, contact_email, contact_phone, wechat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          company_name, company_name_en || '', registered_address || '', registered_address_en || '', entityType, uscc || '', id_number || '', countryCode, vat_id || '', legal_representative || '', legal_representative_en || '', contact_person || '', contact_person_en || '', contact_email, contact_phone || '', wechat_id || ''
         )
         clientId = clientResult.lastID
       }

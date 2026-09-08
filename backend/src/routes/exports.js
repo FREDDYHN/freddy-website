@@ -231,7 +231,7 @@ router.get('/eko-punkt', async (req, res) => {
               c.contract_number,
               cl.company_name_en, cl.company_name, cl.contact_name, cl.contact_name_en, cl.contact_email,
               cl.contact_phone, cl.wechat_id, cl.registered_address_en, cl.registered_address,
-              cl.uscc, cl.id_number, cl.entity_type, cl.lucid_registration_number
+              cl.uscc, cl.id_number, cl.entity_type, cl.country, cl.vat_id, cl.lucid_registration_number
        FROM packaging_data pd
        JOIN contracts c ON c.id = pd.contract_id
        JOIN clients cl ON cl.id = c.client_id
@@ -273,11 +273,12 @@ router.get('/eko-punkt', async (req, res) => {
       // 10 地址补充留空；11 PLZ 邮编（仅用于 EKO-PUNKT 导出，地址已有或地级市近似值）
       ws.getCell(rowIdx, 11).value = resolvePlz(c.registered_address, c.registered_address_en)
       ws.getCell(rowIdx, 12).value = clean(resolveCity(c.registered_address, c.registered_address_en))  // 城市：中文转拼音，外文取城市
-      ws.getCell(rowIdx, 13).value = resolveCountry(c.registered_address, c.registered_address_en)       // 国家：按地址判断，不再写死 CN
+      ws.getCell(rowIdx, 13).value = clean(c.country || resolveCountry(c.registered_address, c.registered_address_en))  // 国家：优先显式 country，回退地址反推
       ws.getCell(rowIdx, 14).value = EKO_PUNKT.email  // 统一收发邮箱：EKO-PUNKT 材料发我们，再由我们转发客户
       ws.getCell(rowIdx, 15).value = clean(c.contact_phone)
       ws.getCell(rowIdx, 16).value = clean(c.wechat_id)
-      // 17-23 发票地址/Ust-IdNr 留空（中国客户无欧盟 VAT）
+      // 17-22 发票地址（abweichende Rechnungsanschrift）留空
+      ws.getCell(rowIdx, 23).value = clean(c.vat_id)  // Ust-IdNr：欧盟（除德国）卖家增值税号
       ws.getCell(rowIdx, 24).value = clean(taxNo)
       ws.getCell(rowIdx, 25).value = c.declaration_year || ''
       // 左对齐：姓名(7/8)、地址(9)、微信号(16)、税号(24)

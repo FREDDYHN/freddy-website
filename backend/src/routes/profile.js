@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt'
 import { getDb } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
 import { encryptLucid } from '../services/crypto.js'
-import { CLIENT_CHANGEABLE_FIELDS, containsChinese } from '../../../shared/constants.js'
+import { CLIENT_CHANGEABLE_FIELDS, containsChinese, taxError, CLIENT_COUNTRIES, FOREIGN_TAX_RE } from '../../../shared/constants.js'
 
 const router = Router()
 
@@ -30,13 +30,13 @@ router.put('/', authMiddleware, async (req, res) => {
     const { company_name, company_name_en, contact_name, contact_phone, wechat_id,
             entity_type, uscc, id_number, registered_address, legal_representative, lucid_registration_number } = req.body
 
-    // 税号校验（公司 → uscc 必填 / 个人 → id_number 必填）
+    // 税号校验（按客户已存国家判定：中国走 USCC/身份证，境外走宽松税号）
     const entityType = entity_type === 'individual' ? 'individual' : 'company'
-    if (entityType === 'individual') {
-      if (!id_number || !String(id_number).trim()) return res.status(400).json({ error: '身份证号码必填' })
-    } else {
-      if (!uscc || !String(uscc).trim()) return res.status(400).json({ error: '统一社会信用代码（税号）必填' })
-    }
+    const clientRow = await db.get('SELECT country FROM clients WHERE id = ?', req.user.client_id)
+    const countryCode = (clientRow?.country || 'CN').toUpperCase()
+    const taxValue = entityType === 'individual' ? id_number : uscc
+    const taxErr = taxError(countryCode, entityType, taxValue)
+    if (taxErr) return res.status(400).json({ error: taxErr })
     // 英文/拼音字段禁止中文
     if (containsChinese(company_name_en)) return res.status(400).json({ error: '英文/拼音字段不能包含中文' })
 
@@ -85,6 +85,13 @@ router.post('/change-request', authMiddleware, async (req, res) => {
     const noChineseFields = ['company_name_en', 'legal_representative_en', 'registered_address_en']
     if (noChineseFields.some(f => valid[f] && containsChinese(valid[f]))) {
       return res.status(400).json({ error: '英文/拼音字段不能包含中文' })
+    }
+    // 国家必须是合法 ISO 码；增值税号宽松格式校验
+    if (valid.country && !CLIENT_COUNTRIES.some(c => c.code === valid.country)) {
+      return res.status(400).json({ error: '国家/地区不合法' })
+    }
+    if (valid.vat_id && !FOREIGN_TAX_RE.test(String(valid.vat_id).toUpperCase())) {
+      return res.status(400).json({ error: '增值税号格式不正确（4-20位字母或数字）' })
     }
 
     const result = await db.run(

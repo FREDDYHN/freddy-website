@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { CLIENT_CHANGEABLE_FIELDS, containsChinese } from '@shared/constants.js'
+import { CLIENT_CHANGEABLE_FIELDS, containsChinese, CLIENT_COUNTRIES, CN_REGION_CODES, taxError } from '@shared/constants.js'
 
 const inpCls = 'w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-primary'
 const btnCls = 'px-5 py-2.5 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary-light disabled:opacity-50'
@@ -25,13 +25,10 @@ export default function Profile() {
 
   const saveTax = async () => {
     if (!taxForm || !p) return
-    if (taxForm.entity_type === 'individual') {
-      if (!taxForm.id_number.trim()) { setTaxMsg('❌ 请输入身份证号码'); return }
-      if (!/^\d{17}[\dXx]$/.test(taxForm.id_number.trim())) { setTaxMsg('❌ 身份证号码格式不正确（18位）'); return }
-    } else {
-      if (!taxForm.uscc.trim()) { setTaxMsg('❌ 请输入统一社会信用代码'); return }
-      if (!/^([0-9A-Za-z]{18}|\d{8})$/.test(taxForm.uscc.trim())) { setTaxMsg('❌ 税号格式不正确（18位统一社会信用代码，或8位香港商业登记号）'); return }
-    }
+    const countryCode = (p.country || 'CN').toUpperCase()
+    const taxValue = taxForm.entity_type === 'individual' ? taxForm.id_number : taxForm.uscc
+    const te = taxError(countryCode, taxForm.entity_type, taxValue)
+    if (te) { setTaxMsg('❌ ' + te); return }
     setTaxMsg('')
     try {
       const body = {
@@ -60,6 +57,8 @@ export default function Profile() {
       contact_phone: p?.contact_phone || '',
       wechat_id: p?.wechat_id || '',
       lucid_registration_number: p?.lucid_registration_number || '',
+      country: p?.country || '',
+      vat_id: p?.vat_id || '',
     })
     setMsg('')
     setChangeOpen(true)
@@ -110,7 +109,9 @@ export default function Profile() {
           {[
             ['公司名称', p.company_name],
             ['英文名', p.company_name_en],
-            [p.entity_type === 'individual' ? '身份证号' : '信用代码', p.entity_type === 'individual' ? p.id_number : p.uscc],
+            ['国家/地区', CLIENT_COUNTRIES.find(c => c.code === p.country)?.label || p.country],
+            [p.entity_type === 'individual' ? '身份证号' : (CN_REGION_CODES.includes(p.country || 'CN') ? '信用代码' : '税号'), p.entity_type === 'individual' ? p.id_number : p.uscc],
+            ['USt-IdNr / 增值税号', p.vat_id],
             ['法定代表人', p.legal_representative],
             ['联系人', p.contact_name],
             ['手机号', p.contact_phone],
@@ -133,7 +134,8 @@ export default function Profile() {
       {taxForm && (
         <div className="bg-white border border-gray-100 rounded-lg p-5 space-y-4 mb-6">
           <h2 className="font-bold">税号 / 身份证（预申报必填）</h2>
-          <p className="text-xs text-gray-400">预申报需要您的身份标识号：公司请填统一社会信用代码，个人请填身份证号码。</p>
+          <p className="text-xs text-gray-400">{CN_REGION_CODES.includes(p.country || 'CN') ? '预申报需要您的身份标识号：公司请填统一社会信用代码，个人请填身份证号码。' : '预申报需要您的税号（境外客户请填本国税号）。'}</p>
+          {CN_REGION_CODES.includes(p.country || 'CN') && (
           <div className="flex gap-2">
             {[['company', '公司'], ['individual', '个人']].map(([k, label]) => (
               <button key={k} type="button" onClick={() => setTaxForm(f => ({ ...f, entity_type: k }))}
@@ -142,7 +144,13 @@ export default function Profile() {
               </button>
             ))}
           </div>
-          {taxForm.entity_type === 'company' ? (
+          )}
+          {!CN_REGION_CODES.includes(p.country || 'CN') ? (
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1">税号 / Tax Number *</label>
+              <input value={taxForm.uscc} onChange={e => setTaxForm(f => ({ ...f, uscc: e.target.value }))} className={inpCls} placeholder="DRBRND61M22B925M" />
+            </div>
+          ) : taxForm.entity_type === 'company' ? (
             <div>
               <label className="block text-xs font-medium text-gray-400 mb-1">统一社会信用代码（税号）* <span className="text-gray-300">（香港客户填 8 位商业登记号）</span></label>
               <input value={taxForm.uscc} onChange={e => setTaxForm(f => ({ ...f, uscc: e.target.value }))} className={inpCls} placeholder="91340400MADDK97K4X" />
@@ -181,7 +189,14 @@ export default function Profile() {
               {Object.entries(CLIENT_CHANGEABLE_FIELDS).map(([field, label]) => (
                 <div key={field}>
                   <label className="block text-xs font-medium text-gray-400 mb-1">{label}</label>
-                  <input value={changeForm[field] || ''} onChange={e => setChangeForm(f => ({ ...f, [field]: e.target.value }))} className={inpCls} />
+                  {field === 'country' ? (
+                    <select value={changeForm[field] || ''} onChange={e => setChangeForm(f => ({ ...f, [field]: e.target.value }))} className={inpCls}>
+                      <option value="">（不修改）</option>
+                      {CLIENT_COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
+                    </select>
+                  ) : (
+                    <input value={changeForm[field] || ''} onChange={e => setChangeForm(f => ({ ...f, [field]: e.target.value }))} className={inpCls} />
+                  )}
                 </div>
               ))}
             </div>

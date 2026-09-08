@@ -28,6 +28,7 @@ import { rateLimit } from './rate-limiter.js'
 import { localDate, beijingDateFromUtc } from './services/date.js'
 import { sendTaxNumberRequest, sendLucidNumberRequest, sendLucidAcceptanceReminder, sendInboundForward } from './services/email.js'
 import { startInboundScheduler, pollInbox } from './services/inbound-email.js'
+import { taxError } from '../../shared/constants.js'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -198,7 +199,7 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
     const whereClause = showAll ? '' : "WHERE c.status != 'pending_verification'"
     const [rows, countRow] = await Promise.all([
       db.all(
-        `SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email, cl.contact_phone, cl.registered_address, cl.entity_type, cl.uscc, cl.id_number, cl.legal_representative, cl.wechat_id, cl.lucid_registration_number, cl.lucid_login FROM contracts c JOIN clients cl ON c.client_id = cl.id ${whereClause} ORDER BY c.id DESC LIMIT ? OFFSET ?`,
+        `SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email, cl.contact_phone, cl.registered_address, cl.entity_type, cl.uscc, cl.id_number, cl.country, cl.vat_id, cl.legal_representative, cl.wechat_id, cl.lucid_registration_number, cl.lucid_login FROM contracts c JOIN clients cl ON c.client_id = cl.id ${whereClause} ORDER BY c.id DESC LIMIT ? OFFSET ?`,
         perPage, offset
       ),
       db.get(`SELECT COUNT(*) as total FROM contracts c ${whereClause}`),
@@ -597,13 +598,12 @@ app.patch('/api/admin/clients/:id', authMiddleware, adminMiddleware, async (req,
     const db = await getDb()
     const { entity_type, uscc, id_number } = req.body
     const entityType = entity_type === 'individual' ? 'individual' : 'company'
-    if (entityType === 'individual') {
-      if (!id_number || !String(id_number).trim()) return res.status(400).json({ error: '身份证号码必填' })
-    } else {
-      if (!uscc || !String(uscc).trim()) return res.status(400).json({ error: '统一社会信用代码（税号）必填' })
-    }
-    const client = await db.get('SELECT id FROM clients WHERE id = ?', req.params.id)
+    const client = await db.get('SELECT id, country FROM clients WHERE id = ?', req.params.id)
     if (!client) return res.status(404).json({ error: 'Client not found' })
+    const countryCode = (client.country || 'CN').toUpperCase()
+    const taxValue = entityType === 'individual' ? id_number : uscc
+    const taxErr = taxError(countryCode, entityType, taxValue)
+    if (taxErr) return res.status(400).json({ error: taxErr })
     await db.run(
       "UPDATE clients SET entity_type = ?, uscc = ?, id_number = ?, updated_at = datetime('now') WHERE id = ?",
       entityType, uscc ? String(uscc).trim() : '', id_number ? String(id_number).trim() : '', req.params.id

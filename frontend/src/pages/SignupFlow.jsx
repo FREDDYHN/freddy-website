@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { PACKAGING_MATERIALS, AR_TIERS, WEEE_PRICES, BATTERY_PRICES, EMAIL_RE, containsChinese } from '@shared/constants.js'
+import { PACKAGING_MATERIALS, AR_TIERS, WEEE_PRICES, BATTERY_PRICES, EMAIL_RE, containsChinese, CLIENT_COUNTRIES, CN_REGION_CODES, needsVatId, taxError } from '@shared/constants.js'
 
 const MATERIALS = PACKAGING_MATERIALS
 
@@ -48,7 +48,7 @@ export default function SignupFlow() {
   const [errors, setErrors] = useState({})
 
   const [form, setForm] = useState({
-    company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', entity_type: 'company', uscc: '', id_number: '', legal_representative: '', legal_representative_en: '',
+    company_name: '', company_name_en: '', registered_address: '', registered_address_en: '', entity_type: 'company', uscc: '', id_number: '', country: 'CN', vat_id: '', legal_representative: '', legal_representative_en: '',
     contact_person: '', contact_person_en: '', contact_phone: '', wechat_id: '', contact_email: '',
     packaging_items: MATERIALS.map(m => ({ material: m.label, material_key: m.key, kg: '', example: '' })), tier: urlTier,
     device_categories: [], brand_count: '1', year_type: 'first',
@@ -81,7 +81,15 @@ export default function SignupFlow() {
       if (!form.wechat_id.trim()) e.wechat_id = '请输入微信号'
       if (!form.contact_email.trim()) e.contact_email = '请输入邮箱'
       else if (!EMAIL_RE.test(form.contact_email)) e.contact_email = '邮箱格式不正确'
-      if (form.entity_type === 'individual') {
+      if (!CN_REGION_CODES.includes(form.country)) {
+        // 境外客户：单个宽松税号字段（存 uscc）
+        const te = taxError(form.country, 'company', form.uscc)
+        if (te) e.uscc = te
+        if (needsVatId(form.country)) {
+          if (!form.vat_id.trim()) e.vat_id = '请输入 Umsatzsteuer ID Nummer（增值税号）'
+          else if (!/^[A-Za-z0-9]{4,20}$/.test(form.vat_id.trim().toUpperCase())) e.vat_id = '增值税号格式不正确（4-20位字母或数字）'
+        }
+      } else if (form.entity_type === 'individual') {
         if (!form.id_number.trim()) e.id_number = '请输入身份证号码'
         else if (!/^\d{17}[\dXx]$/.test(form.id_number.trim())) e.id_number = '身份证号码格式不正确（18位）'
       } else {
@@ -105,7 +113,7 @@ export default function SignupFlow() {
   const toggleCat = (k) => { const c = form.device_categories; update('device_categories', c.includes(k) ? c.filter(x => x !== k) : [...c, k]) }
 
   const buildBody = () => {
-    const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), entity_type: form.entity_type, uscc: form.uscc.trim(), id_number: form.id_number.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: form.legal_representative_en.trim(), contact_person: form.contact_person.trim(), contact_person_en: form.contact_person_en.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), tier: form.tier }
+    const body = { service_type: serviceType, company_name: form.company_name.trim(), company_name_en: form.company_name_en.trim(), registered_address: form.registered_address.trim(), registered_address_en: (form.registered_address_en || '').trim(), entity_type: form.entity_type, uscc: form.uscc.trim(), id_number: form.id_number.trim(), country: form.country, vat_id: form.vat_id.trim(), legal_representative: form.legal_representative.trim(), legal_representative_en: form.legal_representative_en.trim(), contact_person: form.contact_person.trim(), contact_person_en: form.contact_person_en.trim(), contact_phone: form.contact_phone.trim(), wechat_id: form.wechat_id.trim(), contact_email: form.contact_email.trim(), tier: form.tier }
     if (isPkg) body.packaging_items = form.packaging_items.filter(p => p.kg && parseFloat(p.kg) > 0).map(p => ({ material_type: p.material_key, estimated_kg: p.kg, example: p.example || '' }))
     else { body.device_categories = form.device_categories; body.brand_count = parseInt(form.brand_count) || 1; body.year_type = form.year_type }
     return body
@@ -230,6 +238,14 @@ export default function SignupFlow() {
           </div>
 
           <div>
+            <label className="block text-xs font-semibold mb-1 text-gray-500">国家/地区 *</label>
+            <select value={form.country} onChange={e => { const c = e.target.value; update('country', c); if (!CN_REGION_CODES.includes(c)) update('entity_type', 'company') }} className={`${inputCls} bg-white`}>
+              {CLIENT_COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
+            </select>
+          </div>
+
+          {CN_REGION_CODES.includes(form.country) && (
+          <div>
             <label className="block text-xs font-semibold mb-1 text-gray-500">主体类型 *</label>
             <div className="flex gap-2">
               {[['company', '公司'], ['individual', '个人']].map(([k, label]) => (
@@ -240,8 +256,15 @@ export default function SignupFlow() {
               ))}
             </div>
           </div>
+          )}
 
-          {form.entity_type === 'company' ? (
+          {!CN_REGION_CODES.includes(form.country) ? (
+            <div>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">税号 / Tax Number * <span className="font-normal text-gray-400">（如意大利 Codice Fiscale / Partita IVA）</span></label>
+              <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={`${inputCls} ${errCls('uscc', errors)}`} placeholder="DRBRND61M22B925M" />
+              {fe('uscc')}
+            </div>
+          ) : form.entity_type === 'company' ? (
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-500">统一社会信用代码（税号）* <span className="font-normal text-gray-400">（香港客户填 8 位商业登记号）</span></label>
               <input value={form.uscc} onChange={e => update('uscc', e.target.value)} className={`${inputCls} ${errCls('uscc', errors)}`} placeholder="91340400MADDK97K4X" />
@@ -252,6 +275,14 @@ export default function SignupFlow() {
               <label className="block text-xs font-semibold mb-1 text-gray-500">身份证号码 *</label>
               <input value={form.id_number} onChange={e => update('id_number', e.target.value)} className={`${inputCls} ${errCls('id_number', errors)}`} placeholder="18位身份证号码" />
               {fe('id_number')}
+            </div>
+          )}
+
+          {needsVatId(form.country) && (
+            <div>
+              <label className="block text-xs font-semibold mb-1 text-gray-500">Umsatzsteuer ID Nummer (USt-IdNr) * <span className="font-normal text-gray-400">（欧盟卖家增值税号，EKO-PUNKT 必填）</span></label>
+              <input value={form.vat_id} onChange={e => update('vat_id', e.target.value)} className={`${inputCls} ${errCls('vat_id', errors)}`} placeholder="IT12345678901" />
+              {fe('vat_id')}
             </div>
           )}
 
@@ -313,7 +344,7 @@ export default function SignupFlow() {
           </div>
 
           <div className="flex justify-end pt-2">
-            <button onClick={() => next(step + 1)} disabled={!form.company_name || !form.company_name_en || !form.registered_address || !form.legal_representative || !form.legal_representative_en || !form.contact_person || !form.contact_person_en || !form.contact_email || !form.contact_phone || !form.wechat_id || (form.entity_type === 'company' ? !form.uscc : !form.id_number)} className={btnCls}>下一步 →</button>
+            <button onClick={() => next(step + 1)} disabled={!form.company_name || !form.company_name_en || !form.registered_address || !form.legal_representative || !form.legal_representative_en || !form.contact_person || !form.contact_person_en || !form.contact_email || !form.contact_phone || !form.wechat_id || (!CN_REGION_CODES.includes(form.country) ? (!form.uscc || (needsVatId(form.country) && !form.vat_id)) : (form.entity_type === 'company' ? !form.uscc : !form.id_number))} className={btnCls}>下一步 →</button>
           </div>
         </div>
       )}
@@ -408,10 +439,14 @@ export default function SignupFlow() {
               <div><span className="text-gray-400 text-xs">公司（中文）</span><p className="font-medium">{form.company_name}</p></div>
               {form.registered_address_en && <div><span className="text-gray-400 text-xs">地址（英文）</span><p className="font-medium text-xs">{form.registered_address_en}</p></div>}
               <div><span className="text-gray-400 text-xs">地址（中文）</span><p className="font-medium text-xs">{form.registered_address}</p></div>
-              <div><span className="text-gray-400 text-xs">主体类型</span><p className="font-medium text-xs">{form.entity_type === 'company' ? '公司' : '个人'}</p></div>
-              {form.entity_type === 'company'
-                ? (form.uscc && <div><span className="text-gray-400 text-xs">信用代码（税号）</span><p className="font-medium text-xs">{form.uscc}</p></div>)
-                : (form.id_number && <div><span className="text-gray-400 text-xs">身份证号码</span><p className="font-medium text-xs">{form.id_number}</p></div>)}
+              <div><span className="text-gray-400 text-xs">国家/地区</span><p className="font-medium text-xs">{CLIENT_COUNTRIES.find(c => c.code === form.country)?.label || form.country}</p></div>
+              {CN_REGION_CODES.includes(form.country) && <div><span className="text-gray-400 text-xs">主体类型</span><p className="font-medium text-xs">{form.entity_type === 'company' ? '公司' : '个人'}</p></div>}
+              {!CN_REGION_CODES.includes(form.country)
+                ? (form.uscc && <div><span className="text-gray-400 text-xs">税号</span><p className="font-medium text-xs">{form.uscc}</p></div>)
+                : form.entity_type === 'company'
+                  ? (form.uscc && <div><span className="text-gray-400 text-xs">信用代码（税号）</span><p className="font-medium text-xs">{form.uscc}</p></div>)
+                  : (form.id_number && <div><span className="text-gray-400 text-xs">身份证号码</span><p className="font-medium text-xs">{form.id_number}</p></div>)}
+              {needsVatId(form.country) && form.vat_id && <div><span className="text-gray-400 text-xs">USt-IdNr</span><p className="font-medium text-xs">{form.vat_id}</p></div>}
               <div><span className="text-gray-400 text-xs">法定代表人（英文）</span><p className="font-medium text-xs">{form.legal_representative_en || '—'}</p></div>
               <div><span className="text-gray-400 text-xs">法定代表人（中文）</span><p className="font-medium">{form.legal_representative}</p></div>
               <div><span className="text-gray-400 text-xs">联系人（英文）</span><p className="font-medium text-xs">{form.contact_person_en}</p></div>

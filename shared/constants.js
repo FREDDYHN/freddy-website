@@ -42,6 +42,55 @@ export const CLIENT_CHANGEABLE_FIELDS = {
   contact_phone: '手机号',
   wechat_id: '微信',
   lucid_registration_number: 'LUCID 注册号',
+  country: '国家/地区',
+  vat_id: 'USt-IdNr / 增值税号',
+}
+
+// ══════════════════════════════════════════════
+//  客户国家/地区 + 税号校验
+// ══════════════════════════════════════════════
+
+// 客户注册国家/地区（完整下拉，存 ISO 3166-1 alpha-2 码）
+export const CLIENT_COUNTRIES = [
+  { code: 'CN', label: '中国' }, { code: 'HK', label: '中国香港' }, { code: 'MO', label: '中国澳门' },
+  { code: 'DE', label: '德国' }, { code: 'IT', label: '意大利' }, { code: 'FR', label: '法国' },
+  { code: 'ES', label: '西班牙' }, { code: 'NL', label: '荷兰' }, { code: 'BE', label: '比利时' },
+  { code: 'AT', label: '奥地利' }, { code: 'PL', label: '波兰' }, { code: 'PT', label: '葡萄牙' },
+  { code: 'CZ', label: '捷克' }, { code: 'SE', label: '瑞典' }, { code: 'DK', label: '丹麦' },
+  { code: 'FI', label: '芬兰' }, { code: 'IE', label: '爱尔兰' }, { code: 'LU', label: '卢森堡' },
+  { code: 'GR', label: '希腊' }, { code: 'HU', label: '匈牙利' }, { code: 'RO', label: '罗马尼亚' },
+  { code: 'BG', label: '保加利亚' }, { code: 'SK', label: '斯洛伐克' }, { code: 'SI', label: '斯洛文尼亚' },
+  { code: 'LT', label: '立陶宛' }, { code: 'LV', label: '拉脱维亚' }, { code: 'EE', label: '爱沙尼亚' },
+  { code: 'HR', label: '克罗地亚' }, { code: 'CY', label: '塞浦路斯' }, { code: 'MT', label: '马耳他' },
+  { code: 'CH', label: '瑞士' }, { code: 'GB', label: '英国' }, { code: 'US', label: '美国' },
+  { code: 'OTHER', label: '其他海外' },
+]
+
+// 欧盟 27 国（含德国）
+export const EU_COUNTRY_CODES = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE']
+
+// 需填 USt-IdNr 的欧盟国家（除德国）
+export const EU_VAT_REQUIRED_CODES = EU_COUNTRY_CODES.filter((c) => c !== 'DE')
+
+// 中国区域（走统一社会信用代码 / 身份证 / HK 商业登记号逻辑）
+export const CN_REGION_CODES = ['CN', 'HK', 'MO']
+
+// 境外税号宽松格式：字母 + 数字，4-20 位
+export const FOREIGN_TAX_RE = /^[A-Za-z0-9]{4,20}$/
+
+export const needsVatId = (country) => EU_VAT_REQUIRED_CODES.includes(country)
+
+// 统一的税号校验（返回值：错误文案 或 null）
+export function taxError(country, entityType, value) {
+  const v = String(value || '').trim()
+  if (!v) return '请输入税号'
+  if (CN_REGION_CODES.includes(country)) {
+    if (entityType === 'individual') {
+      return /^\d{17}[\dXx]$/.test(v) ? null : '身份证号码格式不正确（18位）'
+    }
+    return /^([0-9A-Za-z]{18}|\d{8})$/.test(v) ? null : '税号格式不正确（18位统一社会信用代码，或8位香港商业登记号）'
+  }
+  return FOREIGN_TAX_RE.test(v.toUpperCase()) ? null : '税号格式不正确（4-20位字母或数字）'
 }
 
 // ══════════════════════════════════════════════
@@ -234,4 +283,6 @@ export default {
   EKO_PUNKT, EKO_PUNKT_MATERIAL_COLS, AR_TIER_ZH,
   REMINDER_WINDOWS, REPORTING_DEADLINE_MONTH, REPORTING_DEADLINE_DAY,
   EMAIL_RE, PHONE_RE, CHINESE_CHAR_RE, containsChinese,
+  CLIENT_COUNTRIES, EU_COUNTRY_CODES, EU_VAT_REQUIRED_CODES, CN_REGION_CODES, FOREIGN_TAX_RE,
+  needsVatId, taxError,
 }
