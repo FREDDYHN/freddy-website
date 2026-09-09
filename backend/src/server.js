@@ -28,6 +28,7 @@ import { rateLimit } from './rate-limiter.js'
 import { localDate, beijingDateFromUtc } from './services/date.js'
 import { sendTaxNumberRequest, sendLucidNumberRequest, sendLucidAcceptanceReminder, sendInboundForward } from './services/email.js'
 import { startInboundScheduler, pollInbox } from './services/inbound-email.js'
+import { startCleanupScheduler } from './services/cleanup.js'
 import { taxError } from '../../shared/constants.js'
 import { getBankInfo } from './services/bank-info.js'
 
@@ -1136,6 +1137,7 @@ async function start() {
   startRateFetcher()
   startReminderScheduler()
   startInboundScheduler()
+  startCleanupScheduler()
   const server = app.listen(PORT, () => {
     console.log(`[server] Freddy EPR Platform running on http://localhost:${PORT}`)
     console.log(`[server] CORS origins: ${ALLOWED_ORIGINS.join(', ')}`)

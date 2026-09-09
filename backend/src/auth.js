@@ -134,7 +134,7 @@ router.post('/verify-email', async (req, res) => {
     }
 
     const hash = await bcrypt.hash(password, 10)
-    await db.run('UPDATE users SET password_hash = ?, email_verified = 1 WHERE id = ?', hash, user.id)
+    await db.run("UPDATE users SET password_hash = ?, email_verified = 1, email_verified_at = datetime('now') WHERE id = ?", hash, user.id)
 
     // Activate all pending_verification contracts for this client
     await db.run("UPDATE contracts SET status = 'pending_payment' WHERE client_id = ? AND status = 'pending_verification'", payload.client_id)
