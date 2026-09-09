@@ -177,7 +177,10 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       db.get(`SELECT
           COALESCE(SUM(CASE WHEN p.payment_type = 'contract_fee' THEN 1 ELSE 0 END), 0) as ar,
           COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_prepaid' THEN 1 ELSE 0 END), 0) as pre,
-          COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_settlement' THEN 1 ELSE 0 END), 0) as settle
+          COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_settlement' THEN 1 ELSE 0 END), 0) as settle,
+          COALESCE(SUM(CASE WHEN p.payment_type = 'contract_fee' THEN p.amount_cny ELSE 0 END), 0) as ar_cny,
+          COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_prepaid' THEN p.amount_eur ELSE 0 END), 0) as pre_eur,
+          COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_settlement' THEN p.amount_eur ELSE 0 END), 0) as settle_eur
         FROM payments p JOIN contracts c ON p.contract_id = c.id
         WHERE p.status = 'pending' AND c.status != 'pending_verification'`),
       // 授权代表年费：amount_cny 已在签约时按锁定汇率写好，直接求和
@@ -190,6 +193,9 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
     res.json({
       total_clients: clients.cnt, active_contracts: contracts.cnt,
       pending_ar: pending.ar, pending_pre: pending.pre, pending_settle: pending.settle,
+      pending_ar_cny: pending.ar_cny,
+      pending_pre_cny: Math.round(pending.pre_eur * rate * 100) / 100,
+      pending_settle_cny: Math.round(pending.settle_eur * rate * 100) / 100,
       ar_fee_cny: arFee.total, ar_fee_clients: arFee.clients,
       predeclared_fee_cny: Math.round(predeclaredEur.total * rate * 100) / 100, predeclared_fee_clients: predeclaredEur.clients,
       settlement_fee_cny: Math.round(settlementEur.total * rate * 100) / 100, settlement_fee_clients: settlementEur.clients,

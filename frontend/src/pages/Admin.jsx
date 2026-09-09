@@ -557,6 +557,9 @@ export default function Admin() {
   const pendingPre = Number(stats.pending_pre) || 0
   const pendingSettle = Number(stats.pending_settle) || 0
   const pendingTotal = pendingAr + pendingPre + pendingSettle
+  const pendingArCny = Math.round(Number(stats.pending_ar_cny) || 0)
+  const pendingPreCny = Math.round(Number(stats.pending_pre_cny) || 0)
+  const pendingSettleCny = Math.round(Number(stats.pending_settle_cny) || 0)
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -575,11 +578,14 @@ export default function Admin() {
             {pendingOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setPendingOpen(false)} />
-                <div className="absolute right-0 top-full mt-2 z-20 w-52 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
-                  {[{ l: '授权代表年费', v: pendingAr }, { l: '预申报费', v: pendingPre }, { l: '年终结算费', v: pendingSettle }].map((r, i) => (
+                <div className="absolute right-0 top-full mt-2 z-20 w-60 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+                  {[{ l: '授权代表年费', v: pendingAr, a: pendingArCny }, { l: '预申报费', v: pendingPre, a: pendingPreCny }, { l: '年终结算费', v: pendingSettle, a: pendingSettleCny }].map((r, i) => (
                     <div key={i} className="flex items-center justify-between px-3 py-1.5">
                       <span className="text-xs text-gray-500">{r.l}</span>
-                      <span className={`text-sm font-bold ${r.v > 0 ? 'text-red-600' : 'text-gray-700'}`}>{r.v}</span>
+                      <span className="flex items-center gap-2">
+                        <span className={`text-xs ${r.v > 0 ? 'text-red-600' : 'text-gray-400'}`}>{r.v}笔</span>
+                        <span className={`text-sm font-bold ${r.a > 0 ? 'text-red-600' : 'text-gray-700'}`}>¥{r.a.toLocaleString('zh-CN')}</span>
+                      </span>
                     </div>
                   ))}
                 </div>
