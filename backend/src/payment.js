@@ -256,13 +256,20 @@ router.get('/:tradeNo/qr', async (req, res) => {
     const db = await getDb()
     const p = await db.get('SELECT * FROM payments WHERE out_trade_no = ?', req.params.tradeNo)
     if (!p) return res.status(404).json({ error: 'Payment not found' })
+    // 转账附言：与客户端费用明细一致，用合同号 + 费用类型后缀（-A 年费 / -V 预申报），替代无意义的 out_trade_no
+    const FEE_SUFFIX = { contract_fee: '-A', recycling_prepaid: '-V' }
+    let reference = p.out_trade_no
+    if (p.contract_id) {
+      const contract = await db.get('SELECT contract_number FROM contracts WHERE id = ?', p.contract_id)
+      if (contract?.contract_number) reference = 'EPR-' + contract.contract_number + (FEE_SUFFIX[p.payment_type] || '')
+    }
     const m = req.query.method || p.payment_method || 'wechat'
     const labels = { wechat: 'WeChat Pay', alipay: 'Alipay', bank: 'Bank Transfer' }
     const simBtn = SIMULATION_MODE
       ? '<a class="btn" href="/api/payments/simulate/' + p.out_trade_no + '" style="background:#f59e0b">⚠️ Simulate Payment (Dev Only)</a>'
       : ''
     const bank = m === 'bank'
-      ? '<p style="color:#666;margin-bottom:16px">请转账至 FREDDY 对公账户。附言/备注: ' + p.out_trade_no + '</p><p style="color:#999;font-size:12px">对公账户信息请联系客服获取。</p>'
+      ? '<p style="color:#666;margin-bottom:16px">请转账至 FREDDY 对公账户。附言/备注: ' + reference + '</p><p style="color:#999;font-size:12px">对公账户信息请联系客服获取。</p>'
       : ''
     const rateLine = p.rate_used
       ? '<p style="color:#888;font-size:13px;margin-top:-8px">应付 <b>¥' + p.amount_cny + '</b> &nbsp;·&nbsp; EUR 定价 €' + p.amount_eur + ' &nbsp;·&nbsp; 汇率 <b>' + Number(p.rate_used).toFixed(2) + '</b></p>'
