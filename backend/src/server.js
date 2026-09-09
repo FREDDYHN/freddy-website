@@ -181,18 +181,18 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
         FROM payments p JOIN contracts c ON p.contract_id = c.id
         WHERE p.status = 'pending' AND c.status != 'pending_verification'`),
       // 授权代表年费：amount_cny 已在签约时按锁定汇率写好，直接求和
-      db.get("SELECT COALESCE(SUM(amount_cny),0) as total FROM payments WHERE payment_type = 'contract_fee' AND status = 'paid'"),
+      db.get("SELECT COALESCE(SUM(amount_cny),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'contract_fee' AND status = 'paid'"),
       // 预申报费 / 年终结算费：管理员只填 amount_eur（amount_cny=0），用当前汇率换算
-      db.get("SELECT COALESCE(SUM(amount_eur),0) as total FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'paid'"),
-      db.get("SELECT COALESCE(SUM(amount_eur),0) as total FROM payments WHERE payment_type = 'recycling_settlement' AND status = 'paid'"),
+      db.get("SELECT COALESCE(SUM(amount_eur),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'paid'"),
+      db.get("SELECT COALESCE(SUM(amount_eur),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'recycling_settlement' AND status = 'paid'"),
     ])
     const rate = await getRate()
     res.json({
       total_clients: clients.cnt, active_contracts: contracts.cnt,
       pending_ar: pending.ar, pending_pre: pending.pre, pending_settle: pending.settle,
-      ar_fee_cny: arFee.total,
-      predeclared_fee_cny: Math.round(predeclaredEur.total * rate * 100) / 100,
-      settlement_fee_cny: Math.round(settlementEur.total * rate * 100) / 100,
+      ar_fee_cny: arFee.total, ar_fee_clients: arFee.clients,
+      predeclared_fee_cny: Math.round(predeclaredEur.total * rate * 100) / 100, predeclared_fee_clients: predeclaredEur.clients,
+      settlement_fee_cny: Math.round(settlementEur.total * rate * 100) / 100, settlement_fee_clients: settlementEur.clients,
     })
   } catch (e) {
     console.error('[server] admin stats error:', e)

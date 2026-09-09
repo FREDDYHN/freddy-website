@@ -549,6 +549,9 @@ export default function Admin() {
   const preCny = Math.round(Number(stats.predeclared_fee_cny) || 0)
   const settleCny = Math.round(Number(stats.settlement_fee_cny) || 0)
   const revenueTotal = arCny + preCny + settleCny
+  const arClients = Number(stats.ar_fee_clients) || 0
+  const preClients = Number(stats.predeclared_fee_clients) || 0
+  const settleClients = Number(stats.settlement_fee_clients) || 0
 
   const pendingAr = Number(stats.pending_ar) || 0
   const pendingPre = Number(stats.pending_pre) || 0
@@ -592,11 +595,14 @@ export default function Admin() {
             {revenueOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setRevenueOpen(false)} />
-                <div className="absolute right-0 top-full mt-2 z-20 w-52 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
-                  {[{ l: '授权代表年费', v: arCny }, { l: '预申报费', v: preCny }, { l: '年终结算费', v: settleCny }].map((r, i) => (
+                <div className="absolute right-0 top-full mt-2 z-20 w-60 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+                  {[{ l: '授权代表年费', v: arCny, c: arClients }, { l: '预申报费', v: preCny, c: preClients }, { l: '年终结算费', v: settleCny, c: settleClients }].map((r, i) => (
                     <div key={i} className="flex items-center justify-between px-3 py-1.5">
                       <span className="text-xs text-gray-500">{r.l}</span>
-                      <span className="text-sm font-bold text-gray-700">¥{r.v.toLocaleString('zh-CN')}</span>
+                      <span className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">{r.c}家</span>
+                        <span className="text-sm font-bold text-gray-700">¥{r.v.toLocaleString('zh-CN')}</span>
+                      </span>
                     </div>
                   ))}
                 </div>
