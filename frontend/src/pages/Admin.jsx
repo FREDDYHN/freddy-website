@@ -566,7 +566,7 @@ export default function Admin() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-extrabold text-gray-800">项目管理</h1>
         <div className="flex items-center gap-4">
-          {[{ l: '总客户', v: stats.total_clients }, { l: '活跃合同', v: stats.active_contracts }].map((s, i) => (
+          {[{ l: '总客户', v: stats.total_clients }, { l: 'LUCID同步', v: stats.lucid_synced }].map((s, i) => (
             <div key={i} className="flex items-center gap-1.5"><span className="text-xs text-gray-400">{s.l}</span><span className={`text-sm font-bold ${s.w ? 'text-red-600' : 'text-gray-700'}`}>{s.v}</span></div>
           ))}
           <div className="relative">

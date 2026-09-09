@@ -173,7 +173,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
     const db = await getDb()
     const [clients, contracts, pending, arFee, predeclaredEur, settlementEur] = await Promise.all([
       db.get('SELECT COUNT(*) as cnt FROM clients'),
-      db.get("SELECT COUNT(*) as cnt FROM contracts WHERE status = 'active'"),
+      db.get("SELECT COUNT(*) as cnt FROM contracts WHERE lucid_rep_accepted = 1"),
       db.get(`SELECT
           COALESCE(SUM(CASE WHEN p.payment_type = 'contract_fee' THEN 1 ELSE 0 END), 0) as ar,
           COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_prepaid' THEN 1 ELSE 0 END), 0) as pre,
@@ -191,7 +191,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
     ])
     const rate = await getRate()
     res.json({
-      total_clients: clients.cnt, active_contracts: contracts.cnt,
+      total_clients: clients.cnt, lucid_synced: contracts.cnt,
       pending_ar: pending.ar, pending_pre: pending.pre, pending_settle: pending.settle,
       pending_ar_cny: pending.ar_cny,
       pending_pre_cny: Math.round(pending.pre_eur * rate * 100) / 100,
