@@ -87,6 +87,7 @@ export default function Admin() {
   const [rateModal, setRateModal] = useState(false)
   const [rateNew, setRateNew] = useState('')
   const [rateSubmitting, setRateSubmitting] = useState(false)
+  const [revenueOpen, setRevenueOpen] = useState(false)
   const [lucidPwd, setLucidPwd] = useState(null)
   const [lucidEdit, setLucidEdit] = useState('')
   const [lucidSaveMsg, setLucidSaveMsg] = useState('')
@@ -543,14 +544,39 @@ export default function Admin() {
   if (error) return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-xl font-bold mb-4 text-red-600">加载失败</h1><p className="text-gray-400 mb-4">{error}</p><button onClick={() => load(page)} className="px-4 py-2 border rounded-md text-sm">重试</button></div>
   if (!stats) return null
 
+  const arCny = Math.round(Number(stats.ar_fee_cny) || 0)
+  const preCny = Math.round(Number(stats.predeclared_fee_cny) || 0)
+  const settleCny = Math.round(Number(stats.settlement_fee_cny) || 0)
+  const revenueTotal = arCny + preCny + settleCny
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-extrabold text-gray-800">项目管理</h1>
         <div className="flex items-center gap-4">
-          {[{ l: '总客户', v: stats.total_clients }, { l: '活跃合同', v: stats.active_contracts }, { l: '待付款', v: stats.pending_payments, w: stats.pending_payments > 0 }, { l: '授权代表年费 ¥', v: Math.round(Number(stats.ar_fee_cny) || 0).toLocaleString('zh-CN') }, { l: '预申报费 ¥', v: Math.round(Number(stats.predeclared_fee_cny) || 0).toLocaleString('zh-CN') }, { l: '年终结算费 ¥', v: Math.round(Number(stats.settlement_fee_cny) || 0).toLocaleString('zh-CN') }].map((s, i) => (
+          {[{ l: '总客户', v: stats.total_clients }, { l: '活跃合同', v: stats.active_contracts }, { l: '待付款', v: stats.pending_payments, w: stats.pending_payments > 0 }].map((s, i) => (
             <div key={i} className="flex items-center gap-1.5"><span className="text-xs text-gray-400">{s.l}</span><span className={`text-sm font-bold ${s.w ? 'text-red-600' : 'text-gray-700'}`}>{s.v}</span></div>
           ))}
+          <div className="relative">
+            <button onClick={() => setRevenueOpen(v => !v)} className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-gray-100" title="收入明细">
+              <span className="text-xs text-gray-400">收入 ¥</span>
+              <span className="text-sm font-bold text-gray-700">{revenueTotal.toLocaleString('zh-CN')}</span>
+              <span className="text-[10px] text-gray-400">{revenueOpen ? '▲' : '▼'}</span>
+            </button>
+            {revenueOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setRevenueOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 z-20 w-52 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+                  {[{ l: '授权代表年费', v: arCny }, { l: '预申报费', v: preCny }, { l: '年终结算费', v: settleCny }].map((r, i) => (
+                    <div key={i} className="flex items-center justify-between px-3 py-1.5">
+                      <span className="text-xs text-gray-500">{r.l}</span>
+                      <span className="text-sm font-bold text-gray-700">¥{r.v.toLocaleString('zh-CN')}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
           <button onClick={exportCSV} className="px-3 py-1.5 border border-green-300 text-green-700 rounded-md text-xs hover:bg-green-50" title="导出客户 CSV">📥</button>
           <button onClick={() => setExportModal(true)} className="px-3 py-1.5 border border-blue-300 text-blue-700 rounded-md text-xs hover:bg-blue-50">📤 导出</button>
           <button onClick={openInbound} className={`px-3 py-1.5 border rounded-md text-xs hover:bg-emerald-50 ${inboundPending > 0 ? 'border-emerald-400 text-emerald-700 font-medium' : 'border-emerald-300 text-emerald-700'}`}>📥 收件{inboundPending > 0 ? ` (${inboundPending})` : ''}</button>
