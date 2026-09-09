@@ -727,6 +727,7 @@ export default function Admin() {
                           html += '<p style="margin:2px 0 6px;padding-left:14px">转账附言　<b>EPR-' + e(c.contract_number || '') + '-A</b></p>'
                           html += '<p style="margin:2px 0">· 预申报费　　<b>€' + prepaidDisplay.toFixed(2) + '</b>（约 ¥' + Math.round(prepaidDisplay * (rateInfo.rate||8.10)) + '）</p>'
                           html += '<p style="margin:2px 0;padding-left:14px">转账附言　<b>EPR-' + e(c.contract_number || '') + '-V</b></p>'
+                          html += '<p style="margin:6px 0 0;font-weight:700;color:#c0392b">未填写转账附言的转账，一律不予处理。</p>'
                           html += '</div>'
                           html += '</div>'
                           html += '</body></html>'
