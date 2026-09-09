@@ -10,6 +10,7 @@ import os from 'os'
 import path from 'path'
 import { getDb } from '../db.js'
 import { sendInvoiceEmail } from './email.js'
+import { getBankInfo } from './bank-info.js'
 
 const execFileAsync = promisify(execFile)
 
@@ -20,14 +21,6 @@ const LIVANTO = {
   hrb: 'HRB38628',
   geschaeftsfuehrer: 'Zifeng Qian',
   bank: { kontoinhaber: 'LIVANTO GmbH', bank: 'Postbank', iban: 'DE11 4667 0204 0080 8352 00', bic: 'DEUTDEDWP03' },
-}
-
-const FREDDY = {
-  kontoinhaber: 'FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN',
-  bank: 'BANK OF CHINA HUAINAN BRANCH',
-  kontonummer: '181276312093',
-  swift: 'BKCHCNBJ780',
-  bankadresse: 'NO.21, LONGHU ROAD, HUAINAN CITY, CHINA',
 }
 
 const TIER_DE = { basic: 'Basis', standard: 'Standard', premium: 'Premium' }
@@ -44,6 +37,7 @@ export function formatInvoiceNumber(contractNumber, d = new Date()) {
 
 /** 拼双语 HTML 发票（wkhtmltopdf 兼容：table 布局 + 内联样式） */
 export function buildInvoiceHtml(invoice, client, contract) {
+  const bank = getBankInfo()
   const tier = contract?.tier || 'basic'
   const tierDe = TIER_DE[tier] || tier
   const tierZh = TIER_ZH[tier] || tier
@@ -115,11 +109,11 @@ export function buildInvoiceHtml(invoice, client, contract) {
     IBAN: ${esc(LIVANTO.bank.iban)} &nbsp;|&nbsp; BIC(SWIFT): ${esc(LIVANTO.bank.bic)}
     <br><br>
     <span class="note">Gemäß Dreiparteienvertrag ist FREDDY die Inkassostelle / 根据三方合同，FREDDY 为代收款方：</span><br>
-    Kontoinhaber: ${esc(FREDDY.kontoinhaber)} &nbsp;|&nbsp; Bank: ${esc(FREDDY.bank)}<br>
-    Kontonummer: ${esc(FREDDY.kontonummer)} &nbsp;|&nbsp; Swift-Code: ${esc(FREDDY.swift)}<br>
-    Bankadresse: ${esc(FREDDY.bankadresse)}<br>
-    户名：福瑞笛（上海）信息咨询有限公司淮南分公司 &nbsp;|&nbsp; 开户行：中国银行股份有限公司淮南分行<br>
-    账号：181276312093 &nbsp;|&nbsp; 银行代码：BKCHCNBJ780 &nbsp;|&nbsp; 开户行地址：安徽省淮南市龙湖路21号
+    Kontoinhaber: ${esc(bank.account_name_en)} &nbsp;|&nbsp; Bank: ${esc(bank.bank_name_en)}<br>
+    Kontonummer: ${esc(bank.account_number)} &nbsp;|&nbsp; Swift-Code: ${esc(bank.swift)}<br>
+    Bankadresse: ${esc(bank.bank_address_en)}<br>
+    户名：${esc(bank.account_name)} &nbsp;|&nbsp; 开户行：${esc(bank.bank_name)}<br>
+    账号：${esc(bank.account_number)} &nbsp;|&nbsp; 银行代码：${esc(bank.bank_code)} &nbsp;|&nbsp; 开户行地址：${esc(bank.bank_address)}
   </div>
 </body>
 </html>`

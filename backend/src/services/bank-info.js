@@ -14,5 +14,9 @@ export function getBankInfo() {
     company_tax_id: '91340400MADDK97K4X',
     reference_prefix: 'EPR-',
     note: '请在转账附言中注明合同编号或公司名称，以便我们快速确认到账。',
+    // 英文标签（发票 PDF 双语展示用，同一收款账户）
+    account_name_en: 'FREDDY (SHANGHAI) INFORMATION CONSULTING LTD. HN',
+    bank_name_en: 'BANK OF CHINA HUAINAN BRANCH',
+    bank_address_en: 'NO.21, LONGHU ROAD, HUAINAN CITY, CHINA',
   }
 }
