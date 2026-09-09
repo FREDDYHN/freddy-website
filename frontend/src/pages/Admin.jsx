@@ -721,6 +721,12 @@ export default function Admin() {
                           html += '<tr><td>户名：</td><td>福瑞笛（上海）信息咨询有限公司淮南分公司</td></tr>'
                           html += '<tr><td>账号：</td><td><b>181276312093</b></td></tr>'
                           html += '<tr><td>附言：</td><td>EPR-'+e(c.contract_number||'')+'</td></tr></table>'
+                          html += '<div style="margin-top:10px;padding:12px;background:#fff4e5;border:1px solid #f0c36d;border-radius:6px;font-size:12px;line-height:1.7">'
+                          html += '<p style="font-weight:700;color:#c0392b;margin:0 0 4px">⚠️ 请分两笔转账支付，切勿合并为一笔</p>'
+                          html += '<p style="margin:2px 0">· 授权代表年费　<b>€' + c.annual_fee_eur + '</b>（约 ¥' + Math.round(c.annual_fee_eur * (rateInfo.rate||8.10)) + '）</p>'
+                          html += '<p style="margin:2px 0">· 预申报费　　<b>€' + prepaidDisplay.toFixed(2) + '</b>（约 ¥' + Math.round(prepaidDisplay * (rateInfo.rate||8.10)) + '）</p>'
+                          html += '<p style="margin:6px 0 0;color:#8a5a00">每笔转账附言均注明合同编号 <b>EPR-' + e(c.contract_number || '') + '</b>，以便快速确认到账。</p>'
+                          html += '</div>'
                           html += '<p style="font-size:10px;color:#999;margin-top:6px">请在转账附言中注明合同编号，以便快速确认到账。</p></div>'
                           html += '</body></html>'
                           const w = window.open('','_blank','width=1020,height=700')
