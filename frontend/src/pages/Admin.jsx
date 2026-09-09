@@ -88,6 +88,7 @@ export default function Admin() {
   const [rateNew, setRateNew] = useState('')
   const [rateSubmitting, setRateSubmitting] = useState(false)
   const [revenueOpen, setRevenueOpen] = useState(false)
+  const [pendingOpen, setPendingOpen] = useState(false)
   const [lucidPwd, setLucidPwd] = useState(null)
   const [lucidEdit, setLucidEdit] = useState('')
   const [lucidSaveMsg, setLucidSaveMsg] = useState('')
@@ -549,16 +550,41 @@ export default function Admin() {
   const settleCny = Math.round(Number(stats.settlement_fee_cny) || 0)
   const revenueTotal = arCny + preCny + settleCny
 
+  const pendingAr = Number(stats.pending_ar) || 0
+  const pendingPre = Number(stats.pending_pre) || 0
+  const pendingSettle = Number(stats.pending_settle) || 0
+  const pendingTotal = pendingAr + pendingPre + pendingSettle
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-extrabold text-gray-800">项目管理</h1>
         <div className="flex items-center gap-4">
-          {[{ l: '总客户', v: stats.total_clients }, { l: '活跃合同', v: stats.active_contracts }, { l: '待付款', v: stats.pending_payments, w: stats.pending_payments > 0 }].map((s, i) => (
+          {[{ l: '总客户', v: stats.total_clients }, { l: '活跃合同', v: stats.active_contracts }].map((s, i) => (
             <div key={i} className="flex items-center gap-1.5"><span className="text-xs text-gray-400">{s.l}</span><span className={`text-sm font-bold ${s.w ? 'text-red-600' : 'text-gray-700'}`}>{s.v}</span></div>
           ))}
           <div className="relative">
-            <button onClick={() => setRevenueOpen(v => !v)} className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-gray-100" title="收入明细">
+            <button onClick={() => { setPendingOpen(v => !v); setRevenueOpen(false) }} className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-gray-100" title="待付款明细">
+              <span className="text-xs text-gray-400">待付款</span>
+              <span className={`text-sm font-bold ${pendingTotal > 0 ? 'text-red-600' : 'text-gray-700'}`}>{pendingTotal}</span>
+              <span className="text-[10px] text-gray-400">{pendingOpen ? '▲' : '▼'}</span>
+            </button>
+            {pendingOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setPendingOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 z-20 w-52 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+                  {[{ l: '授权代表年费', v: pendingAr }, { l: '预申报费', v: pendingPre }, { l: '年终结算费', v: pendingSettle }].map((r, i) => (
+                    <div key={i} className="flex items-center justify-between px-3 py-1.5">
+                      <span className="text-xs text-gray-500">{r.l}</span>
+                      <span className={`text-sm font-bold ${r.v > 0 ? 'text-red-600' : 'text-gray-700'}`}>{r.v}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <div className="relative">
+            <button onClick={() => { setRevenueOpen(v => !v); setPendingOpen(false) }} className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-gray-100" title="收入明细">
               <span className="text-xs text-gray-400">收入 ¥</span>
               <span className="text-sm font-bold text-gray-700">{revenueTotal.toLocaleString('zh-CN')}</span>
               <span className="text-[10px] text-gray-400">{revenueOpen ? '▲' : '▼'}</span>
