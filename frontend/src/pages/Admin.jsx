@@ -548,7 +548,7 @@ export default function Admin() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-extrabold text-gray-800">项目管理</h1>
         <div className="flex items-center gap-4">
-          {[{ l: '总客户', v: stats.total_clients }, { l: '活跃合同', v: stats.active_contracts }, { l: '待付款', v: stats.pending_payments, w: stats.pending_payments > 0 }, { l: '年收入 €', v: (stats.annual_revenue_eur || 0).toFixed(0) }].map((s, i) => (
+          {[{ l: '总客户', v: stats.total_clients }, { l: '活跃合同', v: stats.active_contracts }, { l: '待付款', v: stats.pending_payments, w: stats.pending_payments > 0 }, { l: '授权代表年费 ¥', v: Math.round(Number(stats.ar_fee_cny) || 0).toLocaleString('zh-CN') }, { l: '预申报费 ¥', v: Math.round(Number(stats.predeclared_fee_cny) || 0).toLocaleString('zh-CN') }, { l: '年终结算费 ¥', v: Math.round(Number(stats.settlement_fee_cny) || 0).toLocaleString('zh-CN') }].map((s, i) => (
             <div key={i} className="flex items-center gap-1.5"><span className="text-xs text-gray-400">{s.l}</span><span className={`text-sm font-bold ${s.w ? 'text-red-600' : 'text-gray-700'}`}>{s.v}</span></div>
           ))}
           <button onClick={exportCSV} className="px-3 py-1.5 border border-green-300 text-green-700 rounded-md text-xs hover:bg-green-50" title="导出客户 CSV">📥</button>
