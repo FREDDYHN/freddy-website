@@ -19,15 +19,18 @@ export default function ClientInfoCard({ client }) {
 
   return (
     <div className="bg-white border border-gray-100 rounded-lg">
-      <button onClick={() => setCollapsed(!collapsed)} className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50/50 transition-colors rounded-lg">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between p-5">
+        <button onClick={() => setCollapsed(!collapsed)} className="flex items-center gap-2 text-left hover:bg-gray-50/50 transition-colors rounded-lg -m-1 p-1">
           <span className="text-sm font-semibold text-gray-700">🔒 账户管理</span>
-          <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">只读</span>
-        </div>
-        <span className={`text-gray-300 text-xs transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`}>▼</span>
-      </button>
+          <span className={`text-gray-300 text-xs transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`}>▼</span>
+        </button>
+        <button onClick={() => nav('/profile')}
+          className="shrink-0 px-3 py-1.5 border border-primary text-primary rounded-md text-xs font-semibold hover:bg-primary/5 transition-colors">
+          ✏️ 修改资料
+        </button>
+      </div>
       <div className={`overflow-hidden transition-all duration-300 ${collapsed ? 'max-h-0' : 'max-h-96'}`}>
-        <div className="px-5 pb-5 space-y-3">
+        <div className="px-5 pb-5">
           <div className="bg-gray-50/50 rounded-lg p-3 space-y-0">
             <Row label="公司（中文）" value={client.company_name} />
             <Row label="公司（英文）" value={client.company_name_en} />
@@ -42,10 +45,6 @@ export default function ClientInfoCard({ client }) {
             <Row label="微信" value={client.wechat_id} />
             <Row label="LUCID号" value={client.lucid_registration_number} mono />
           </div>
-          <button onClick={() => nav('/profile')}
-            className="w-full py-2 border border-gray-200 rounded-md text-xs text-gray-500 hover:bg-gray-50 transition-colors">
-            ✏️ 编辑资料
-          </button>
         </div>
       </div>
     </div>

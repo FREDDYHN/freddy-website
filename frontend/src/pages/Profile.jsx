@@ -104,7 +104,7 @@ export default function Profile() {
 
       <div className="bg-white border border-gray-100 rounded-lg p-5 space-y-4 mb-6">
         <h2 className="font-bold">公司信息</h2>
-        <p className="text-xs text-gray-400">信息已写入合同，如需修改请联系管理员。</p>
+        <p className="text-xs text-gray-400">以下信息已写入合同。如需修改，请点击下方「申请修改信息」提交申请，管理员审核通过后生效。</p>
         <div className="grid md:grid-cols-2 gap-4">
           {[
             ['公司名称', p.company_name],
