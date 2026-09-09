@@ -83,6 +83,7 @@ export default function Admin() {
   const [statusFilter, setStatusFilter] = useState('')
   const [showAll, setShowAll] = useState(false)
   const [rateInfo, setRateInfo] = useState({ rate: 8.10, updated_at: null })
+  const [bankInfo, setBankInfo] = useState(null)
   const [rateModal, setRateModal] = useState(false)
   const [rateNew, setRateNew] = useState('')
   const [rateSubmitting, setRateSubmitting] = useState(false)
@@ -117,6 +118,13 @@ export default function Admin() {
     try {
       const r = await fetch('/api/admin/rate', { headers: ah() })
       if (r.ok) { const d = await r.json(); setRateInfo(d) }
+    } catch {}
+  }
+
+  const fetchBankInfo = async () => {
+    try {
+      const r = await fetch('/api/bank-info')
+      if (r.ok) { const d = await r.json(); setBankInfo(d || {}) }
     } catch {}
   }
 
@@ -348,7 +356,7 @@ export default function Admin() {
     )
   }
 
-  useEffect(() => { load(); loadApps(); fetchRate() }, [])
+  useEffect(() => { load(); loadApps(); fetchRate(); fetchBankInfo() }, [])
 
   useEffect(() => {
     if (infoModal) { setLucidEdit(infoModal.lucid_registration_number || ''); setLucidSaveMsg('') }
@@ -714,12 +722,13 @@ export default function Admin() {
                           } else { html += '<p style="color:#999">暂无实际数据</p>' }
                           html += '</div>'
                           // ═══ Bank Info ═══
+                          const b = bankInfo || {}
                           html += '<div class="bank-section"><h3>银行转账信息</h3>'
-                          html += '<table style="font-size:11px;color:#666;line-height:1.8"><tr><td style="padding-right:20px;white-space:nowrap">开户行：</td><td>中国银行股份有限公司淮南分行</td></tr>'
-                          html += '<tr><td>银行地址：</td><td>安徽省淮南市龙湖路21号</td></tr>'
-                          html += '<tr><td>银行代码：</td><td>BKCHCNBJ780</td></tr>'
-                          html += '<tr><td>户名：</td><td>福瑞笛（上海）信息咨询有限公司淮南分公司</td></tr>'
-                          html += '<tr><td>账号：</td><td><b>181276312093</b></td></tr>'
+                          html += '<table style="font-size:11px;color:#666;line-height:1.8"><tr><td style="padding-right:20px;white-space:nowrap">开户行：</td><td>' + e(b.bank_name || '') + '</td></tr>'
+                          html += '<tr><td>银行地址：</td><td>' + e(b.bank_address || '') + '</td></tr>'
+                          html += '<tr><td>银行代码：</td><td>' + e(b.bank_code || '') + '</td></tr>'
+                          html += '<tr><td>户名：</td><td>' + e(b.account_name || '') + '</td></tr>'
+                          html += '<tr><td>账号：</td><td><b>' + e(b.account_number || '') + '</b></td></tr>'
                           html += '</table>'
                           html += '<div style="margin-top:10px;padding:12px;background:#fff4e5;border:1px solid #f0c36d;border-radius:6px;font-size:12px;line-height:1.7">'
                           html += '<p style="font-weight:700;color:#c0392b;margin:0 0 8px;font-size:14px">⚠️ 请务必分开转账支付，并附上转账附言，未填写或填写错误的转账附言将不予处理。</p>'

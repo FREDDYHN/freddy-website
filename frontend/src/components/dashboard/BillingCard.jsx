@@ -40,6 +40,8 @@ function calcTotalSettlement(preFee, actFee) {
 export default function BillingCard({ contracts, packaging, payments, uploads, onUpload, onPredeclared }) {
   const [rate, setRate] = useState(8.10)
   useEffect(() => { fetch('/api/rate').then(r => r.json()).then(d => d.rate && setRate(d.rate)).catch(() => {}) }, [])
+  const [bankInfo, setBankInfo] = useState(null)
+  useEffect(() => { fetch('/api/bank-info').then(r => r.json()).then(d => setBankInfo(d || {})).catch(() => {}) }, [])
   const [collapsed, setCollapsed] = useState(false)
   const [uploadingCid, setUploadingCid] = useState(null)
   const [actualsCid, setActualsCid] = useState(null)
@@ -54,6 +56,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
   const downloadFile = async (f) => { try { const r = await fetch(`/api/uploads/${f.id}/download`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }); if (!r.ok) throw new Error('下载失败'); const blob = await r.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = f.original_name || ''; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url) } catch (e) { alert('下载失败: ' + e.message) } }
 
   const openFeeDetail = (c, cost, pkg, prepaidPayment, settlementPayment) => {
+    const b = bankInfo || {}
     const byMat = {}; pkg.forEach(function(item){ var mk = item.material_type || item.material_key; byMat[mk] = (byMat[mk] || 0) + (parseFloat(item.estimated_quantity_kg || item.kg) || 0) })
     var subtotal = 0, totalKg = 0
     var rows = Object.entries(byMat).map(function(_ref){ var mk = _ref[0], kg = _ref[1]; var mat = PACKAGING_MATERIALS.find(function(m){ return m.key === mk }); var rate = mat ? getRecyclingRate(mk, kg) : 0; var fee = calcMaterialFee(mk, kg); subtotal += fee; totalKg += kg; return { label: (mat ? mat.label : mk), kg: kg, rate: rate, fee: fee } })
@@ -120,11 +123,11 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     } else { h += '<p style="color:#999">暂无实际数据</p>' }
     h += '</div>'
     h += '<div class="bank-section"><h3>银行转账信息</h3>'
-    h += '<table style="font-size:11px;color:#666;line-height:1.8"><tr><td style="padding-right:20px;white-space:nowrap">开户行：</td><td>中国银行股份有限公司淮南分行</td></tr>'
-    h += '<tr><td>银行地址：</td><td>安徽省淮南市龙湖路21号</td></tr>'
-    h += '<tr><td>银行代码：</td><td>BKCHCNBJ780</td></tr>'
-    h += '<tr><td>户名：</td><td>福瑞笛（上海）信息咨询有限公司淮南分公司</td></tr>'
-    h += '<tr><td>账号：</td><td><b>181276312093</b></td></tr>'
+    h += '<table style="font-size:11px;color:#666;line-height:1.8"><tr><td style="padding-right:20px;white-space:nowrap">开户行：</td><td>' + esc(b.bank_name || '') + '</td></tr>'
+    h += '<tr><td>银行地址：</td><td>' + esc(b.bank_address || '') + '</td></tr>'
+    h += '<tr><td>银行代码：</td><td>' + esc(b.bank_code || '') + '</td></tr>'
+    h += '<tr><td>户名：</td><td>' + esc(b.account_name || '') + '</td></tr>'
+    h += '<tr><td>账号：</td><td><b>' + esc(b.account_number || '') + '</b></td></tr>'
     h += '</table>'
     h += '<div style="margin-top:10px;padding:12px;background:#fff4e5;border:1px solid #f0c36d;border-radius:6px;font-size:12px;line-height:1.7">'
     h += '<p style="font-weight:700;color:#c0392b;margin:0 0 8px;font-size:14px">⚠️ 请务必分开转账支付，并附上转账附言，未填写或填写错误的转账附言将不予处理。</p>'
