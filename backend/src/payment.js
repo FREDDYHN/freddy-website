@@ -12,6 +12,7 @@ import { authMiddleware, adminMiddleware } from './auth.js'
 import { AR_TIER_FEES_EUR } from '../../shared/constants.js'
 import { formatInvoiceNumber, generateAndSendInvoice } from './services/invoice.js'
 import { localDate } from './services/date.js'
+import { getBankInfo } from './services/bank-info.js'
 
 const SIMULATION_MODE = !process.env.WECHAT_MCH_ID && !process.env.ALIPAY_APP_ID
 
@@ -269,7 +270,18 @@ router.get('/:tradeNo/qr', async (req, res) => {
       ? '<a class="btn" href="/api/payments/simulate/' + p.out_trade_no + '" style="background:#f59e0b">⚠️ Simulate Payment (Dev Only)</a>'
       : ''
     const bank = m === 'bank'
-      ? '<p style="color:#666;margin-bottom:16px">请转账至 FREDDY 对公账户。附言/备注: ' + reference + '</p><p style="color:#999;font-size:12px">对公账户信息请联系客服获取。</p>'
+      ? (() => {
+          const b = getBankInfo()
+          return '<div style="text-align:left;background:#f8f9fa;border-radius:8px;padding:16px;margin:0 0 16px;font-size:13px;color:#444;line-height:2">'
+            + '<p style="font-weight:700;color:#1e3a5f;margin-bottom:4px">银行转账信息</p>'
+            + '<p>开户行：' + b.bank_name + '</p>'
+            + '<p>银行地址：' + b.bank_address + '</p>'
+            + '<p>银行代码：' + b.bank_code + '</p>'
+            + '<p>户名：' + b.account_name + '</p>'
+            + '<p>账号：<b style="color:#1e3a5f">' + b.account_number + '</b></p>'
+            + '<p>附言/备注：<b style="color:#c0392b">' + reference + '</b></p>'
+            + '</div>'
+        })()
       : ''
     const rateLine = p.rate_used
       ? '<p style="color:#888;font-size:13px;margin-top:-8px">应付 <b>¥' + p.amount_cny + '</b> &nbsp;·&nbsp; EUR 定价 €' + p.amount_eur + ' &nbsp;·&nbsp; 汇率 <b>' + Number(p.rate_used).toFixed(2) + '</b></p>'

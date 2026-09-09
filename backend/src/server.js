@@ -29,6 +29,7 @@ import { localDate, beijingDateFromUtc } from './services/date.js'
 import { sendTaxNumberRequest, sendLucidNumberRequest, sendLucidAcceptanceReminder, sendInboundForward } from './services/email.js'
 import { startInboundScheduler, pollInbox } from './services/inbound-email.js'
 import { taxError } from '../../shared/constants.js'
+import { getBankInfo } from './services/bank-info.js'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -830,18 +831,7 @@ app.post('/api/admin/rate/fetch', authMiddleware, adminMiddleware, async (_req, 
 
 // ── Bank Transfer Info (public) ──
 app.get('/api/bank-info', (_req, res) => {
-  res.json({
-    bank_name: '中国银行股份有限公司淮南分行',
-    bank_address: '安徽省淮南市龙湖路21号',
-    bank_code: 'BKCHCNBJ780',
-    account_name: '福瑞笛（上海）信息咨询有限公司淮南分公司',
-    account_number: process.env.BANK_ACCOUNT || '181276312093',
-    swift: 'BKCHCNBJ780',
-    company_address: '安徽省淮南市中环国际广场158金融中心四层418室',
-    company_tax_id: '91340400MADDK97K4X',
-    reference_prefix: 'EPR-',
-    note: '请在转账附言中注明合同编号或公司名称，以便我们快速确认到账。',
-  })
+  res.json(getBankInfo())
 })
 
 // ── Admin: Toggle spam flag on contract ──
