@@ -20,14 +20,6 @@ function currentQuarterRange() {
   return [f(start), f(end)]
 }
 
-function currentMonthRange() {
-  const n = new Date()
-  const start = new Date(n.getFullYear(), n.getMonth(), 1)
-  const end = new Date(n.getFullYear(), n.getMonth() + 1, 0)
-  const f = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  return [f(start), f(end)]
-}
-
 /** 收件队列里给某封邮件分配客户的内联搜索器（复用 /api/admin/clients/search） */
 function InboundClientPicker({ onPick }) {
   const [q, setQ] = useState('')
@@ -98,8 +90,6 @@ export default function Admin() {
   const [ekMode, setEkMode] = useState('initial')
   const [ekFrom, setEkFrom] = useState(`${new Date().getFullYear()}-01-01`)
   const [ekTo, setEkTo] = useState(`${new Date().getFullYear()}-12-31`)
-  const [ekPaidFrom, setEkPaidFrom] = useState(() => currentMonthRange()[0])
-  const [ekPaidTo, setEkPaidTo] = useState(() => currentMonthRange()[1])
   const [bhFrom, setBhFrom] = useState(`${new Date().getFullYear()}-01-01`)
   const [bhTo, setBhTo] = useState(`${new Date().getFullYear()}-12-31`)
   const [lvFrom, setLvFrom] = useState(() => currentQuarterRange()[0])
@@ -267,7 +257,6 @@ export default function Admin() {
   const exportCSV = async () => { try { const r = await fetch('/api/admin/clients/export', { headers: ah() }); if (!r.ok) throw new Error('Export failed'); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `freddy-clients-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(u) } catch (e) { alert('导出失败') } }
 
   const doEkoPunkt = () => authDownload(`/api/admin/export/eko-punkt?mode=${ekMode}&from=${ekFrom}&to=${ekTo}`, `EASY-LIZE_Vertrag-Import-China_1.xlsx`)
-  const doEkoPunktPaid = () => authDownload(`/api/admin/export/eko-punkt?scope=paid&from=${ekPaidFrom}&to=${ekPaidTo}`, `freddy-eko-punkt-dai-jiao-${ekPaidFrom}_${ekPaidTo}.xlsx`)
   const doBuchhaltung = () => authDownload(`/api/admin/export/buchhaltung?from=${bhFrom}&to=${bhTo}`, `freddy-buchhaltung-${bhFrom}_${bhTo}.xlsx`)
   const doLivanto = () => authDownload(`/api/admin/export/livanto?from=${lvFrom}&to=${lvTo}`, `freddy-livanto-${lvFrom}_${lvTo}.xlsx`)
 
@@ -1165,17 +1154,6 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* 4. EKO-PUNKT 代缴对账单 */}
-            <div className="border border-gray-200 rounded-lg p-4 space-y-3">
-              <h4 className="font-semibold text-sm">4. EKO-PUNKT 代缴对账单（月度，已付代缴款）</h4>
-              <p className="text-xs text-gray-400">仅含已付代缴款的客户，按代缴款到账月筛（预申报预估量）</p>
-              <div className="flex items-center gap-2 flex-wrap">
-                <input type="date" value={ekPaidFrom} onChange={e => setEkPaidFrom(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
-                <span className="text-gray-400 text-sm">至</span>
-                <input type="date" value={ekPaidTo} onChange={e => setEkPaidTo(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
-                <button onClick={doEkoPunktPaid} className="ml-auto px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">导出</button>
-              </div>
-            </div>
           </div>
         </div>
       )}
