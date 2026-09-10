@@ -37,7 +37,7 @@ function calcTotalSettlement(preFee, actFee) {
   return { amount: Math.round(settle * 100) / 100, note }
 }
 
-export default function BillingCard({ contracts, packaging, payments, uploads, onUpload, onPredeclared }) {
+export default function BillingCard({ contracts, packaging, payments, uploads, onUpload, onPredeclared, onDelete }) {
   const [rate, setRate] = useState(8.10)
   useEffect(() => { fetch('/api/rate').then(r => r.json()).then(d => d.rate && setRate(d.rate)).catch(() => {}) }, [])
   const [bankInfo, setBankInfo] = useState(null)
@@ -183,7 +183,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
             const prepaidPayment = pays.find(p => p.payment_type === 'recycling_prepaid')
             const settlementPayment = pays.find(p => p.payment_type === 'recycling_settlement')
             const proofUploads = ups.filter(u => u.file_type?.startsWith('proof_') || u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
-            const proofLink = (ft) => { const f = ups.find(u => u.file_type === ft); if (!f) return null; return (<button onClick={() => downloadFile(f)} className="text-xs text-blue-600 hover:underline mt-0.5 text-left">✅ 已上传 · 📄 下载</button>) }
+            const proofLink = (ft) => { const f = ups.find(u => u.file_type === ft && u.status !== 'rejected'); if (!f) return null; return (<span className="inline-flex items-center gap-2 mt-0.5"><button onClick={() => downloadFile(f)} className="text-xs text-blue-600 hover:underline text-left">✅ 已上传 · 📄 下载</button>{f.status === 'pending' && (<button onClick={() => { if (confirm('删除此凭证？')) onDelete(f.id) }} className="text-xs text-red-400 hover:text-red-600">🗑 删除</button>)}</span>) }
             const settlementOpen = new Date().getFullYear() > parseInt(c.end_date?.slice(0,4) || '0')
 
             // Material group for settlement

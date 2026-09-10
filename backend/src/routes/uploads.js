@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import multer from 'multer'
-import { existsSync, mkdirSync } from 'fs'
+import { existsSync, mkdirSync, unlinkSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { getDb } from '../db.js'
@@ -8,9 +8,20 @@ import { authMiddleware } from '../auth.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootPath = join(__dirname, '..', '..', '..')
-const uploadsDir = join(rootPath, 'uploads')
+export const uploadsDir = join(rootPath, 'uploads')
 
 if (!existsSync(uploadsDir)) mkdirSync(uploadsDir, { recursive: true })
+
+/** 删除物理文件（若存在）；供客户/管理员删除接口复用 */
+export function unlinkUploadFile(storedPath) {
+  if (!storedPath) return
+  try {
+    const fp = join(uploadsDir, storedPath)
+    if (existsSync(fp)) unlinkSync(fp)
+  } catch (e) {
+    console.error('[uploads] unlink failed:', e.message)
+  }
+}
 
 /** Decode Latin-1 misinterpreted UTF-8 filenames (Windows multer bug) */
 function fixEncoding(name) {
@@ -52,6 +63,19 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
     // If client uploaded signed contract, mark contract as signed
     if (file_type === 'signed_contract' && contract_id) {
       await db.run("UPDATE contracts SET signed_at = datetime('now') WHERE id = ? AND signed_at IS NULL", contract_id)
+    }
+
+    // 自动覆盖：同 contract_id + file_type 的旧「待审核」凭证，重新上传即替换（只删 pending，不碰 approved/rejected）
+    const replaceable = file_type && (file_type.startsWith('proof_') || file_type === 'bank_proof')
+    if (replaceable && contract_id) {
+      const oldRows = await db.all(
+        "SELECT id, stored_path FROM uploads WHERE client_id = ? AND contract_id = ? AND file_type = ? AND status = 'pending' AND id != ?",
+        req.user.client_id, contract_id, file_type, result.lastID
+      )
+      for (const o of oldRows) {
+        await db.run('DELETE FROM uploads WHERE id = ?', o.id)
+        unlinkUploadFile(o.stored_path)
+      }
     }
 
     // 返回完整记录（含 id/contract_id/file_type/status），前端上传后能立即展示「已上传 + 下载」
@@ -106,6 +130,27 @@ router.get('/:id/download', authMiddleware, async (req, res) => {
     res.download(filePath, file.original_name)
   } catch (e) {
     console.error('[uploads] download error:', e)
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// DELETE /api/uploads/:id — 客户删除自己上传的凭证（仅限待审核）
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb()
+    const file = await db.get('SELECT * FROM uploads WHERE id = ?', req.params.id)
+    if (!file) return res.status(404).json({ error: 'File not found' })
+    if (file.client_id !== req.user.client_id) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+    if (file.status !== 'pending') {
+      return res.status(400).json({ error: '已审核的凭证不可删除，请联系管理员' })
+    }
+    await db.run('DELETE FROM uploads WHERE id = ?', req.params.id)
+    unlinkUploadFile(file.stored_path)
+    res.json({ success: true })
+  } catch (e) {
+    console.error('[uploads] delete error:', e)
     res.status(500).json({ error: e.message })
   }
 })

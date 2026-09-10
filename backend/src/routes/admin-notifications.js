@@ -11,6 +11,7 @@ import { authMiddleware, adminMiddleware } from '../auth.js'
 import { calcMaterialFee, applyFloorFee, CLIENT_CHANGEABLE_FIELDS, containsChinese } from '../../../shared/constants.js'
 import { formatInvoiceNumber, generateAndSendInvoice } from '../services/invoice.js'
 import { localDate } from '../services/date.js'
+import { unlinkUploadFile } from './uploads.js'
 
 const router = Router()
 
@@ -182,6 +183,7 @@ router.delete('/uploads/:id', authMiddleware, adminMiddleware, async (req, res) 
     const upload = await db.get('SELECT * FROM uploads WHERE id = ?', req.params.id)
     if (!upload) return res.status(404).json({ error: 'Upload not found' })
     await db.run('DELETE FROM uploads WHERE id = ?', req.params.id)
+    unlinkUploadFile(upload.stored_path)
     console.log(`[admin] Deleted upload ${req.params.id}`)
     res.json({ success: true })
   } catch (e) {

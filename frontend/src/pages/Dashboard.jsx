@@ -73,8 +73,18 @@ export default function Dashboard() {
     const r = await fetch('/api/uploads', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
     const d = await r.json()
     if (!r.ok) throw new Error(d.error)
-    setUploads(p => [d.file, ...p])
+    // 后端已自动覆盖旧待审凭证，前端同步剔除旧 pending 同类型项，避免残留
+    setUploads(p => [d.file, ...p.filter(u => !(u.contract_id === d.file.contract_id && u.file_type === d.file.file_type && u.status === 'pending' && u.id !== d.file.id))])
     alert('✅ 文件上传成功')
+  }
+
+  const handleDeleteUpload = async (id) => {
+    const token = sessionStorage.getItem('token')
+    if (!token) { alert('未登录'); return }
+    const r = await fetch(`/api/uploads/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+    const d = await r.json().catch(() => ({}))
+    if (!r.ok) { alert(d.error || '删除失败'); return }
+    setUploads(p => p.filter(u => u.id !== id))
   }
 
   const handleLucidToggle = async (contractId, currentlyConfirmed) => {
@@ -174,6 +184,7 @@ export default function Dashboard() {
         uploads={uploads}
         onUpload={handleUpload}
         onPredeclared={handlePredeclared}
+        onDelete={handleDeleteUpload}
       />
     </div>
   )
