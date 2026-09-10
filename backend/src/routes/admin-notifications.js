@@ -50,7 +50,7 @@ router.get('/uploads/pending', authMiddleware, adminMiddleware, async (req, res)
 router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const db = await getDb()
-    const { status, comment } = req.body
+    const { status, comment, action } = req.body
     if (!['approved', 'rejected'].includes(status)) {
       return res.status(400).json({ error: 'status must be "approved" or "rejected"' })
     }
@@ -58,6 +58,12 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
     const upload = await db.get('SELECT * FROM uploads WHERE id = ?', req.params.id)
     if (!upload) return res.status(404).json({ error: 'Upload not found' })
     if (upload.status === 'approved') return res.status(400).json({ error: 'Upload already approved' })
+
+    // 管理员审核「预申报费」凭证时可主动指定处理类型：collect=代收 / self_declared=自行预申报
+    // （覆盖 file_type，纠正客户传错类型的情况）
+    let effectiveType = upload.file_type
+    if (action === 'collect' && upload.file_type === 'proof_predeclared') effectiveType = 'proof_prepaid'
+    else if (action === 'self_declared' && upload.file_type === 'proof_prepaid') effectiveType = 'proof_predeclared'
 
     let invoiceToSend = null
     await withTransaction(db, async () => {
@@ -77,7 +83,7 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
           proof_prepaid: 'recycling_prepaid',
           proof_settlement: 'recycling_settlement',
         }
-        const paymentType = PAYMENT_MAP[upload.file_type]
+        const paymentType = PAYMENT_MAP[effectiveType]
         if (paymentType && upload.contract_id) {
           // Find the corresponding pending payment
           const pmt = paymentType === 'contract_fee'
@@ -140,7 +146,7 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
         }
 
         // 「已预申报」凭证审核通过 → 确认预申报状态（不动 payments）
-        if (upload.file_type === 'proof_predeclared' && upload.contract_id) {
+        if (effectiveType === 'proof_predeclared' && upload.contract_id) {
           await db.run("UPDATE contracts SET pre_declared_status = 'approved' WHERE id = ?", upload.contract_id)
         }
 
@@ -152,7 +158,7 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
         )
       } else {
         // 「已预申报」凭证被驳回 → 重置为未请求，客户端可重新标记
-        if (upload.file_type === 'proof_predeclared' && upload.contract_id) {
+        if (effectiveType === 'proof_predeclared' && upload.contract_id) {
           await db.run('UPDATE contracts SET pre_declared_status = NULL WHERE id = ?', upload.contract_id)
         }
 
