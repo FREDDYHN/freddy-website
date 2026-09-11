@@ -68,8 +68,8 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
     let invoiceToSend = null
     await withTransaction(db, async () => {
       await db.run(
-        'UPDATE uploads SET status = ?, review_comment = ? WHERE id = ?',
-        status, comment || null, req.params.id
+        'UPDATE uploads SET status = ?, review_comment = ?, file_type = ? WHERE id = ?',
+        status, comment || null, effectiveType, req.params.id
       )
 
       // Create notification for the client
@@ -148,6 +148,9 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
         // 「已预申报」凭证审核通过 → 确认预申报状态（不动 payments）
         if (effectiveType === 'proof_predeclared' && upload.contract_id) {
           await db.run("UPDATE contracts SET pre_declared_status = 'approved' WHERE id = ?", upload.contract_id)
+        } else if (effectiveType === 'proof_prepaid' && upload.file_type === 'proof_predeclared' && upload.contract_id) {
+          // 管理员判定「代收」而非自行预申报 → 撤销客户的自报「已预申报」状态
+          await db.run("UPDATE contracts SET pre_declared_status = NULL WHERE id = ?", upload.contract_id)
         }
 
         await db.run(

@@ -444,12 +444,9 @@ export default function Admin() {
       const d = await r.json()
       if (r.ok) {
         setReviewedUploads(prev => ({ ...prev, [uploadId]: status }))
-        if (status === 'approved' && (fileType === 'bank_proof' || fileType === 'proof_annual_fee')) {
-          setContracts(prev => prev.map(c => c.id === contractId ? { ...c, status: 'active' } : c))
-        }
-        if (fileType === 'proof_predeclared') {
-          setContracts(prev => prev.map(c => c.id === contractId ? { ...c, pre_declared_status: status === 'approved' ? 'approved' : null } : c))
-        }
+        // 后端可能按 action（collect/self_declared）改写 file_type 并调整 pre_declared_status，
+        // 刷新以正确归类凭证，避免「确认自行预申报」后凭证从表格消失
+        load(page)
       } else {
         alert('操作失败：' + (d.error || '未知错误'))
       }
