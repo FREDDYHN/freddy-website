@@ -826,7 +826,10 @@ export default function Admin() {
                       ) : c.pre_declared_status === 'pending' ? (
                         <>
                           <span className="text-xs text-yellow-600 font-medium">已预申报 · 待审核</span>
-                          {uploadLinks(c, 'proof_predeclared')}
+                          {uploadLinks(c, 'proof_predeclared', 'proof_prepaid')}
+                          {!uploadLinks(c, 'proof_predeclared', 'proof_prepaid') && (
+                            <div className="mt-1"><span className="text-[10px] text-gray-300">暂无凭证</span></div>
+                          )}
                         </>
                       ) : (
                         <>
