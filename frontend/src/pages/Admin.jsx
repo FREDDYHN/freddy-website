@@ -473,16 +473,18 @@ export default function Admin() {
                 <button onClick={async () => { if(confirm('删除此凭证？')){ try { const r=await fetch(`/api/admin/uploads/${u.id}`,{method:'DELETE',headers:ah()}); if(r.ok) load(page) }catch{} }}}
                   className="text-[11px] text-gray-300 hover:text-red-500 flex-shrink-0 leading-none">🗑</button>
               </div>
-              {reviewStatus !== 'approved' && (u.file_type === 'proof_prepaid' || u.file_type === 'proof_predeclared') ? (
-                <>
-                  <button onClick={() => reviewUpload(u.id, u.file_type, c.id, 'approved', 'collect')}
-                    className="text-[9px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded hover:bg-green-200 font-medium mt-0.5">确认代收</button>
-                  <button onClick={() => reviewUpload(u.id, u.file_type, c.id, 'approved', 'self_declared')}
-                    className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 font-medium mt-0.5 ml-1">确认自行预申报</button>
-                </>
-              ) : (
-                <button onClick={() => reviewUpload(u.id, u.file_type, c.id, 'approved')}
-                  className="text-[9px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded hover:bg-green-200 font-medium mt-0.5">确认</button>
+              {reviewStatus !== 'approved' && (
+                (u.file_type === 'proof_prepaid' || u.file_type === 'proof_predeclared') ? (
+                  <>
+                    <button onClick={() => reviewUpload(u.id, u.file_type, c.id, 'approved', 'collect')}
+                      className="text-[9px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded hover:bg-green-200 font-medium mt-0.5">确认代收</button>
+                    <button onClick={() => reviewUpload(u.id, u.file_type, c.id, 'approved', 'self_declared')}
+                      className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 font-medium mt-0.5 ml-1">确认自行预申报</button>
+                  </>
+                ) : (
+                  <button onClick={() => reviewUpload(u.id, u.file_type, c.id, 'approved')}
+                    className="text-[9px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded hover:bg-green-200 font-medium mt-0.5">确认</button>
+                )
               )}
             </div>
           )
