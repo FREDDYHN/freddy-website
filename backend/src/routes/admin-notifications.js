@@ -107,16 +107,23 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
               invoiceToSend = { client_id: upload.client_id, contract_id: upload.contract_id, invoice_number: invNo, amount_eur: pmt.amount_eur, invoice_date: today }
             }
           } else if (paymentType === 'recycling_prepaid') {
-            // Calculate prepaid fee from packaging data (same as client dashboard)
-            const pkg = await db.all('SELECT material_type, estimated_quantity_kg FROM packaging_data WHERE contract_id = ?', upload.contract_id)
-            if (pkg.length > 0) {
-              const byMat = {}; pkg.forEach(p => { const mk = p.material_type; const kg = parseFloat(p.estimated_quantity_kg) || 0; byMat[mk] = (byMat[mk] || 0) + kg })
-              let fee = 0; Object.entries(byMat).forEach(([mk, kg]) => { fee += calcMaterialFee(mk, kg) })
-              fee = applyFloorFee(fee, 28.90)
-              await db.run(
-                "INSERT INTO payments (client_id, contract_id, payment_type, amount_cny, amount_eur, payment_method, out_trade_no, status, paid_at) VALUES (?,?,?,?,?,'bank','REVIEW-'||?,?,datetime('now'))",
-                upload.client_id, upload.contract_id, paymentType, 0, fee, Date.now().toString(36).toUpperCase(), 'paid'
-              )
+            // 已有 paid 代缴记录（如客户既传 proof_prepaid 又误传 proof_predeclared，被「确认代收」二次审核）→ 不重复建
+            const existingPaid = await db.get(
+              "SELECT id FROM payments WHERE contract_id = ? AND payment_type = 'recycling_prepaid' AND status = 'paid' ORDER BY id DESC LIMIT 1",
+              upload.contract_id
+            )
+            if (!existingPaid) {
+              // Calculate prepaid fee from packaging data (same as client dashboard)
+              const pkg = await db.all('SELECT material_type, estimated_quantity_kg FROM packaging_data WHERE contract_id = ?', upload.contract_id)
+              if (pkg.length > 0) {
+                const byMat = {}; pkg.forEach(p => { const mk = p.material_type; const kg = parseFloat(p.estimated_quantity_kg) || 0; byMat[mk] = (byMat[mk] || 0) + kg })
+                let fee = 0; Object.entries(byMat).forEach(([mk, kg]) => { fee += calcMaterialFee(mk, kg) })
+                fee = applyFloorFee(fee, 28.90)
+                await db.run(
+                  "INSERT INTO payments (client_id, contract_id, payment_type, amount_cny, amount_eur, payment_method, out_trade_no, status, paid_at) VALUES (?,?,?,?,?,'bank','REVIEW-'||?,?,datetime('now'))",
+                  upload.client_id, upload.contract_id, paymentType, 0, fee, Date.now().toString(36).toUpperCase(), 'paid'
+                )
+              }
             }
           } else if (paymentType === 'recycling_settlement') {
             // Calculate settlement from actual vs estimated kg
