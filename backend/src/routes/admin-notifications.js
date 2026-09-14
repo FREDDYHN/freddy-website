@@ -6,7 +6,7 @@
  * record that the client sees in their dashboard bell.
  */
 import { Router } from 'express'
-import { getDb, withTransaction } from '../db.js'
+import { getDb, getRate, withTransaction } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
 import { calcMaterialFee, applyFloorFee, CLIENT_CHANGEABLE_FIELDS, containsChinese } from '../../../shared/constants.js'
 import { formatInvoiceNumber, generateAndSendInvoice } from '../services/invoice.js'
@@ -119,9 +119,11 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
                 const byMat = {}; pkg.forEach(p => { const mk = p.material_type; const kg = parseFloat(p.estimated_quantity_kg) || 0; byMat[mk] = (byMat[mk] || 0) + kg })
                 let fee = 0; Object.entries(byMat).forEach(([mk, kg]) => { fee += calcMaterialFee(mk, kg) })
                 fee = applyFloorFee(fee, 28.90)
+                const rate = await getRate()
+                const cny = Math.round(fee * rate * 100) / 100
                 await db.run(
-                  "INSERT INTO payments (client_id, contract_id, payment_type, amount_cny, amount_eur, payment_method, out_trade_no, status, paid_at) VALUES (?,?,?,?,?,'bank','REVIEW-'||?,?,datetime('now'))",
-                  upload.client_id, upload.contract_id, paymentType, 0, fee, Date.now().toString(36).toUpperCase(), 'paid'
+                  "INSERT INTO payments (client_id, contract_id, payment_type, amount_cny, amount_eur, payment_method, out_trade_no, status, paid_at, rate_used, rate_locked_at) VALUES (?,?,?,?,?,'bank','REVIEW-'||?,?,datetime('now'),?,datetime('now'))",
+                  upload.client_id, upload.contract_id, paymentType, cny, fee, Date.now().toString(36).toUpperCase(), 'paid', rate
                 )
               }
             }
@@ -144,9 +146,11 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
               if (diff > estFee * 0.2 && estFee > 0) settle = diff * 1.2
               else if (diff < 0) { const limit = estFee * 0.1; settle = -Math.min(Math.abs(diff), limit) }
               settle = Math.round(settle * 100) / 100
+              const rate = await getRate()
+              const cny = Math.round(settle * rate * 100) / 100
               await db.run(
-                "INSERT INTO payments (client_id, contract_id, payment_type, amount_cny, amount_eur, payment_method, out_trade_no, status, paid_at) VALUES (?,?,?,?,?,?,'REVIEW-'||?,?,datetime('now'))",
-                upload.client_id, upload.contract_id, paymentType, 0, settle, 'bank', Date.now().toString(36).toUpperCase(), 'paid'
+                "INSERT INTO payments (client_id, contract_id, payment_type, amount_cny, amount_eur, payment_method, out_trade_no, status, paid_at, rate_used, rate_locked_at) VALUES (?,?,?,?,?,?,'REVIEW-'||?,?,datetime('now'),?,datetime('now'))",
+                upload.client_id, upload.contract_id, paymentType, cny, settle, 'bank', Date.now().toString(36).toUpperCase(), 'paid', rate
               )
             }
           }

@@ -172,6 +172,7 @@ app.get('/api/dashboard', authMiddleware, async (req, res) => {
 app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const db = await getDb()
+    const rate = await getRate()
     const [clients, contracts, pending, arFee, predeclaredEur, settlementEur] = await Promise.all([
       db.get('SELECT COUNT(*) as cnt FROM clients'),
       db.get("SELECT COUNT(*) as cnt FROM contracts WHERE lucid_rep_accepted = 1"),
@@ -180,26 +181,25 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
           COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_prepaid' THEN 1 ELSE 0 END), 0) as pre,
           COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_settlement' THEN 1 ELSE 0 END), 0) as settle,
           COALESCE(SUM(CASE WHEN p.payment_type = 'contract_fee' THEN p.amount_cny ELSE 0 END), 0) as ar_cny,
-          COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_prepaid' THEN p.amount_eur ELSE 0 END), 0) as pre_eur,
-          COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_settlement' THEN p.amount_eur ELSE 0 END), 0) as settle_eur
+          COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_prepaid' THEN COALESCE(NULLIF(p.amount_cny,0), p.amount_eur * ?) ELSE 0 END), 0) as pre_cny,
+          COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_settlement' THEN COALESCE(NULLIF(p.amount_cny,0), p.amount_eur * ?) ELSE 0 END), 0) as settle_cny
         FROM payments p JOIN contracts c ON p.contract_id = c.id
-        WHERE p.status = 'pending' AND c.status != 'pending_verification'`),
+        WHERE p.status = 'pending' AND c.status != 'pending_verification'`, rate, rate),
       // 授权代表年费：amount_cny 已在签约时按锁定汇率写好，直接求和
       db.get("SELECT COALESCE(SUM(amount_cny),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'contract_fee' AND status = 'paid'"),
-      // 预申报费 / 年终结算费：管理员只填 amount_eur（amount_cny=0），用当前汇率换算
-      db.get("SELECT COALESCE(SUM(amount_eur),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'paid'"),
-      db.get("SELECT COALESCE(SUM(amount_eur),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'recycling_settlement' AND status = 'paid'"),
+      // 预申报费 / 年终结算费：优先锁定 amount_cny；历史行 amount_cny 未填则回退 amount_eur × 当前汇率
+      db.get("SELECT COALESCE(SUM(COALESCE(NULLIF(amount_cny,0), amount_eur * ?)),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'paid'", rate),
+      db.get("SELECT COALESCE(SUM(COALESCE(NULLIF(amount_cny,0), amount_eur * ?)),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'recycling_settlement' AND status = 'paid'", rate),
     ])
-    const rate = await getRate()
     res.json({
       total_clients: clients.cnt, lucid_synced: contracts.cnt,
       pending_ar: pending.ar, pending_pre: pending.pre, pending_settle: pending.settle,
       pending_ar_cny: pending.ar_cny,
-      pending_pre_cny: Math.round(pending.pre_eur * rate * 100) / 100,
-      pending_settle_cny: Math.round(pending.settle_eur * rate * 100) / 100,
+      pending_pre_cny: Math.round(pending.pre_cny * 100) / 100,
+      pending_settle_cny: Math.round(pending.settle_cny * 100) / 100,
       ar_fee_cny: arFee.total, ar_fee_clients: arFee.clients,
-      predeclared_fee_cny: Math.round(predeclaredEur.total * rate * 100) / 100, predeclared_fee_clients: predeclaredEur.clients,
-      settlement_fee_cny: Math.round(settlementEur.total * rate * 100) / 100, settlement_fee_clients: settlementEur.clients,
+      predeclared_fee_cny: Math.round(predeclaredEur.total * 100) / 100, predeclared_fee_clients: predeclaredEur.clients,
+      settlement_fee_cny: Math.round(settlementEur.total * 100) / 100, settlement_fee_clients: settlementEur.clients,
     })
   } catch (e) {
     console.error('[server] admin stats error:', e)
@@ -255,9 +255,9 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
     for (const row of rows) {
       const pms = paymentsByContract[row.id] || []
       const prepaid = pms.find(p => p.payment_type === 'recycling_prepaid')
-      if (prepaid) { row.prepaid_amount = prepaid.amount_eur; row.prepaid_status = prepaid.status }
+      if (prepaid) { row.prepaid_amount = prepaid.amount_eur; row.prepaid_status = prepaid.status; row.prepaid_cny = prepaid.amount_cny; row.prepaid_rate = prepaid.rate_used }
       const settlement = pms.find(p => p.payment_type === 'recycling_settlement')
-      if (settlement) { row.settlement_amount = settlement.amount_eur; row.settlement_status = settlement.status }
+      if (settlement) { row.settlement_amount = settlement.amount_eur; row.settlement_status = settlement.status; row.settlement_cny = settlement.amount_cny; row.settlement_rate = settlement.rate_used }
       row._uploads = uploadsByContract[row.id] || {}
       row._packaging = allPackaging.filter(p => p.contract_id === row.id)
     }
@@ -351,9 +351,9 @@ app.get('/api/admin/clients/search', authMiddleware, adminMiddleware, async (req
         if (!cid) continue
         const pms = payByContract[cid] || []
         const prepaid = pms.find(p => p.payment_type === 'recycling_prepaid')
-        if (prepaid) { r.prepaid_amount = prepaid.amount_eur; r.prepaid_status = prepaid.status }
+        if (prepaid) { r.prepaid_amount = prepaid.amount_eur; r.prepaid_status = prepaid.status; r.prepaid_cny = prepaid.amount_cny; r.prepaid_rate = prepaid.rate_used }
         const settlement = pms.find(p => p.payment_type === 'recycling_settlement')
-        if (settlement) { r.settlement_amount = settlement.amount_eur; r.settlement_status = settlement.status }
+        if (settlement) { r.settlement_amount = settlement.amount_eur; r.settlement_status = settlement.status; r.settlement_cny = settlement.amount_cny; r.settlement_rate = settlement.rate_used }
         r._uploads = uplByContract[cid] || {}
         r._packaging = allPackaging.filter(p => p.contract_id === cid)
       }
@@ -494,14 +494,20 @@ app.post('/api/admin/set-fee', authMiddleware, adminMiddleware, async (req, res)
       contract_id, paymentType
     )
 
+    // 设定费用时锁定当前汇率（与年费签约一致，避免后续对账漂移）
+    const rate = await getRate()
+    const amountCny = amount_eur != null ? Math.round(Number(amount_eur) * rate * 100) / 100 : 0
+
     if (existing) {
-      await db.run('UPDATE payments SET amount_eur = ?, status = ? WHERE id = ?',
-        amount_eur, 'pending', existing.id)
+      await db.run(
+        "UPDATE payments SET amount_eur = ?, amount_cny = ?, rate_used = ?, rate_locked_at = datetime('now'), status = ? WHERE id = ?",
+        amount_eur, amountCny, rate, 'pending', existing.id
+      )
     } else {
       const tradeNo = 'EPR-' + paymentType.toUpperCase() + '-' + Date.now().toString(36).toUpperCase()
       await db.run(
-        'INSERT INTO payments (client_id, contract_id, payment_type, amount_eur, out_trade_no, status) VALUES (?, ?, ?, ?, ?, ?)',
-        contract.client_id, contract_id, paymentType, amount_eur, tradeNo, 'pending'
+        "INSERT INTO payments (client_id, contract_id, payment_type, amount_cny, amount_eur, out_trade_no, status, rate_used, rate_locked_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))",
+        contract.client_id, contract_id, paymentType, amountCny, amount_eur, tradeNo, 'pending', rate
       )
     }
 

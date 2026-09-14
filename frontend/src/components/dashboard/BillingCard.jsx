@@ -37,6 +37,14 @@ function calcTotalSettlement(preFee, actFee) {
   return { amount: Math.round(settle * 100) / 100, note }
 }
 
+/** 回收费人民币展示：优先用签约/审核时锁定的 amount_cny，否则用锁定汇率/实时汇率折算（约值取整） */
+function feeCny(payment, eurAmount, liveRate) {
+  const locked = payment && Number(payment.amount_cny)
+  if (locked > 0) return Math.round(locked)
+  const r = (payment && payment.rate_used) ? payment.rate_used : liveRate
+  return Math.round((Number(eurAmount) || 0) * r)
+}
+
 export default function BillingCard({ contracts, packaging, payments, uploads, onUpload, onPredeclared, onDelete }) {
   const [rate, setRate] = useState(8.10)
   useEffect(() => { fetch('/api/rate').then(r => r.json()).then(d => d.rate && setRate(d.rate)).catch(() => {}) }, [])
@@ -93,7 +101,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     h += '<tr><td colspan="3">小计 · '+totalKg+'kg</td><td class="num"><b>€'+subtotal.toFixed(2)+'</b></td></tr>'
     if(prepaidCalc>subtotal) h += '<tr><td colspan="3" class="y">取起步价</td><td class="num y"><b>€'+prepaidCalc.toFixed(2)+'</b></td></tr>'
     h += '</table><p class="b">预申报费 €'+prepaidDisplay.toFixed(2)+' '+(c.pre_declared_status==='approved'?'已预申报 ✓':c.pre_declared_status==='pending'?'待审核':(prepaidPayment?.status==='paid'?'✓':''))+'</p>'
-    h += '<p style="font-size:10px;color:#888">≈ ¥'+Math.round(prepaidDisplay * rate)+'</p>'
+    h += '<p style="font-size:10px;color:#888">≈ ¥'+feeCny(prepaidPayment, prepaidDisplay, rate)+'</p>'
     if(prepaidOverride) h += '<p class="s">报价表 €'+prepaidCalc.toFixed(2)+'</p>'
     h += '</div>' // close prepaid div
     h += '</div>' // close grid
@@ -117,7 +125,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
       if(penaltyApplies) h += '<p class="r">+ 惩罚金 (合同 §5(3) 20%附加费) <b>€'+penaltyAmt.toFixed(2)+'</b></p>'
       if(refundApplies && Math.abs(rawDiff) > prepaidCalc * 0.1) h += '<p class="y">退款上限10%: 仅退 €'+Math.abs(refundCapped).toFixed(2)+'</p>'
       h += '<p class="b" style="font-size:14px">'+(settleAmt>0?'补缴合计':'退款合计')+' €'+settleDisplay.toFixed(2)+' '+(settlementPayment?.status==='paid'?'✓ 已付清':'')+'</p>'
-      h += '<p style="font-size:10px;color:#888">约 ¥'+Math.round(settleDisplay * rate)+'</p>'
+      h += '<p style="font-size:10px;color:#888">约 ¥'+feeCny(settlementPayment, settleDisplay, rate)+'</p>'
       if(settleOverride) h += '<p class="s">公式值 €'+settleAmt.toFixed(2)+'</p>'
       h += '</div>'
     } else { h += '<p style="color:#999">暂无实际数据</p>' }
@@ -133,7 +141,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     h += '<p style="font-weight:700;color:#c0392b;margin:0 0 8px;font-size:14px">⚠️ 请务必分开转账支付，并附上转账附言，未填写或填写错误的转账附言将不予处理。</p>'
     h += '<p style="margin:2px 0">· 授权代表年费　<b>€' + c.annual_fee_eur + '</b>（约 ¥' + Math.round(c.annual_fee_eur * rate) + '）</p>'
     h += '<p style="margin:2px 0 6px;padding-left:14px">转账附言　<b>EPR-' + esc(c.contract_number || '') + '-A</b></p>'
-    h += '<p style="margin:2px 0">· 预申报费　　<b>€' + prepaidDisplay.toFixed(2) + '</b>（约 ¥' + Math.round(prepaidDisplay * rate) + '）</p>'
+    h += '<p style="margin:2px 0">· 预申报费　　<b>€' + prepaidDisplay.toFixed(2) + '</b>（约 ¥' + feeCny(prepaidPayment, prepaidDisplay, rate) + '）</p>'
     h += '<p style="margin:2px 0;padding-left:14px">转账附言　<b>EPR-' + esc(c.contract_number || '') + '-V</b></p>'
     h += '</div>'
     h += '</div>'
@@ -240,7 +248,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                             <span className={`font-semibold ${cls}`}>€{(prepaidPayment?.amount_eur || cost).toFixed(2)}</span>
                             <span className={`font-semibold ml-1 ${cls}`}>{label}</span>
                           </span>
-                          <span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round((prepaidPayment?.amount_eur || cost) * rate)}</span>
+                          <span className="text-xs text-gray-350 mt-0.5">≈ ¥{feeCny(prepaidPayment, (prepaidPayment?.amount_eur || cost), rate)}</span>
                           {preStatus === 'approved' ? null : preStatus === 'pending' ? (<>
                             <button onClick={() => onPredeclared(c.id, true)} className="text-xs text-gray-400 hover:text-primary mt-0.5 text-left">撤销「已预申报」</button>
                             <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
@@ -264,12 +272,12 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                       {settlementPayment?.status === 'paid' && settlementPayment.amount_eur > 0 ? (
                         <>
                         <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">€{settlementPayment.amount_eur} ✓</span>
-                        <span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(settlementPayment.amount_eur * rate)}</span>
+                        <span className="text-xs text-gray-350 mt-0.5">≈ ¥{feeCny(settlementPayment, settlementPayment.amount_eur, rate)}</span>
                         </>
                       ) : settlementPayment && settlementPayment.amount_eur > 0 ? (
                         <>
                         <span className="text-xs text-yellow-600 font-semibold h-[18px] flex items-center">€{settlementPayment.amount_eur} 待缴</span>
-                        <span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(settlementPayment.amount_eur * rate)}</span>
+                        <span className="text-xs text-gray-350 mt-0.5">≈ ¥{feeCny(settlementPayment, settlementPayment.amount_eur, rate)}</span>
                         </>
                       ) : pkg.some(p => p.submitted_at) ? (
                         (() => { const actByMat = {}; pkg.forEach(item => { const mk = item.material_type || item.material_key; const ak = parseFloat(item.actual_quantity_kg) || 0; if (ak > 0) actByMat[mk] = (actByMat[mk] || 0) + ak }); let af = 0; Object.entries(actByMat).forEach(([mk, kg]) => { af += calcMaterialFee(mk, kg) }); af = applyFloorFee(af, 28.90); const s = calcTotalSettlement(cost, af); return s.amount > 0 ? <><span className="text-xs text-red-500 font-semibold h-[18px] flex items-center">补缴 €{s.amount.toFixed(2)}</span><span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(s.amount * rate)}</span></> : s.amount < 0 ? <><span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">退 €{Math.abs(s.amount).toFixed(2)}</span><span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(Math.abs(s.amount) * rate)}</span></> : <span className="text-xs text-blue-500 h-[18px] flex items-center">已申报</span> })()

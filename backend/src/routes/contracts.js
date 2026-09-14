@@ -1,11 +1,11 @@
 import { Router } from 'express'
-import { getDb, withTransaction } from '../db.js'
+import { getDb, getRate, withTransaction } from '../db.js'
 import { authMiddleware } from '../auth.js'
 import { createPaymentOrder, insertPaymentRow } from '../payment.js'
 import { generateContract, getContractUrl } from '../services/contract-gen.js'
 import { sendVerificationEmail, sendLucidGuide } from '../services/email.js'
 import { rateLimit } from '../rate-limiter.js'
-import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES, containsChinese, taxError, needsVatId, FOREIGN_TAX_RE } from '../../../shared/constants.js'
+import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES, containsChinese, taxError, needsVatId, FOREIGN_TAX_RE, calcMaterialFee, applyFloorFee } from '../../../shared/constants.js'
 
 const router = Router()
 
@@ -193,6 +193,25 @@ router.post('/', rateLimit('contract-create', 3, 10 * 60 * 1000), async (req, re
 
       // 4. 写支付行（复用事务外预先下好的单，纯 DB 写）
       await insertPaymentRow(db, clientId, contractId, 'wechat', order)
+
+      // 4b. 写回收预申报费待付款行（签约时锁定汇率，与年费同汇率，避免客户付款后管理员核对时汇率漂移）
+      if (isPackaging) {
+        const byMat = {}
+        for (const it of (packaging_items || [])) {
+          const mk = it.material_type
+          if (!mk) continue
+          const kg = Number(it.estimated_kg) || 0
+          byMat[mk] = (byMat[mk] || 0) + kg
+        }
+        let prepaidFee = 0
+        for (const [mk, kg] of Object.entries(byMat)) prepaidFee += calcMaterialFee(mk, kg)
+        prepaidFee = applyFloorFee(prepaidFee, 28.90)
+        const prepaidCny = Math.round(prepaidFee * order.rate * 100) / 100
+        await db.run(
+          "INSERT INTO payments (client_id, contract_id, payment_type, amount_cny, amount_eur, payment_method, out_trade_no, status, rate_used, rate_locked_at) VALUES (?,?,?,?,?,?,?,?,?,datetime('now'))",
+          clientId, contractId, 'recycling_prepaid', prepaidCny, prepaidFee, 'bank', 'EPR-PRE-' + contractId, 'pending', order.rate
+        )
+      }
 
       // 5. Create user account (email_verified=0, password set later via verification email)
       const existingUser = await db.get('SELECT id FROM users WHERE email = ?', contact_email)
@@ -389,6 +408,41 @@ router.post('/:id/submit-actuals', authMiddleware, async (req, res) => {
           'UPDATE packaging_data SET actual_quantity_kg = ?, submitted_at = datetime(\'now\') WHERE contract_id = ? AND material_type = ?',
           parseFloat(item.actual_kg), req.params.id, item.material_type
         )
+      }
+
+      // 提交实际量时即锁定年终结算费（补缴）的汇率，避免后续对账漂移。
+      // 计算规则与 admin-notifications.js 审核兜底一致（§5(3) 惩罚金/退款封顶）。
+      const pkg = await db.all('SELECT material_type, estimated_quantity_kg, actual_quantity_kg FROM packaging_data WHERE contract_id = ?', req.params.id)
+      if (pkg.length > 0 && pkg.some(p => p.actual_quantity_kg > 0)) {
+        const byMatEst = {}, byMatAct = {}
+        let estFee = 0, actFee = 0
+        pkg.forEach(p => {
+          const mk = p.material_type; const ek = parseFloat(p.estimated_quantity_kg) || 0; const ak = parseFloat(p.actual_quantity_kg) || 0
+          byMatEst[mk] = (byMatEst[mk] || 0) + ek; if (ak > 0) byMatAct[mk] = (byMatAct[mk] || 0) + ak
+        })
+        Object.entries(byMatEst).forEach(([mk, kg]) => { estFee += calcMaterialFee(mk, kg) })
+        Object.entries(byMatAct).forEach(([mk, kg]) => { actFee += calcMaterialFee(mk, kg) })
+        estFee = applyFloorFee(estFee, 28.90)
+        actFee = applyFloorFee(actFee, 28.90)
+        const diff = actFee - estFee
+        let settle = diff
+        if (diff > estFee * 0.2 && estFee > 0) settle = diff * 1.2
+        else if (diff < 0) { const limit = estFee * 0.1; settle = -Math.min(Math.abs(diff), limit) }
+        settle = Math.round(settle * 100) / 100
+        // 仅「补缴」（正值）锁定汇率建行；退款/持平不涉及客户付人民币，维持前端实时展示
+        if (settle > 0) {
+          const rate = await getRate()
+          const settleCny = Math.round(settle * rate * 100) / 100
+          const existing = await db.get("SELECT id FROM payments WHERE contract_id = ? AND payment_type = 'recycling_settlement'", req.params.id)
+          if (existing) {
+            await db.run("UPDATE payments SET amount_eur = ?, amount_cny = ?, rate_used = ?, rate_locked_at = datetime('now'), status = 'pending' WHERE id = ?", settle, settleCny, rate, existing.id)
+          } else {
+            await db.run(
+              "INSERT INTO payments (client_id, contract_id, payment_type, amount_cny, amount_eur, payment_method, out_trade_no, status, rate_used, rate_locked_at) VALUES (?,?,?,?,?,?,?,?,?,datetime('now'))",
+              contract.client_id, req.params.id, 'recycling_settlement', settleCny, settle, 'bank', 'EPR-SET-' + req.params.id, 'pending', rate
+            )
+          }
+        }
       }
     })
 

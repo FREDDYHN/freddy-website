@@ -20,6 +20,13 @@ function currentQuarterRange() {
   return [f(start), f(end)]
 }
 
+/** 回收费人民币展示：优先用锁定 amount_cny，否则用锁定汇率/实时汇率折算（约值取整） */
+function feeCnyDisplay(cny, rate, eur, liveRate) {
+  if (Number(cny) > 0) return Math.round(Number(cny))
+  const r = rate || liveRate || 8.10
+  return Math.round((Number(eur) || 0) * r)
+}
+
 /** 收件队列里给某封邮件分配客户的内联搜索器（复用 /api/admin/clients/search） */
 function InboundClientPicker({ onPick }) {
   const [q, setQ] = useState('')
@@ -731,6 +738,8 @@ export default function Admin() {
                           const settleDisplay = c.settlement_amount || Math.abs(settleAmt)
                           const prepaidOverride = c.prepaid_amount > 0 && Math.abs(c.prepaid_amount - prepaidCalc) > 0.01
                           const settleOverride = c.settlement_amount > 0 && hasAnyActuals && Math.abs(c.settlement_amount - settleAmt) > 0.01
+                          const prepaidCny = feeCnyDisplay(c.prepaid_cny, c.prepaid_rate, prepaidDisplay, rateInfo.rate)
+                          const settlementCny = feeCnyDisplay(c.settlement_cny, c.settlement_rate, settleDisplay, rateInfo.rate)
                           let html = `<html><head><meta charset="UTF-8"><title>缴费明细 - ${e(c.company_name)}</title><style>body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;padding:24px;max-width:960px;margin:0 auto;color:#333;font-size:13px}h2{font-size:16px;margin-bottom:4px}.sub{color:#888;font-size:12px;margin-bottom:16px}h3{font-size:13px;margin:16px 0 8px;color:#555}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:4px 8px;text-align:left}th{color:#888;font-weight:400;border-bottom:1px solid #e0e0e0}td{border-bottom:1px solid #f0f0f0}.ar{font-size:12px}.ar p{margin:3px 0}.num{text-align:right;font-variant-numeric:tabular-nums}.r{color:#c00}.g{color:#0a0}.b{font-weight:700;color:#1a3a5f}.s{text-decoration:line-through;color:#999}.y{color:#b8860b}.grid{display:grid;grid-template-columns:180px 1fr;gap:24px}.settle-section{margin-top:20px}.bank-section{margin-top:20px;padding-top:16px;border-top:2px solid #e0e0e0}.bank-section h3{font-size:12px;color:#555;margin-bottom:6px}.bank-section p{font-size:11px;color:#888;margin:2px 0;line-height:1.6}.tbl{width:100%;border-collapse:collapse;font-size:12px}.tbl th{color:#666;font-weight:500;border-bottom:2px solid #ccc;padding:5px 8px;text-align:right}.tbl th:first-child{text-align:left}.tbl td{padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right}.tbl td:first-child{text-align:left}.tbl .total-row td{border-top:2px solid #ccc;font-weight:700}</style></head><body>`
                           html += `<h2>${e(c.company_name)}</h2><p class="sub">${e(c.contract_number)} · ${e(tierName)}</p>`
                           html += '<div class="grid">'
@@ -747,7 +756,7 @@ export default function Admin() {
                           html += `<tr><td colspan="3">小计 · ${totalKg}kg</td><td class="num"><b>€${subtotal.toFixed(2)}</b></td></tr>`
                           if(prepaidCalc>subtotal) html += `<tr><td colspan="3" class="y">取起步价</td><td class="num y"><b>€${prepaidCalc.toFixed(2)}</b></td></tr>`
                           html += `</table><p class="b">预申报费 €${prepaidDisplay.toFixed(2)} ${c.prepaid_status==='paid'?'✓':''}</p>`
-                          html += `<p style="font-size:10px;color:#888">≈ ¥${Math.round(prepaidDisplay * (rateInfo.rate||8.10))}</p>`
+                          html += `<p style="font-size:10px;color:#888">≈ ¥${prepaidCny}</p>`
                           if(prepaidOverride) html += `<p class="s">报价表 €${prepaidCalc.toFixed(2)}</p>`
                           html += '</div>' // close prepaid
                           html += '</div>' // close 2-col grid
@@ -775,7 +784,7 @@ export default function Admin() {
                             if(penaltyApplies) html += '<p class="r">+ 惩罚金 (合同 §5(3) 20%附加费) <b>€'+penaltyAmt.toFixed(2)+'</b></p>'
                             if(refundApplies && Math.abs(rawDiff) > prepaidCalc * 0.1) html += '<p class="y">退款上限10%: 仅退 €'+Math.abs(refundCapped).toFixed(2)+'</p>'
                             html += '<p class="b" style="font-size:14px">'+(settleAmt>0?'补缴合计':'退款合计')+' €'+settleDisplay.toFixed(2)+' '+(c.settlement_status==='paid'?'✓ 已付清':'')+'</p>'
-                            html += '<p style="font-size:10px;color:#888">约 ¥'+Math.round(settleDisplay * (rateInfo.rate||8.10))+'</p>'
+                            html += '<p style="font-size:10px;color:#888">约 ¥'+settlementCny+'</p>'
                             if(settleOverride) html += '<p class="s">公式值 €'+settleAmt.toFixed(2)+'</p>'
                             html += '</div>'
                           } else { html += '<p style="color:#999">暂无实际数据</p>' }
@@ -793,7 +802,7 @@ export default function Admin() {
                           html += '<p style="font-weight:700;color:#c0392b;margin:0 0 8px;font-size:14px">⚠️ 请务必分开转账支付，并附上转账附言，未填写或填写错误的转账附言将不予处理。</p>'
                           html += '<p style="margin:2px 0">· 授权代表年费　<b>€' + c.annual_fee_eur + '</b>（约 ¥' + Math.round(c.annual_fee_eur * (rateInfo.rate||8.10)) + '）</p>'
                           html += '<p style="margin:2px 0 6px;padding-left:14px">转账附言　<b>EPR-' + e(c.contract_number || '') + '-A</b></p>'
-                          html += '<p style="margin:2px 0">· 预申报费　　<b>€' + prepaidDisplay.toFixed(2) + '</b>（约 ¥' + Math.round(prepaidDisplay * (rateInfo.rate||8.10)) + '）</p>'
+                          html += '<p style="margin:2px 0">· 预申报费　　<b>€' + prepaidDisplay.toFixed(2) + '</b>（约 ¥' + prepaidCny + '）</p>'
                           html += '<p style="margin:2px 0;padding-left:14px">转账附言　<b>EPR-' + e(c.contract_number || '') + '-V</b></p>'
                           html += '</div>'
                           html += '</div>'
@@ -820,7 +829,7 @@ export default function Admin() {
                       {c.pre_declared_status === 'approved' ? (
                         <>
                           <span className="text-xs text-green-600 font-medium">{c.prepaid_amount > 0 ? `€${c.prepaid_amount} 已预申报 ✓` : '已预申报 ✓'}</span>
-                          {c.prepaid_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{Math.round(c.prepaid_amount * (rateInfo.rate||8.10))}</div>}
+                          {c.prepaid_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{feeCnyDisplay(c.prepaid_cny, c.prepaid_rate, c.prepaid_amount, rateInfo.rate)}</div>}
                           {uploadLinks(c, 'proof_predeclared')}
                         </>
                       ) : c.pre_declared_status === 'pending' ? (
@@ -841,7 +850,7 @@ export default function Admin() {
                             <button onClick={() => { setFeeModal({ contractId: c.id, type: 'prepaid' }); setFeeAmount('') }}
                               className="text-xs text-primary hover:underline">💰 设置费用</button>
                           )}
-                          {c.prepaid_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{Math.round(c.prepaid_amount * (rateInfo.rate||8.10))}</div>}
+                          {c.prepaid_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{feeCnyDisplay(c.prepaid_cny, c.prepaid_rate, c.prepaid_amount, rateInfo.rate)}</div>}
                           {uploadLinks(c, 'proof_prepaid')}
                           {!uploadLinks(c, 'proof_prepaid') && (
                             <div className="mt-1"><span className="text-[10px] text-gray-300">暂无凭证</span></div>
@@ -860,7 +869,7 @@ export default function Admin() {
                       ) : (
                         <span className="text-xs text-gray-300">⏳ 次年1月开放</span>
                       )}
-                      {c.settlement_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{Math.round(c.settlement_amount * (rateInfo.rate||8.10))}</div>}
+                      {c.settlement_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{feeCnyDisplay(c.settlement_cny, c.settlement_rate, c.settlement_amount, rateInfo.rate)}</div>}
                       {uploadLinks(c, 'proof_settlement')}
                       {!uploadLinks(c, 'proof_settlement') && (
                         <div className="mt-1"><span className="text-[10px] text-gray-300">暂无凭证</span></div>
