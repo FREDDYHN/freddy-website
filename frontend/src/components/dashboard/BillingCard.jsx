@@ -240,30 +240,44 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                     <span className="flex flex-col">
                       <span className="text-xs text-gray-600 font-semibold md:hidden">预申报费</span>
                       {(() => {
-                        const green = preStatus === 'approved' || prepaidPayment?.status === 'paid'
-                        const cls = green ? 'text-green-600' : 'text-yellow-600'
-                        const label = preStatus === 'approved' ? '已预申报' : preStatus === 'pending' ? '待审核' : (prepaidPayment?.status === 'paid' ? '✓' : '待缴')
-                        return (<>
-                          <span className="text-xs text-gray-700 h-[18px] flex items-center">
-                            <span className={`font-semibold ${cls}`}>€{(prepaidPayment?.amount_eur || cost).toFixed(2)}</span>
-                            <span className={`font-semibold ml-1 ${cls}`}>{label}</span>
-                          </span>
-                          <span className="text-xs text-gray-350 mt-0.5">≈ ¥{feeCny(prepaidPayment, (prepaidPayment?.amount_eur || cost), rate)}</span>
-                          {preStatus === 'approved' ? null : preStatus === 'pending' ? (<>
-                            <button onClick={() => onPredeclared(c.id, true)} className="text-xs text-gray-400 hover:text-primary mt-0.5 text-left">撤销「已预申报」</button>
+                        const amount = prepaidPayment?.amount_eur || cost
+                        // 已自行申报（管理员已确认）
+                        if (preStatus === 'approved') {
+                          return (<>
+                            <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">已自行申报 ✓</span>
+                            {proofLink('proof_predeclared')}
+                          </>)
+                        }
+                        // 自行申报待审核
+                        if (preStatus === 'pending') {
+                          return (<>
+                            <span className="text-xs text-yellow-600 font-semibold h-[18px] flex items-center">自行申报 · 待审核</span>
+                            <button onClick={() => onPredeclared(c.id, true)} className="text-xs text-gray-400 hover:text-primary mt-0.5 text-left">撤销自行申报</button>
                             <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
-                              上传预申报缴费凭证（待管理员审核） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_predeclared')} disabled={uploadingCid === c.id} className="hidden" />
+                              上传发票（待管理员审核） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_predeclared')} disabled={uploadingCid === c.id} className="hidden" />
                             </label>
                             {proofLink('proof_predeclared')}
-                          </>) : (<>
-                            {prepaidPayment?.status !== 'paid' && (
-                              <button onClick={() => onPredeclared(c.id, false)} className="text-yellow-600 hover:underline font-semibold text-xs mt-0.5 text-left">我已预申报</button>
-                            )}
-                            <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
-                              上传付款凭证（待管理员确认） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_prepaid')} disabled={uploadingCid === c.id} className="hidden" />
-                            </label>
+                          </>)
+                        }
+                        // 代缴已付
+                        if (prepaidPayment?.status === 'paid') {
+                          return (<>
+                            <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">€{amount.toFixed(2)} 代缴已付 ✓</span>
                             {proofLink('proof_prepaid')}
-                          </>)}
+                          </>)
+                        }
+                        // 未完成：两个并列入口（代缴 / 自行申报）
+                        return (<>
+                          <span className="text-xs text-yellow-600 font-semibold h-[18px] flex items-center">€{amount.toFixed(2)} 待缴</span>
+                          <span className="text-xs text-gray-350 mt-0.5">≈ ¥{feeCny(prepaidPayment, amount, rate)}</span>
+                          <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
+                            上传转账凭证（由福瑞笛代缴） <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_prepaid')} disabled={uploadingCid === c.id} className="hidden" />
+                          </label>
+                          {proofLink('proof_prepaid')}
+                          <label className="cursor-pointer text-xs text-gray-400 hover:text-primary mt-0.5">
+                            我已自行申报，上传发票 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUpload(e, c.id, 'proof_predeclared')} disabled={uploadingCid === c.id} className="hidden" />
+                          </label>
+                          {proofLink('proof_predeclared')}
                         </>)
                       })()}
                     </span>

@@ -65,6 +65,11 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
       await db.run("UPDATE contracts SET signed_at = datetime('now') WHERE id = ? AND signed_at IS NULL", contract_id)
     }
 
+    // 上传发票 = 声明自行申报：自动进入「待审核」状态（无需单独调 request-predeclared）
+    if (file_type === 'proof_predeclared' && contract_id) {
+      await db.run("UPDATE contracts SET pre_declared_status = 'pending' WHERE id = ?", contract_id)
+    }
+
     // 自动覆盖：同 contract_id + file_type 的旧「待审核」凭证，重新上传即替换（只删 pending，不碰 approved/rejected）
     const replaceable = file_type && (file_type.startsWith('proof_') || file_type === 'bank_proof')
     if (replaceable && contract_id) {

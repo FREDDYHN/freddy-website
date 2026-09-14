@@ -20,6 +20,7 @@ import { dirname, join } from 'path'
 import { getDb } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
 import { localDate, beijingDateFromUtc } from '../services/date.js'
+import { COLLECT_PAID_SQL, NOT_SELF_APPROVED_SQL } from '../services/predeclared.js'
 import { EKO_PUNKT, EKO_PUNKT_MATERIAL_COLS, AR_TIER_ZH, CITY_POSTCODES } from '../../../shared/constants.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -218,8 +219,8 @@ router.get('/eko-punkt', async (req, res) => {
       // 自行预申报(approved)客户因未付 recycling_prepaid 而自然排除。年终申报不筛。
       const statusFilter = mode === 'final' ? '' : ` AND (
         c.status = 'active'
-        AND (c.pre_declared_status IS NULL OR c.pre_declared_status != 'approved')
-        AND c.id IN (SELECT contract_id FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'paid')
+        AND ${NOT_SELF_APPROVED_SQL}
+        AND ${COLLECT_PAID_SQL}
         AND c.id IN (SELECT DISTINCT contract_id FROM uploads WHERE file_type = 'admin_stamped')
         AND cl.lucid_password_enc IS NOT NULL AND trim(cl.lucid_password_enc) != ''
       )`

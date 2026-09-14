@@ -156,11 +156,13 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
           }
         }
 
-        // 「已预申报」凭证审核通过 → 确认预申报状态（不动 payments）
+        // 审核通过时，按最终 effectiveType 原子同步预申报状态（保证 file_type 与 pre_declared_status 一致）：
+        //   proof_predeclared = 自行申报已确认 → 置 approved，并删除签约时预建的代缴 pending 行（客户不代缴）
+        //   proof_prepaid      = 代缴已确认     → 清空任何自行申报状态（含客户改主意从自行转代缴的情况）
         if (effectiveType === 'proof_predeclared' && upload.contract_id) {
           await db.run("UPDATE contracts SET pre_declared_status = 'approved' WHERE id = ?", upload.contract_id)
-        } else if (effectiveType === 'proof_prepaid' && upload.file_type === 'proof_predeclared' && upload.contract_id) {
-          // 管理员判定「代收」而非自行预申报 → 撤销客户的自报「已预申报」状态
+          await db.run("DELETE FROM payments WHERE contract_id = ? AND payment_type = 'recycling_prepaid' AND status = 'pending'", upload.contract_id)
+        } else if (effectiveType === 'proof_prepaid' && upload.contract_id) {
           await db.run("UPDATE contracts SET pre_declared_status = NULL WHERE id = ?", upload.contract_id)
         }
 

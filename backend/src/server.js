@@ -31,6 +31,7 @@ import { startInboundScheduler, pollInbox } from './services/inbound-email.js'
 import { startCleanupScheduler } from './services/cleanup.js'
 import { taxError } from '../../shared/constants.js'
 import { getBankInfo } from './services/bank-info.js'
+import { PRE_DECLARED_DONE_SQL } from './services/predeclared.js'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -741,10 +742,7 @@ app.post('/api/admin/remind-lucid-acceptance', authMiddleware, adminMiddleware, 
          AND (
            c.id NOT IN (SELECT DISTINCT contract_id FROM uploads WHERE file_type = 'admin_stamped')
            OR c.status != 'active'
-           OR NOT (
-             c.id IN (SELECT contract_id FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'paid')
-             OR c.pre_declared_status = 'approved'
-           )
+           OR NOT ${PRE_DECLARED_DONE_SQL}
            OR cl.lucid_password_enc IS NULL OR trim(cl.lucid_password_enc) = ''
          )
        GROUP BY cl.id`

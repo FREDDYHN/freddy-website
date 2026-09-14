@@ -4,6 +4,7 @@ import { authMiddleware } from '../auth.js'
 import { createPaymentOrder, insertPaymentRow } from '../payment.js'
 import { generateContract, getContractUrl } from '../services/contract-gen.js'
 import { sendVerificationEmail, sendLucidGuide } from '../services/email.js'
+import { unlinkUploadFile } from './uploads.js'
 import { rateLimit } from '../rate-limiter.js'
 import { AR_TIER_FEES_EUR, WEEE_PRICES, BATTERY_PRICES, containsChinese, taxError, needsVatId, FOREIGN_TAX_RE, calcMaterialFee, applyFloorFee } from '../../../shared/constants.js'
 
@@ -381,6 +382,15 @@ router.post('/:id/cancel-predeclared', authMiddleware, async (req, res) => {
     if (!contract) return res.status(404).json({ error: 'Contract not found' })
     if (req.user.role !== 'admin' && contract.client_id !== req.user.client_id) {
       return res.status(403).json({ error: 'Access denied' })
+    }
+    // 撤销自行申报：同步清理已上传的待审核发票凭证（含物理文件），避免孤儿凭证
+    const pendingProofs = await db.all(
+      "SELECT id, stored_path FROM uploads WHERE contract_id = ? AND file_type = 'proof_predeclared' AND status = 'pending'",
+      req.params.id
+    )
+    for (const p of pendingProofs) {
+      await db.run('DELETE FROM uploads WHERE id = ?', p.id)
+      unlinkUploadFile(p.stored_path)
     }
     await db.run('UPDATE contracts SET pre_declared_status = NULL WHERE id = ?', req.params.id)
     res.json({ success: true })
