@@ -591,7 +591,7 @@ app.post('/api/admin/payments/confirm', authMiddleware, adminMiddleware, async (
     if (out_trade_no) {
       payment = await db.get("SELECT * FROM payments WHERE out_trade_no = ? AND status = 'pending'", out_trade_no)
     } else {
-      payment = await db.get("SELECT * FROM payments WHERE contract_id = ? AND status = 'pending' ORDER BY id DESC LIMIT 1", contract_id)
+      payment = await db.get("SELECT * FROM payments WHERE contract_id = ? AND payment_type = 'contract_fee' AND status = 'pending' ORDER BY id DESC LIMIT 1", contract_id)
     }
 
     if (!payment) return res.status(404).json({ error: 'Payment not found or already processed' })

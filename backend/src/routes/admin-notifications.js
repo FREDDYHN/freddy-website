@@ -88,7 +88,7 @@ router.post('/uploads/:id/review', authMiddleware, adminMiddleware, async (req, 
           // Find the corresponding pending payment
           const pmt = paymentType === 'contract_fee'
             ? await db.get(
-                "SELECT * FROM payments WHERE contract_id = ? AND status = 'pending' ORDER BY id DESC LIMIT 1",
+                "SELECT * FROM payments WHERE contract_id = ? AND payment_type = 'contract_fee' AND status = 'pending' ORDER BY id DESC LIMIT 1",
                 upload.contract_id
               )
             : await db.get(
