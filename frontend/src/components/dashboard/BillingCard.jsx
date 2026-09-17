@@ -248,9 +248,10 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                         const amount = prepaidPayment?.amount_eur || cost
                         // 已自行申报（管理员已确认）
                         if (preStatus === 'approved') {
+                          const proof = ups.find(u => u.file_type === 'proof_predeclared' && u.status !== 'rejected')
                           return (<>
                             <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">已自行申报 ✓</span>
-                            {proofLink('proof_predeclared')}
+                            {proof ? proofLink('proof_predeclared') : uploadEntry('proof_predeclared', '重新上传发票')}
                           </>)
                         }
                         // 自行申报待审核
@@ -264,9 +265,10 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                         }
                         // 代缴已付
                         if (prepaidPayment?.status === 'paid') {
+                          const proof = ups.find(u => u.file_type === 'proof_prepaid' && u.status !== 'rejected')
                           return (<>
                             <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">€{amount.toFixed(2)} 代缴已付 ✓</span>
-                            {proofLink('proof_prepaid')}
+                            {proof ? proofLink('proof_prepaid') : uploadEntry('proof_prepaid', '重新上传凭证')}
                           </>)
                         }
                         // 未完成：两个并列入口（代缴 / 自行申报）
