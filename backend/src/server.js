@@ -14,7 +14,7 @@ import authRoutes from './auth.js'
 import contractsRoutes from './routes/contracts.js'
 import formsRoutes from './routes/forms.js'
 import profileRoutes from './routes/profile.js'
-import uploadsRoutes from './routes/uploads.js'
+import uploadsRoutes, { fixEncoding } from './routes/uploads.js'
 import notificationsRoutes from './routes/notifications.js'
 import adminNotificationsRoutes from './routes/admin-notifications.js'
 import exportRoutes from './routes/exports.js'
@@ -795,15 +795,16 @@ app.post('/api/admin/uploads', authMiddleware, adminMiddleware, adminUpload.sing
     const { client_id, contract_id, file_type } = req.body
     if (!client_id) return res.status(400).json({ error: 'client_id required' })
 
-    const safeName = `${Date.now()}-admin-${req.file.originalname.replace(/[^a-zA-Z0-9._\-一-龥]/g, '_')}`
+    const decodedName = fixEncoding(req.file.originalname)
+    const safeName = `${Date.now()}-admin-${decodedName.replace(/[^a-zA-Z0-9._\-一-龥]/g, '_')}`
     const newPath = pathJoin(rootPath, 'uploads', safeName)
     await rename(req.file.path, newPath)
 
     await db.run(
       'INSERT INTO uploads (client_id, contract_id, file_type, original_name, stored_path, file_size, mime_type) VALUES (?,?,?,?,?,?,?)',
-      client_id, contract_id || null, file_type || 'admin_stamped', req.file.originalname, safeName, req.file.size, req.file.mimetype
+      client_id, contract_id || null, file_type || 'admin_stamped', decodedName, safeName, req.file.size, req.file.mimetype
     )
-    res.status(201).json({ success: true, file: { original_name: req.file.originalname, stored_path: safeName } })
+    res.status(201).json({ success: true, file: { original_name: decodedName, stored_path: safeName } })
   } catch (e) {
     console.error('[server] admin upload error:', e)
     res.status(500).json({ error: e.message })

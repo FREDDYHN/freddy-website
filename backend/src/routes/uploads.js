@@ -24,7 +24,7 @@ export function unlinkUploadFile(storedPath) {
 }
 
 /** Decode Latin-1 misinterpreted UTF-8 filenames (Windows multer bug) */
-function fixEncoding(name) {
+export function fixEncoding(name) {
   try { return Buffer.from(name, 'latin1').toString('utf8') } catch { return name }
 }
 
