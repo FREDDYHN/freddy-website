@@ -4,7 +4,7 @@
  * Rule 1：收到验证邮件后 1 周未验证邮箱 → 删除
  * Rule 2：验证完成后 1 周未缴纳授权代表年费 → 删除
  *
- * 硬删除：完整删除客户及其全部关联数据，释放邮箱/手机号唯一约束，使其可再次注册。
+ * 软删除：7 天到期仅标记（管理员页隐藏）+ 释放邮箱/手机号唯一约束，业务数据保留 3 个月后再硬删除。
  */
 import { getDb, withTransaction } from '../db.js'
 import { join, dirname } from 'path'
@@ -46,6 +46,34 @@ async function deleteClientCascade(db, clientId) {
   return uploads.length
 }
 
+/** 软删除单个客户：仅标记 + 释放邮箱/手机号唯一约束，业务数据保留 3 个月后由硬删除清掉 */
+async function softDeleteClient(db, clientId) {
+  await db.run(
+    `UPDATE clients SET
+       deleted_at = datetime('now'), status = 'deleted',
+       deleted_email = contact_email, deleted_phone = contact_phone,
+       contact_email = 'deleted-' || id || '@deleted.local',
+       contact_phone = NULL, contact_phone_unique = NULL
+     WHERE id = ?`, clientId
+  )
+  // 登录邮箱同样改占位符释放（否则同名邮箱重注册后 login 会查到两条）
+  await db.run(`UPDATE users SET email = 'deleted-' || id || '@deleted.local' WHERE client_id = ?`, clientId)
+}
+
+/** 硬删除软删超过 3 个月的客户 */
+export async function purgeDeletedAccounts() {
+  const db = await getDb()
+  const rows = await db.all(
+    "SELECT id FROM clients WHERE deleted_at IS NOT NULL AND deleted_at < datetime('now', '-3 months')"
+  )
+  if (rows.length === 0) return 0
+  for (const r of rows) {
+    await deleteClientCascade(db, r.id)
+    console.log(`[cleanup] 已硬删除（软删超3个月） #${r.id}`)
+  }
+  return rows.length
+}
+
 /** 执行一轮清理，返回删除的客户数 */
 export async function cleanupAbandonedAccounts() {
   const db = await getDb()
@@ -55,14 +83,18 @@ export async function cleanupAbandonedAccounts() {
   const rule1 = await db.all(
     `SELECT DISTINCT u.client_id FROM users u
      JOIN contracts c ON c.client_id = u.client_id
+     JOIN clients cl ON cl.id = u.client_id
      WHERE u.email_verified = 0 AND c.status = 'pending_verification'
+       AND cl.deleted_at IS NULL
        AND u.created_at < datetime('now', ?)`,
     grace
   )
   // Rule 2：验证完成 1 周未缴年费（无 contract_fee 已付记录）
   const rule2 = await db.all(
     `SELECT DISTINCT u.client_id FROM users u
+     JOIN clients cl ON cl.id = u.client_id
      WHERE u.email_verified = 1 AND u.email_verified_at IS NOT NULL
+       AND cl.deleted_at IS NULL
        AND u.email_verified_at < datetime('now', ?)
        AND NOT EXISTS (
          SELECT 1 FROM payments p WHERE p.client_id = u.client_id
@@ -83,20 +115,22 @@ export async function cleanupAbandonedAccounts() {
   let deleted = 0
   for (const clientId of ids) {
     const info = await db.get('SELECT company_name, contact_email FROM clients WHERE id = ?', clientId)
-    await deleteClientCascade(db, clientId)
-    console.log(`[cleanup] 已删除 #${clientId} ${info?.contact_email || ''}（${info?.company_name || ''}）`)
+    await softDeleteClient(db, clientId)
+    console.log(`[cleanup] 已软删除 #${clientId} ${info?.contact_email || ''}（${info?.company_name || ''}）`)
     deleted++
   }
-  console.log(`[cleanup] 本轮清理 ${deleted} 个废弃账号（未验证 ${rule1.length}，未付款 ${rule2.length}）`)
+  console.log(`[cleanup] 本轮软删除 ${deleted} 个废弃账号（未验证 ${rule1.length}，未付款 ${rule2.length}）`)
   return deleted
 }
 
-/** 启动定时清理：启动时跑一次 + 每 24 小时 */
+/** 启动定时清理：启动时跑一次 + 每 24 小时（先软删废弃账号，再硬删软删超 3 个月的） */
 export function startCleanupScheduler() {
   const run = () => {
-    cleanupAbandonedAccounts().catch(e => {
-      console.error('[cleanup] 定时清理失败:', e.message)
-    })
+    cleanupAbandonedAccounts()
+      .then(() => purgeDeletedAccounts())
+      .catch(e => {
+        console.error('[cleanup] 定时清理失败:', e.message)
+      })
   }
   run()
   setInterval(run, 24 * 60 * 60 * 1000)

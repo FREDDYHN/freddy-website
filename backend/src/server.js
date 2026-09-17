@@ -175,7 +175,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
     const db = await getDb()
     const rate = await getRate()
     const [clients, contracts, pending, arFee, predeclaredEur, settlementEur] = await Promise.all([
-      db.get('SELECT COUNT(*) as cnt FROM clients'),
+      db.get('SELECT COUNT(*) as cnt FROM clients WHERE deleted_at IS NULL'),
       db.get("SELECT COUNT(*) as cnt FROM contracts WHERE lucid_rep_accepted = 1"),
       db.get(`SELECT
           COALESCE(SUM(CASE WHEN p.payment_type = 'contract_fee' THEN 1 ELSE 0 END), 0) as ar,
@@ -218,13 +218,13 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
     const offset = (page - 1) * perPage
     const showAll = req.query.include === 'all'
 
-    const whereClause = showAll ? '' : "WHERE c.status != 'pending_verification'"
+    const whereClause = showAll ? "WHERE cl.deleted_at IS NULL" : "WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification'"
     const [rows, countRow] = await Promise.all([
       db.all(
         `SELECT c.*, cl.company_name, cl.company_name_en, cl.contact_name, cl.contact_email, cl.contact_phone, cl.registered_address, cl.entity_type, cl.uscc, cl.id_number, cl.country, cl.vat_id, cl.legal_representative, cl.wechat_id, cl.lucid_registration_number, cl.lucid_login FROM contracts c JOIN clients cl ON c.client_id = cl.id ${whereClause} ORDER BY c.id DESC LIMIT ? OFFSET ?`,
         perPage, offset
       ),
-      db.get(`SELECT COUNT(*) as total FROM contracts c ${whereClause}`),
+      db.get(`SELECT COUNT(*) as total FROM contracts c JOIN clients cl ON c.client_id = cl.id ${whereClause}`),
     ])
 
     // Enrich with payment info + uploads (batch query to avoid N+1)
@@ -315,17 +315,17 @@ app.get('/api/admin/clients/search', authMiddleware, adminMiddleware, async (req
       rows = await db.all(
         `SELECT cl.*, c.id as contract_id, c.contract_number, c.tier, c.annual_fee_eur, c.status as contract_status, c.start_date, c.end_date, c.lucid_confirmed, c.lucid_rep_accepted, c.pre_declared_status
          FROM clients cl LEFT JOIN contracts c ON c.client_id = cl.id
-         WHERE cl.company_name LIKE ? OR cl.company_name_en LIKE ? OR cl.contact_name LIKE ? OR cl.contact_email LIKE ? OR cl.contact_phone LIKE ? OR cl.legal_representative LIKE ? OR c.contract_number LIKE ?
+         WHERE (cl.company_name LIKE ? OR cl.company_name_en LIKE ? OR cl.contact_name LIKE ? OR cl.contact_email LIKE ? OR cl.contact_phone LIKE ? OR cl.legal_representative LIKE ? OR c.contract_number LIKE ?) AND cl.deleted_at IS NULL
          ORDER BY cl.id DESC LIMIT ? OFFSET ?`,
         like, like, like, like, like, like, like, perPage, offset
       )
       countRow = await db.get(
-        `SELECT COUNT(*) as total FROM clients cl LEFT JOIN contracts c ON c.client_id = cl.id WHERE cl.company_name LIKE ? OR cl.company_name_en LIKE ? OR cl.contact_name LIKE ? OR cl.contact_email LIKE ? OR cl.contact_phone LIKE ? OR cl.legal_representative LIKE ? OR c.contract_number LIKE ?`,
+        `SELECT COUNT(*) as total FROM clients cl LEFT JOIN contracts c ON c.client_id = cl.id WHERE (cl.company_name LIKE ? OR cl.company_name_en LIKE ? OR cl.contact_name LIKE ? OR cl.contact_email LIKE ? OR cl.contact_phone LIKE ? OR cl.legal_representative LIKE ? OR c.contract_number LIKE ?) AND cl.deleted_at IS NULL`,
         like, like, like, like, like, like, like
       )
     } else {
-      rows = await db.all('SELECT * FROM clients ORDER BY id DESC LIMIT ? OFFSET ?', perPage, offset)
-      countRow = await db.get('SELECT COUNT(*) as total FROM clients')
+      rows = await db.all('SELECT * FROM clients WHERE deleted_at IS NULL ORDER BY id DESC LIMIT ? OFFSET ?', perPage, offset)
+      countRow = await db.get('SELECT COUNT(*) as total FROM clients WHERE deleted_at IS NULL')
     }
 
     // 富化：与 /api/admin/contracts 一致，补 payments/uploads/packaging（预缴/结算金额、凭证、材料）
@@ -393,6 +393,7 @@ app.get('/api/admin/clients/export', authMiddleware, adminMiddleware, async (req
          LEFT JOIN contracts c ON c.client_id = cl.id AND c.id = (
            SELECT MAX(id) FROM contracts WHERE client_id = cl.id
          )
+         WHERE cl.deleted_at IS NULL
          ORDER BY cl.id DESC LIMIT ? OFFSET ?`,
         BATCH, offset
       )
@@ -672,6 +673,7 @@ app.post('/api/admin/remind-missing-tax', authMiddleware, adminMiddleware, async
        FROM clients cl
        JOIN contracts c ON c.client_id = cl.id
        WHERE c.status != 'pending_verification'
+         AND cl.deleted_at IS NULL
          AND ((cl.entity_type = 'individual' AND (cl.id_number IS NULL OR cl.id_number = ''))
               OR (cl.entity_type != 'individual' AND (cl.uscc IS NULL OR cl.uscc = '')))
        GROUP BY cl.id`
@@ -705,6 +707,7 @@ app.post('/api/admin/remind-missing-lucid', authMiddleware, adminMiddleware, asy
        FROM clients cl
        JOIN contracts c ON c.client_id = cl.id
        WHERE c.status != 'pending_verification'
+         AND cl.deleted_at IS NULL
          AND (cl.lucid_registration_number IS NULL OR trim(cl.lucid_registration_number) = '')
        GROUP BY cl.id`
     )
@@ -738,6 +741,7 @@ app.post('/api/admin/remind-lucid-acceptance', authMiddleware, adminMiddleware, 
        FROM clients cl
        JOIN contracts c ON c.client_id = cl.id
        WHERE c.status != 'pending_verification'
+         AND cl.deleted_at IS NULL
          AND (c.is_spam IS NULL OR c.is_spam = 0)
          AND (
            c.id NOT IN (SELECT DISTINCT contract_id FROM uploads WHERE file_type = 'admin_stamped')
