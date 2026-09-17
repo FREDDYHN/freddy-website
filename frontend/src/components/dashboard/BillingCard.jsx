@@ -82,6 +82,8 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
       settleRows.push({ label: (mat ? mat.label : mk), estKg: estKg, actKg: actKg, exKg: actKg - estKg, rate: rate, diff: actFee1 - estFee });
     })
     var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+    var escAttr = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') }
+    var copyBtn = function(text){ return ' <button class="cp" type="button" data-v="'+escAttr(text)+'">复制</button>' }
     var tierName = c.tier==='basic'?'基础 €29/年':c.tier==='standard'?'标准 €49/年':'高级 €79/年'
     var prepaidDisplay = prepaidPayment?.amount_eur || prepaidCalc
     var settleDisplay = settlementPayment?.amount_eur || Math.abs(settleAmt)
@@ -92,7 +94,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     h += 'h2{font-size:16px;margin:0 0 4px}.sub{color:#888;font-size:12px;margin-bottom:16px}h3{font-size:13px;margin:16px 0 8px;color:#555}'
     h += 'table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:4px 8px}th{color:#888;font-weight:400;border-bottom:1px solid #e0e0e0}td{border-bottom:1px solid #f0f0f0}'
     h += '.num{text-align:right}.r{color:#c00}.g{color:#0a0}.b{font-weight:700;color:#1a3a5f}.s{text-decoration:line-through;color:#999}.y{color:#b8860b}'
-    h += '.grid{display:grid;grid-template-columns:1fr;gap:24px}.settle-section{margin-top:20px}.bank-section{margin-top:20px;padding-top:16px;border-top:2px solid #e0e0e0}.bank-section h3{font-size:12px;color:#555;margin-bottom:6px}.bank-section p{font-size:11px;color:#888;margin:2px 0;line-height:1.6}.tbl{width:100%;border-collapse:collapse;font-size:12px}.tbl th{color:#666;font-weight:500;border-bottom:2px solid #ccc;padding:5px 8px;text-align:right}.tbl th:first-child{text-align:left}.tbl td{padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right}.tbl td:first-child{text-align:left}.tbl .total-row td{border-top:2px solid #ccc;font-weight:700}</style></head><body>'
+    h += '.grid{display:grid;grid-template-columns:1fr;gap:24px}.settle-section{margin-top:20px}.bank-section{margin-top:20px;padding-top:16px;border-top:2px solid #e0e0e0}.bank-section h3{font-size:12px;color:#555;margin-bottom:6px}.bank-section p{font-size:11px;color:#888;margin:2px 0;line-height:1.6}.tbl{width:100%;border-collapse:collapse;font-size:12px}.tbl th{color:#666;font-weight:500;border-bottom:2px solid #ccc;padding:5px 8px;text-align:right}.tbl th:first-child{text-align:left}.tbl td{padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right}.tbl td:first-child{text-align:left}.tbl .total-row td{border-top:2px solid #ccc;font-weight:700}.cp{cursor:pointer;margin-left:6px;padding:1px 8px;font-size:10px;color:#1a73e8;background:#eef4ff;border:1px solid #b6d0f2;border-radius:4px;vertical-align:middle}.cp:hover{background:#dbe9ff}</style></head><body>'
     h += '<h2>'+esc(c.company_name||'')+'</h2><p class="sub">'+esc(c.contract_number)+' · '+esc(tierName)+' · <span style="white-space:nowrap">'+(c.start_date?.slice(0,10)||'-')+' - '+(c.end_date?.slice(0,10)||'-')+'</span></p>'
     h += '<div class="grid">'
     h += '<div><h3>授权代表年费</h3><p>服务等级 <b>'+esc(tierName)+'</b></p><p>截止日期 '+(c.end_date?.slice(0,10)||'-')+'</p><p>状态 <span class="'+(c.status==='active'?'g':'y')+'">'+(c.status==='active'?'已付款':'待付款')+'</span></p><p>金额 <b class="b">€'+c.annual_fee_eur+'</b></p><p style="font-size:10px;color:#888">约 ¥'+Math.round(c.annual_fee_eur * rate)+'</p></div>'
@@ -131,20 +133,21 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     } else { h += '<p style="color:#999">暂无实际数据</p>' }
     h += '</div>'
     h += '<div class="bank-section"><h3>银行转账信息</h3>'
-    h += '<table style="font-size:11px;color:#666;line-height:1.8"><tr><td style="padding-right:20px;white-space:nowrap">开户行：</td><td>' + esc(b.bank_name || '') + '</td></tr>'
-    h += '<tr><td>银行地址：</td><td>' + esc(b.bank_address || '') + '</td></tr>'
-    h += '<tr><td>银行代码：</td><td>' + esc(b.bank_code || '') + '</td></tr>'
-    h += '<tr><td>户名：</td><td>' + esc(b.account_name || '') + '</td></tr>'
-    h += '<tr><td>账号：</td><td><b>' + esc(b.account_number || '') + '</b></td></tr>'
+    h += '<table style="font-size:11px;color:#666;line-height:1.8"><tr><td style="padding-right:20px;white-space:nowrap">开户行：</td><td>' + esc(b.bank_name || '') + copyBtn(b.bank_name || '') + '</td></tr>'
+    h += '<tr><td>银行地址：</td><td>' + esc(b.bank_address || '') + copyBtn(b.bank_address || '') + '</td></tr>'
+    h += '<tr><td>银行代码：</td><td>' + esc(b.bank_code || '') + copyBtn(b.bank_code || '') + '</td></tr>'
+    h += '<tr><td>户名：</td><td>' + esc(b.account_name || '') + copyBtn(b.account_name || '') + '</td></tr>'
+    h += '<tr><td>账号：</td><td><b>' + esc(b.account_number || '') + '</b>' + copyBtn(b.account_number || '') + '</td></tr>'
     h += '</table>'
     h += '<div style="margin-top:10px;padding:12px;background:#fff4e5;border:1px solid #f0c36d;border-radius:6px;font-size:12px;line-height:1.7">'
     h += '<p style="font-weight:700;color:#c0392b;margin:0 0 8px;font-size:14px">⚠️ 请务必分开转账支付，并附上转账附言，未填写或填写错误的转账附言将不予处理。</p>'
     h += '<p style="margin:2px 0">· 授权代表年费　<b>€' + c.annual_fee_eur + '</b>（约 ¥' + Math.round(c.annual_fee_eur * rate) + '）</p>'
-    h += '<p style="margin:2px 0 6px;padding-left:14px">转账附言　<b>EPR-' + esc(c.contract_number || '') + '-A</b></p>'
+    h += '<p style="margin:2px 0 6px;padding-left:14px">转账附言　<b>EPR-' + esc(c.contract_number || '') + '-A</b>' + copyBtn('EPR-' + (c.contract_number || '') + '-A') + '</p>'
     h += '<p style="margin:2px 0">· 预申报费　　<b>€' + prepaidDisplay.toFixed(2) + '</b>（约 ¥' + feeCny(prepaidPayment, prepaidDisplay, rate) + '）</p>'
-    h += '<p style="margin:2px 0;padding-left:14px">转账附言　<b>EPR-' + esc(c.contract_number || '') + '-V</b></p>'
+    h += '<p style="margin:2px 0;padding-left:14px">转账附言　<b>EPR-' + esc(c.contract_number || '') + '-V</b>' + copyBtn('EPR-' + (c.contract_number || '') + '-V') + '</p>'
     h += '</div>'
     h += '</div>'
+    h += '<script>(function(){function d(e){e.textContent="已复制";setTimeout(function(){e.textContent="复制"},1500)}function fb(e){var t=e.getAttribute("data-v"),a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(_){}document.body.removeChild(a);d(e)}document.querySelectorAll(".cp").forEach(function(b){b.onclick=function(){var t=b.getAttribute("data-v");if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){d(b)}).catch(function(){fb(b)})}else{fb(b)}}})})();</script>'
     h += '</body></html>'
     var w = window.open('','_blank','width=1020,height=700')
     if(w){ w.document.write(h); w.document.close() }

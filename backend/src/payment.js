@@ -269,24 +269,25 @@ router.get('/:tradeNo/qr', async (req, res) => {
     const simBtn = SIMULATION_MODE
       ? '<a class="btn" href="/api/payments/simulate/' + p.out_trade_no + '" style="background:#f59e0b">⚠️ Simulate Payment (Dev Only)</a>'
       : ''
+    const cp = (text) => ' <button class="cp" type="button" data-v="' + String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') + '" style="cursor:pointer;margin-left:6px;padding:1px 8px;font-size:11px;color:#1a73e8;background:#eef4ff;border:1px solid #b6d0f2;border-radius:4px;vertical-align:middle">复制</button>'
     const bank = m === 'bank'
       ? (() => {
           const b = getBankInfo()
           return '<div style="text-align:left;background:#f8f9fa;border-radius:8px;padding:16px;margin:0 0 16px;font-size:13px;color:#444;line-height:2">'
             + '<p style="font-weight:700;color:#1e3a5f;margin-bottom:4px">银行转账信息</p>'
-            + '<p>开户行：' + b.bank_name + '</p>'
-            + '<p>银行地址：' + b.bank_address + '</p>'
-            + '<p>银行代码：' + b.bank_code + '</p>'
-            + '<p>户名：' + b.account_name + '</p>'
-            + '<p>账号：<b style="color:#1e3a5f">' + b.account_number + '</b></p>'
-            + '<p>附言/备注：<b style="color:#c0392b">' + reference + '</b></p>'
+            + '<p>开户行：' + b.bank_name + cp(b.bank_name) + '</p>'
+            + '<p>银行地址：' + b.bank_address + cp(b.bank_address) + '</p>'
+            + '<p>银行代码：' + b.bank_code + cp(b.bank_code) + '</p>'
+            + '<p>户名：' + b.account_name + cp(b.account_name) + '</p>'
+            + '<p>账号：<b style="color:#1e3a5f">' + b.account_number + '</b>' + cp(b.account_number) + '</p>'
+            + '<p>附言/备注：<b style="color:#c0392b">' + reference + '</b>' + cp(reference) + '</p>'
             + '</div>'
         })()
       : ''
     const rateLine = p.rate_used
       ? '<p style="color:#888;font-size:13px;margin-top:-8px">应付 <b>¥' + p.amount_cny + '</b> &nbsp;·&nbsp; EUR 定价 €' + p.amount_eur + ' &nbsp;·&nbsp; 汇率 <b>' + Number(p.rate_used).toFixed(2) + '</b></p>'
       : ''
-    res.send('<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FREDDY Pay</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f8f9fa;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#fff;border-radius:12px;padding:40px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);max-width:400px;width:90%}h2{color:#1e3a5f;margin-bottom:8px}.amount{font-size:36px;font-weight:700;color:#c8a44e;margin:16px 0}.method{color:#666;margin-bottom:24px}.btn{display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;margin:8px}</style></head><body><div class="card"><h2>FREDDY</h2><p>EPR Compliance</p><div class="amount">CNY ' + p.amount_cny + '</div>' + rateLine + '<p class="method">' + (labels[m] || m) + '</p>' + bank + simBtn + '<p style="color:#999;font-size:12px;margin-top:16px">Order: ' + p.out_trade_no + '</p></div></body></html>')
+    res.send('<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FREDDY Pay</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f8f9fa;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#fff;border-radius:12px;padding:40px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);max-width:400px;width:90%}h2{color:#1e3a5f;margin-bottom:8px}.amount{font-size:36px;font-weight:700;color:#c8a44e;margin:16px 0}.method{color:#666;margin-bottom:24px}.btn{display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;margin:8px}</style></head><body><div class="card"><h2>FREDDY</h2><p>EPR Compliance</p><div class="amount">CNY ' + p.amount_cny + '</div>' + rateLine + '<p class="method">' + (labels[m] || m) + '</p>' + bank + simBtn + '<p style="color:#999;font-size:12px;margin-top:16px">Order: ' + p.out_trade_no + '</p></div><script>(function(){function d(e){e.textContent="已复制";setTimeout(function(){e.textContent="复制"},1500)}function fb(e){var t=e.getAttribute("data-v"),a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(_){}document.body.removeChild(a);d(e)}document.querySelectorAll(".cp").forEach(function(b){b.onclick=function(){var t=b.getAttribute("data-v");if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){d(b)}).catch(function(){fb(b)})}else{fb(b)}}})})();</script></body></html>')
   } catch (e) {
     console.error('[payment] QR page error:', e)
     res.status(500).send('Server error')
