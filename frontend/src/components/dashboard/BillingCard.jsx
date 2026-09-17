@@ -53,6 +53,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
   const [collapsed, setCollapsed] = useState(false)
   const [uploadingCid, setUploadingCid] = useState(null)
   const [actualsCid, setActualsCid] = useState(null)
+  const [feeHtml, setFeeHtml] = useState(null)
   const pkgByContract = {}; (packaging || []).forEach(p => { const cid = p.contract_id; if (!pkgByContract[cid]) pkgByContract[cid] = []; pkgByContract[cid].push(p) })
   const payByContract = {}; (payments || []).forEach(p => { const cid = p.contract_id; if (!payByContract[cid]) payByContract[cid] = []; payByContract[cid].push(p) })
   const uplByContract = {}; (uploads || []).forEach(u => { const cid = u.contract_id; if (cid && !uplByContract[cid]) uplByContract[cid] = []; if (cid) uplByContract[cid].push(u) })
@@ -149,8 +150,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     h += '</div>'
     h += '<script>(function(){function d(e){e.textContent="已复制";setTimeout(function(){e.textContent="复制"},1500)}function fb(e){var t=e.getAttribute("data-v"),a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(_){}document.body.removeChild(a);d(e)}document.querySelectorAll(".cp").forEach(function(b){b.onclick=function(){var t=b.getAttribute("data-v");if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){d(b)}).catch(function(){fb(b)})}else{fb(b)}}})})();</script>'
     h += '</body></html>'
-    var w = window.open('','_blank','width=1020,height=700')
-    if(w){ w.document.write(h); w.document.close() }
+    setFeeHtml(h)
   }
 
   const latestContract = sorted[0]
@@ -324,6 +324,19 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
           onClose={() => setActualsCid(null)}
           onSubmit={() => window.location.reload()}
         />
+      )}
+
+      {/* Fee Detail Modal */}
+      {feeHtml && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setFeeHtml(null)}>
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 flex-shrink-0">
+              <span className="text-sm font-semibold text-gray-700">缴费明细</span>
+              <button onClick={() => setFeeHtml(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none px-1">×</button>
+            </div>
+            <iframe srcDoc={feeHtml} className="flex-1 w-full border-0" title="缴费明细" />
+          </div>
+        </div>
       )}
     </div>
     </div>
