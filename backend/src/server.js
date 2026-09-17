@@ -127,7 +127,9 @@ app.get('/api/dashboard', authMiddleware, async (req, res) => {
     delete client.lucid_password_enc
 
     const contracts = await db.all(
-      'SELECT * FROM contracts WHERE client_id = ? ORDER BY id DESC', clientId
+      `SELECT c.*, cl.company_name, cl.contact_name, cl.contact_email, cl.uscc, cl.id_number, cl.entity_type, cl.country, cl.vat_id
+       FROM contracts c JOIN clients cl ON c.client_id = cl.id
+       WHERE c.client_id = ? ORDER BY c.id DESC`, clientId
     )
     const packaging = contracts.length > 0
       ? await db.all(
