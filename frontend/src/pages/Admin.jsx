@@ -733,6 +733,8 @@ export default function Admin() {
                             settleRows.push({ label: (mat ? mat.label : mk), estKg, actKg, exKg: actKg - estKg, rate, estFee, actFeeM, diff: actFeeM - estFee });
                           })
                           const e = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                          const escAttr = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')
+                          const copyBtn = (text) => ' <button class="cp" type="button" data-v="'+escAttr(text)+'">复制</button>'
                           const tierName = c.tier==='basic'?'基础 €29/年':c.tier==='standard'?'标准 €49/年':'高级 €79/年'
                           const prepaidDisplay = c.prepaid_amount || prepaidCalc
                           const settleDisplay = c.settlement_amount || Math.abs(settleAmt)
@@ -740,7 +742,7 @@ export default function Admin() {
                           const settleOverride = c.settlement_amount > 0 && hasAnyActuals && Math.abs(c.settlement_amount - settleAmt) > 0.01
                           const prepaidCny = feeCnyDisplay(c.prepaid_cny, c.prepaid_rate, prepaidDisplay, rateInfo.rate)
                           const settlementCny = feeCnyDisplay(c.settlement_cny, c.settlement_rate, settleDisplay, rateInfo.rate)
-                          let html = `<html><head><meta charset="UTF-8"><title>缴费明细 - ${e(c.company_name)}</title><style>body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;padding:24px;max-width:960px;margin:0 auto;color:#333;font-size:13px}h2{font-size:16px;margin-bottom:4px}.sub{color:#888;font-size:12px;margin-bottom:16px}h3{font-size:13px;margin:16px 0 8px;color:#555}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:4px 8px;text-align:left}th{color:#888;font-weight:400;border-bottom:1px solid #e0e0e0}td{border-bottom:1px solid #f0f0f0}.ar{font-size:12px}.ar p{margin:3px 0}.num{text-align:right;font-variant-numeric:tabular-nums}.r{color:#c00}.g{color:#0a0}.b{font-weight:700;color:#1a3a5f}.s{text-decoration:line-through;color:#999}.y{color:#b8860b}.grid{display:grid;grid-template-columns:180px 1fr;gap:24px}.settle-section{margin-top:20px}.bank-section{margin-top:20px;padding-top:16px;border-top:2px solid #e0e0e0}.bank-section h3{font-size:12px;color:#555;margin-bottom:6px}.bank-section p{font-size:11px;color:#888;margin:2px 0;line-height:1.6}.tbl{width:100%;border-collapse:collapse;font-size:12px}.tbl th{color:#666;font-weight:500;border-bottom:2px solid #ccc;padding:5px 8px;text-align:right}.tbl th:first-child{text-align:left}.tbl td{padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right}.tbl td:first-child{text-align:left}.tbl .total-row td{border-top:2px solid #ccc;font-weight:700}</style></head><body>`
+                          let html = `<html><head><meta charset="UTF-8"><title>缴费明细 - ${e(c.company_name)}</title><style>body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;padding:24px;max-width:960px;margin:0 auto;color:#333;font-size:13px}h2{font-size:16px;margin-bottom:4px}.sub{color:#888;font-size:12px;margin-bottom:16px}h3{font-size:13px;margin:16px 0 8px;color:#555}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:4px 8px;text-align:left}th{color:#888;font-weight:400;border-bottom:1px solid #e0e0e0}td{border-bottom:1px solid #f0f0f0}.ar{font-size:12px}.ar p{margin:3px 0}.num{text-align:right;font-variant-numeric:tabular-nums}.r{color:#c00}.g{color:#0a0}.b{font-weight:700;color:#1a3a5f}.s{text-decoration:line-through;color:#999}.y{color:#b8860b}.grid{display:grid;grid-template-columns:180px 1fr;gap:24px}.settle-section{margin-top:20px}.bank-section{margin-top:20px;padding-top:16px;border-top:2px solid #e0e0e0}.bank-section h3{font-size:12px;color:#555;margin-bottom:6px}.bank-section p{font-size:11px;color:#888;margin:2px 0;line-height:1.6}.tbl{width:100%;border-collapse:collapse;font-size:12px}.tbl th{color:#666;font-weight:500;border-bottom:2px solid #ccc;padding:5px 8px;text-align:right}.tbl th:first-child{text-align:left}.tbl td{padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right}.tbl td:first-child{text-align:left}.tbl .total-row td{border-top:2px solid #ccc;font-weight:700}.cp{cursor:pointer;margin-left:6px;padding:1px 8px;font-size:10px;color:#1a73e8;background:#eef4ff;border:1px solid #b6d0f2;border-radius:4px;vertical-align:middle}.cp:hover{background:#dbe9ff}</style></head><body>`
                           html += `<h2>${e(c.company_name)}</h2><p class="sub">${e(c.contract_number)} · ${e(tierName)}</p>`
                           html += '<div class="grid">'
                           // AR
@@ -792,20 +794,21 @@ export default function Admin() {
                           // ═══ Bank Info ═══
                           const b = bankInfo || {}
                           html += '<div class="bank-section"><h3>银行转账信息</h3>'
-                          html += '<table style="font-size:11px;color:#666;line-height:1.8"><tr><td style="padding-right:20px;white-space:nowrap">开户行：</td><td>' + e(b.bank_name || '') + '</td></tr>'
-                          html += '<tr><td>银行地址：</td><td>' + e(b.bank_address || '') + '</td></tr>'
-                          html += '<tr><td>银行代码：</td><td>' + e(b.bank_code || '') + '</td></tr>'
-                          html += '<tr><td>户名：</td><td>' + e(b.account_name || '') + '</td></tr>'
-                          html += '<tr><td>账号：</td><td><b>' + e(b.account_number || '') + '</b></td></tr>'
+                          html += '<table style="font-size:11px;color:#666;line-height:1.8"><tr><td style="padding-right:20px;white-space:nowrap">开户行：</td><td>' + e(b.bank_name || '') + copyBtn(b.bank_name || '') + '</td></tr>'
+                          html += '<tr><td>银行地址：</td><td>' + e(b.bank_address || '') + copyBtn(b.bank_address || '') + '</td></tr>'
+                          html += '<tr><td>银行代码：</td><td>' + e(b.bank_code || '') + copyBtn(b.bank_code || '') + '</td></tr>'
+                          html += '<tr><td>户名：</td><td>' + e(b.account_name || '') + copyBtn(b.account_name || '') + '</td></tr>'
+                          html += '<tr><td>账号：</td><td><b>' + e(b.account_number || '') + '</b>' + copyBtn(b.account_number || '') + '</td></tr>'
                           html += '</table>'
                           html += '<div style="margin-top:10px;padding:12px;background:#fff4e5;border:1px solid #f0c36d;border-radius:6px;font-size:12px;line-height:1.7">'
                           html += '<p style="font-weight:700;color:#c0392b;margin:0 0 8px;font-size:14px">⚠️ 请务必分开转账支付，并附上转账附言，未填写或填写错误的转账附言将不予处理。</p>'
                           html += '<p style="margin:2px 0">· 授权代表年费　<b>€' + c.annual_fee_eur + '</b>（约 ¥' + Math.round(c.annual_fee_eur * (rateInfo.rate||8.10)) + '）</p>'
-                          html += '<p style="margin:2px 0 6px;padding-left:14px">转账附言　<b>EPR-' + e(c.contract_number || '') + '-A</b></p>'
+                          html += '<p style="margin:2px 0 6px;padding-left:14px">转账附言　<b>EPR-' + e(c.contract_number || '') + '-A</b>' + copyBtn('EPR-' + (c.contract_number || '') + '-A') + '</p>'
                           html += '<p style="margin:2px 0">· 预申报费　　<b>€' + prepaidDisplay.toFixed(2) + '</b>（约 ¥' + prepaidCny + '）</p>'
-                          html += '<p style="margin:2px 0;padding-left:14px">转账附言　<b>EPR-' + e(c.contract_number || '') + '-V</b></p>'
+                          html += '<p style="margin:2px 0;padding-left:14px">转账附言　<b>EPR-' + e(c.contract_number || '') + '-V</b>' + copyBtn('EPR-' + (c.contract_number || '') + '-V') + '</p>'
                           html += '</div>'
                           html += '</div>'
+                          html += '<script>(function(){function d(e){e.textContent="已复制";setTimeout(function(){e.textContent="复制"},1500)}function fb(e){var t=e.getAttribute("data-v"),a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(_){}document.body.removeChild(a);d(e)}document.querySelectorAll(".cp").forEach(function(b){b.onclick=function(){var t=b.getAttribute("data-v");if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){d(b)}).catch(function(){fb(b)})}else{fb(b)}}})})();</script>'
                           html += '</body></html>'
                           const w = window.open('','_blank','width=1020,height=700')
                           if(w){ w.document.write(html); w.document.close() }
