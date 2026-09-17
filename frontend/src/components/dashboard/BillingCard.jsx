@@ -140,7 +140,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
     h += '<tr><td>账号：</td><td><b>' + esc(b.account_number || '') + '</b>' + copyBtn(b.account_number || '') + '</td></tr>'
     h += '</table>'
     h += '<div style="margin-top:10px;padding:12px;background:#fff4e5;border:1px solid #f0c36d;border-radius:6px;font-size:12px;line-height:1.7">'
-    h += '<p style="font-weight:700;color:#c0392b;margin:0 0 8px;font-size:14px">⚠️ 请务必分开转账支付，并附上转账附言，未填写或填写错误的转账附言将不予处理。</p>'
+    h += '<p style="font-weight:700;color:#c0392b;margin:0 0 8px;font-size:14px">⚠️ 请务必分开转账支付，并附上转账附言，未填写或填写错误的转账附言将不予处理。由此类原因导致的退款，将在退款时扣除20元手续费用。</p>'
     h += '<p style="margin:2px 0">· 授权代表年费　<b>€' + c.annual_fee_eur + '</b>（约 ¥' + Math.round(c.annual_fee_eur * rate) + '）</p>'
     h += '<p style="margin:2px 0 6px;padding-left:14px">转账附言　<b>EPR-' + esc(c.contract_number || '') + '-A</b>' + copyBtn('EPR-' + (c.contract_number || '') + '-A') + '</p>'
     h += '<p style="margin:2px 0">· 预申报费　　<b>€' + prepaidDisplay.toFixed(2) + '</b>（约 ¥' + feeCny(prepaidPayment, prepaidDisplay, rate) + '）</p>'
