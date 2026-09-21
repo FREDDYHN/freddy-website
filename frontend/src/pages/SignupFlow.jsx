@@ -354,6 +354,10 @@ export default function SignupFlow() {
         <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-4">
           <h2 className="font-bold text-lg">包装预申报</h2>
           <p className="text-sm text-gray-500">请填写您在德国市场使用的各类包装的预估年量（kg），未使用的类别留空即可。</p>
+          <ul className="text-sm text-gray-500 list-disc pl-5 space-y-1">
+            <li>2026年已经自行做过预申报的，需将包装的种类和重量，如实填写在下方，并在登录客户端后上传预申报凭证/发票。</li>
+            <li>2026年还没有预申报的，请在下方填写预申报的种类和重量，系统将为您算出金额，在登录客户端后，请查看费用明细。</li>
+          </ul>
           {/* 8 种材料平铺表格 */}
           <div className="border border-gray-200 rounded-lg overflow-hidden">
             <div className="hidden md:grid items-center bg-gray-100 px-3 py-2 text-xs text-gray-500 font-medium md:grid-cols-[2fr_1fr_1.6fr]">
