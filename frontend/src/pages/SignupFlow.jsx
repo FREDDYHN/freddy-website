@@ -355,8 +355,8 @@ export default function SignupFlow() {
           <h2 className="font-bold text-lg">包装预申报</h2>
           <p className="text-sm text-gray-500">请填写您在德国市场使用的各类包装的预估年量（kg），未使用的类别留空即可。</p>
           <ul className="text-sm text-gray-500 list-disc pl-5 space-y-1">
-            <li>2026年度已经自行做过预申报的，需将已预申报的包装种类和重量，如实填写在下方，并在登录客户端后上传预申报凭证/发票。</li>
-            <li>2026年度还没有预申报的，请在下方填写预申报的包装种类和重量，系统将为您算出金额，在您登录客户端后，请查看费用明细并完成付款，上传付款凭证。</li>
+            <li>2026年度<span className="font-semibold text-primary">已经自行做过预申报的</span>，需将已预申报的包装种类和重量，如实填写在下方，并在登录客户端后上传预申报凭证/发票。</li>
+            <li>2026年度<span className="font-semibold text-primary">还没有预申报的</span>，请在下方填写预申报的包装种类和重量，系统将为您算出金额，在您登录客户端后，请查看费用明细并完成付款，上传付款凭证。</li>
           </ul>
           {/* 8 种材料平铺表格 */}
           <div className="border border-gray-200 rounded-lg overflow-hidden">
