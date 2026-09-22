@@ -98,7 +98,7 @@ export async function cleanupAbandonedAccounts() {
        AND u.email_verified_at < datetime('now', ?)
        AND NOT EXISTS (
          SELECT 1 FROM payments p WHERE p.client_id = u.client_id
-           AND p.payment_type = 'contract_fee' AND p.status = 'paid'
+           AND p.payment_type = 'contract_fee' AND p.status IN ('paid','refunded')
        )`,
     grace
   )

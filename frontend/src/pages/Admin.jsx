@@ -7,8 +7,8 @@ const TABS = [
   { key: 'battery', label: '🔋 电池法' },
 ]
 
-const STATUS_MAP = { active: '已激活', pending_payment: '待付款', pending_verification: '待验证', signed: '已签署', expired: '已过期' }
-const STATUS_CLS = { active: 'bg-green-100 text-green-700', pending_payment: 'bg-yellow-100 text-yellow-700', pending_verification: 'bg-gray-100 text-gray-500', signed: 'bg-blue-100 text-blue-700', expired: 'bg-red-100 text-red-700' }
+const STATUS_MAP = { active: '已激活', pending_payment: '待付款', pending_verification: '待验证', signed: '已签署', expired: '已过期', terminated: '已终止' }
+const STATUS_CLS = { active: 'bg-green-100 text-green-700', pending_payment: 'bg-yellow-100 text-yellow-700', pending_verification: 'bg-gray-100 text-gray-500', signed: 'bg-blue-100 text-blue-700', expired: 'bg-red-100 text-red-700', terminated: 'bg-gray-100 text-gray-500' }
 
 /** 当前自然季度的 [起, 止] 日期（'YYYY-MM-DD'） */
 function currentQuarterRange() {
@@ -750,7 +750,7 @@ export default function Admin() {
                           html += '<div class="ar"><h3>授权代表年费</h3>'
                           html += `<p><span>服务等级</span> <b>${e(tierName)}</b></p>`
                           html += `<p><span>截止日期</span> ${c.end_date?.slice(0,10)||'-'}</p>`
-                          html += `<p><span>状态</span> <span class="${c.status==='active'?'g':'y'}">${c.status==='active'?'已付款':'待付款'}</span></p>`
+                          html += `<p><span>状态</span> <span class="${c.status==='active'?'g':c.status==='terminated'?'r':'y'}">${c.status==='active'?'已付款':c.status==='terminated'?'已终止':'待付款'}</span></p>`
                           html += `<p><span>金额</span> <b class="b">€${c.annual_fee_eur}</b></p>`
                           html += `<p style="font-size:10px;color:#888">约 ¥${Math.round(c.annual_fee_eur * (rateInfo.rate||8.10))}</p></div>`
                           // Prepaid
@@ -822,9 +822,10 @@ export default function Admin() {
                       )}
                     </td>
                     <td className="p-3 align-top">
-                      <span className={`text-xs font-semibold ${c.status === 'pending_payment' ? 'text-yellow-600' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
+                      <span className={`text-xs font-semibold ${c.status === 'pending_payment' ? 'text-yellow-600' : c.status === 'terminated' ? 'text-gray-400' : 'text-green-600'}`}>€{c.annual_fee_eur}</span>
                       {c.status === 'pending_payment' && <span className="text-yellow-600 text-xs font-semibold ml-1">待付</span>}
                       {c.status === 'active' && <span className="text-green-600 text-xs font-semibold ml-1">✓</span>}
+                      {c.status === 'terminated' && <span className="text-gray-400 text-xs font-semibold ml-1">已终止</span>}
                       <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{Math.round(c.annual_fee_eur * (rateInfo.rate||8.10))}</div>
                       {uploadLinks(c, 'bank_proof', 'proof_annual_fee')}
                     </td>

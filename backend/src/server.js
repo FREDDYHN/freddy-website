@@ -414,7 +414,7 @@ app.get('/api/admin/clients/export', authMiddleware, adminMiddleware, async (req
         if (!payByContract[p.contract_id]) payByContract[p.contract_id] = {}
         if (!payByContract[p.contract_id][p.payment_type]) payByContract[p.contract_id][p.payment_type] = p
       }
-      const statusLabel = (p) => !p ? '' : (p.status === 'paid' ? '已付' : '待付')
+      const statusLabel = (p) => !p ? '' : (p.status === 'paid' ? '已付' : p.status === 'refunded' ? '已退款' : '待付')
 
       for (const r of rows) {
         const pm = payByContract[r.contract_id] || {}
