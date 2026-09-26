@@ -685,7 +685,7 @@ export default function Admin() {
 
         <div className="overflow-x-auto">
           {currentList.length === 0 ? <p className="p-8 text-center text-sm text-gray-400">暂无数据</p> : (
-            <table className="w-full text-sm table-fixed">
+            <table className="w-full text-sm table-fixed min-w-[960px]">
               <colgroup>
                 <col style={{width:'22%'}} /><col style={{width:'8%'}} /><col style={{width:'11%'}} /><col style={{width:'13%'}} /><col style={{width:'11%'}} /><col style={{width:'11%'}} /><col style={{width:'24%'}} />
               </colgroup>
