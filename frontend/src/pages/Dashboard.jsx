@@ -158,9 +158,9 @@ export default function Dashboard() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
       {/* ── Header ── */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-800">{data.client.company_name}</h1>
+          <h1 className="text-2xl font-extrabold text-gray-800 break-words">{data.client.company_name}</h1>
           <p className="text-sm text-gray-400 mt-0.5">{c.contract_number} · {tierLabel(c.tier)}</p>
         </div>
         <div className="flex items-center gap-2">
