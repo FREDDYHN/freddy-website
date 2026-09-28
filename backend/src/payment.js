@@ -173,7 +173,7 @@ async function markPaid(tradeNo) {
       // 北京时间：start_date = 今天，end_date = 今年 12-31（避免 date('now') 的 UTC 偏移）
       const today = localDate()
       const endOfYear = `${new Date().getFullYear()}-12-31`
-      await db.run("UPDATE contracts SET status='active', paid_confirmed_at=datetime('now'), activated_at=datetime('now'), start_date=?, end_date=? WHERE id=? AND status='pending_payment'", today, endOfYear, p.contract_id)
+      await db.run("UPDATE contracts SET status='active', paid_confirmed_at=datetime('now'), activated_at=datetime('now'), start_date=?, end_date=? WHERE id=? AND status IN ('pending_verification','pending_payment','signed')", today, endOfYear, p.contract_id)
     }
     const existing = await db.get('SELECT id FROM invoices WHERE payment_id = ?', p.id)
     if (!existing) {

@@ -79,14 +79,18 @@ export async function cleanupAbandonedAccounts() {
   const db = await getDb()
   const grace = `-${GRACE_DAYS} days`
 
-  // Rule 1：收到验证邮件（= 申请合同）1 周未验证
+  // Rule 1：收到验证邮件（= 申请合同）1 周未验证（已付款客户不删，防「先付款未验证」误删）
   const rule1 = await db.all(
     `SELECT DISTINCT u.client_id FROM users u
      JOIN contracts c ON c.client_id = u.client_id
      JOIN clients cl ON cl.id = u.client_id
      WHERE u.email_verified = 0 AND c.status = 'pending_verification'
        AND cl.deleted_at IS NULL
-       AND u.created_at < datetime('now', ?)`,
+       AND u.created_at < datetime('now', ?)
+       AND NOT EXISTS (
+         SELECT 1 FROM payments p WHERE p.client_id = u.client_id
+           AND p.payment_type = 'contract_fee' AND p.status IN ('paid','refunded')
+       )`,
     grace
   )
   // Rule 2：验证完成 1 周未缴年费（无 contract_fee 已付记录）
