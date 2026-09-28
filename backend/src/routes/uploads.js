@@ -60,9 +60,9 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
       req.file.mimetype
     )
 
-    // If client uploaded signed contract, mark contract as signed
+    // If client uploaded signed contract, mark contract as signed（推进状态，避免「已传签章 PDF 但合同仍卡 pending_verification」）
     if (file_type === 'signed_contract' && contract_id) {
-      await db.run("UPDATE contracts SET signed_at = datetime('now') WHERE id = ? AND signed_at IS NULL", contract_id)
+      await db.run("UPDATE contracts SET status = 'signed', signed_at = datetime('now') WHERE id = ? AND status IN ('pending_verification','pending_payment')", contract_id)
     }
 
     // 上传发票 = 声明自行申报：自动进入「待审核」状态（无需单独调 request-predeclared）
