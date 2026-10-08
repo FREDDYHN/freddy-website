@@ -70,16 +70,18 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
       await db.run("UPDATE contracts SET pre_declared_status = 'pending' WHERE id = ?", contract_id)
     }
 
-    // 自动覆盖：同 contract_id + file_type 的旧「待审核」凭证，重新上传即替换（只删 pending，不碰 approved/rejected）
+    // 每类凭证最多保留 2 张（FIFO：上传第 3 张时覆盖最旧第 1 张，只删 pending，不碰 approved/rejected）
+    const MAX_PROOF_FILES = 2
     const replaceable = file_type && (file_type.startsWith('proof_') || file_type === 'bank_proof')
     if (replaceable && contract_id) {
-      const oldRows = await db.all(
-        "SELECT id, stored_path FROM uploads WHERE client_id = ? AND contract_id = ? AND file_type = ? AND status = 'pending' AND id != ?",
-        req.user.client_id, contract_id, file_type, result.lastID
+      const rows = await db.all(
+        "SELECT id, stored_path FROM uploads WHERE client_id = ? AND contract_id = ? AND file_type = ? AND status = 'pending' ORDER BY id ASC",
+        req.user.client_id, contract_id, file_type
       )
-      for (const o of oldRows) {
-        await db.run('DELETE FROM uploads WHERE id = ?', o.id)
-        unlinkUploadFile(o.stored_path)
+      const excess = rows.length - MAX_PROOF_FILES
+      for (let i = 0; i < excess; i++) {
+        await db.run('DELETE FROM uploads WHERE id = ?', rows[i].id)
+        unlinkUploadFile(rows[i].stored_path)
       }
     }
 

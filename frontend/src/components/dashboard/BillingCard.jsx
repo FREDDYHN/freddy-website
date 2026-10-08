@@ -194,7 +194,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
             const prepaidPayment = pays.find(p => p.payment_type === 'recycling_prepaid')
             const settlementPayment = pays.find(p => p.payment_type === 'recycling_settlement')
             const proofUploads = ups.filter(u => u.file_type?.startsWith('proof_') || u.file_type === 'bank_proof' || u.file_type === 'signed_contract')
-            const proofLink = (ft) => { const f = ups.find(u => u.file_type === ft && u.status !== 'rejected'); if (!f) return null; return (<span className="inline-flex items-center gap-2 mt-0.5"><button onClick={() => downloadFile(f)} className="text-xs text-blue-600 hover:underline text-left">✅ 已上传 · 📄 下载</button>{f.status === 'pending' && (<button onClick={() => { if (confirm('删除此凭证？')) onDelete(f.id) }} className="text-xs text-red-400 hover:text-red-600">🗑 删除</button>)}</span>) }
+            const proofLinks = (ft) => { const fs = ups.filter(u => u.file_type === ft && u.status !== 'rejected').slice(0, 2); if (fs.length === 0) return null; return (<span className="flex flex-col gap-1 mt-0.5">{fs.map(f => (<span key={f.id} className="inline-flex items-center gap-2"><button onClick={() => downloadFile(f)} className="text-xs text-blue-600 hover:underline text-left">✅ 已上传 · 📄 下载</button>{f.status === 'pending' && (<button onClick={() => { if (confirm('删除此凭证？')) onDelete(f.id) }} className="text-xs text-red-400 hover:text-red-600">🗑 删除</button>)}</span>))}</span>) }
             const uploadEntry = (ft, text) => (
               <label className="cursor-pointer inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-dashed border-gray-300 text-gray-600 text-xs font-medium hover:border-primary hover:text-primary mt-1">
                 📤 {text}
@@ -230,7 +230,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                     <span className="flex flex-col">
                       <span className="text-xs text-gray-600 font-semibold md:hidden">往年缴费凭证</span>
                       {uploadEntry('proof_previous_year', '上传往年缴费凭证')}
-                      {proofLink('proof_previous_year')}
+                      {proofLinks('proof_previous_year')}
                     </span>
                     <span className="flex flex-col">
                       <span className="text-xs text-gray-600 font-semibold md:hidden">授权代表年费</span>
@@ -240,7 +240,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                       </span>
                       <span className="text-xs text-gray-350 mt-0.5">≈ ¥{Math.round(c.annual_fee_eur * rate)}</span>
                       {uploadEntry('proof_annual_fee', '上传付款凭证')}
-                      {proofLink('proof_annual_fee')}
+                      {proofLinks('proof_annual_fee')}
                     </span>
                     <span className="flex flex-col">
                       <span className="text-xs text-gray-600 font-semibold md:hidden">预申报费</span>
@@ -248,10 +248,10 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                         const amount = prepaidPayment?.amount_eur || cost
                         // 已自行申报（管理员已确认）
                         if (preStatus === 'approved') {
-                          const proof = ups.find(u => u.file_type === 'proof_predeclared' && u.status !== 'rejected')
+                          const proof = ups.some(u => u.file_type === 'proof_predeclared' && u.status !== 'rejected')
                           return (<>
                             <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">已自行申报 ✓</span>
-                            {proof ? proofLink('proof_predeclared') : uploadEntry('proof_predeclared', '重新上传发票')}
+                            {proof ? proofLinks('proof_predeclared') : uploadEntry('proof_predeclared', '重新上传发票')}
                           </>)
                         }
                         // 自行申报待审核
@@ -260,15 +260,15 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                             <span className="text-xs text-yellow-600 font-semibold h-[18px] flex items-center">自行申报 · 待审核</span>
                             <button onClick={() => onPredeclared(c.id, true)} className="text-xs text-gray-400 hover:text-primary mt-0.5 text-left">撤销自行申报</button>
                             {uploadEntry('proof_predeclared', '上传发票')}
-                            {proofLink('proof_predeclared')}
+                            {proofLinks('proof_predeclared')}
                           </>)
                         }
                         // 代缴已付
                         if (prepaidPayment?.status === 'paid') {
-                          const proof = ups.find(u => u.file_type === 'proof_prepaid' && u.status !== 'rejected')
+                          const proof = ups.some(u => u.file_type === 'proof_prepaid' && u.status !== 'rejected')
                           return (<>
                             <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">€{amount.toFixed(2)} 代缴已付 ✓</span>
-                            {proof ? proofLink('proof_prepaid') : uploadEntry('proof_prepaid', '重新上传凭证')}
+                            {proof ? proofLinks('proof_prepaid') : uploadEntry('proof_prepaid', '重新上传凭证')}
                           </>)
                         }
                         // 未完成：两个并列入口（代缴 / 自行申报）
@@ -276,9 +276,9 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                           <span className="text-xs text-yellow-600 font-semibold h-[18px] flex items-center">€{amount.toFixed(2)} 待缴</span>
                           <span className="text-xs text-gray-350 mt-0.5">≈ ¥{feeCny(prepaidPayment, amount, rate)}</span>
                           {uploadEntry('proof_prepaid', '上传转账凭证（由福瑞笛代缴）')}
-                          {proofLink('proof_prepaid')}
+                          {proofLinks('proof_prepaid')}
                           {uploadEntry('proof_predeclared', '我已自行申报，上传发票')}
-                          {proofLink('proof_predeclared')}
+                          {proofLinks('proof_predeclared')}
                         </>)
                       })()}
                     </span>
@@ -303,7 +303,7 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                       )}
                       {settlementOpen ? (<>
                         {uploadEntry('proof_settlement', '上传付款凭证')}
-                        {proofLink('proof_settlement')}
+                        {proofLinks('proof_settlement')}
                       </>) : (
                         <span className="text-xs text-gray-300 mt-0.5">⏳ 次年1月开放</span>
                       )}

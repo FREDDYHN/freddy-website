@@ -73,8 +73,13 @@ export default function Dashboard() {
     const r = await fetch('/api/uploads', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
     const d = await r.json()
     if (!r.ok) throw new Error(d.error)
-    // 后端已自动覆盖旧待审凭证，前端同步剔除旧 pending 同类型项，避免残留
-    setUploads(p => [d.file, ...p.filter(u => !(u.contract_id === d.file.contract_id && u.file_type === d.file.file_type && u.status === 'pending' && u.id !== d.file.id))])
+    // 后端每类凭证最多保留 2 张（FIFO），前端同步：保留最新 1 条旧 pending 同类型项，使总数 = 2
+    setUploads(p => {
+      const sameType = p.filter(u => u.contract_id === d.file.contract_id && u.file_type === d.file.file_type && u.status === 'pending' && u.id !== d.file.id)
+      const others = p.filter(u => !(u.contract_id === d.file.contract_id && u.file_type === d.file.file_type && u.status === 'pending' && u.id !== d.file.id))
+      const keepNewest = sameType.sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 1)
+      return [d.file, ...keepNewest, ...others]
+    })
     alert('✅ 文件上传成功')
   }
 
