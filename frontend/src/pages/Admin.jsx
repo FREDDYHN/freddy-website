@@ -916,9 +916,9 @@ export default function Admin() {
                             <details className="text-[10px]">
                               <summary className="cursor-pointer text-gray-500 hover:text-primary">📝 合同签署</summary>
                               <div className="mt-1 pl-2 border-l-2 border-gray-100 space-y-0.5 text-[10px] text-gray-500">
-                                {c.signed_at ? (
+                                {(c.signed_at || (c._uploads?.signed_contract?.length > 0)) ? (
                                   <>
-                                    <p>✅ 客户已签 · {c.signed_at.slice(0,10)}</p>
+                                    <p>{c.signed_at ? `✅ 客户已签 · ${c.signed_at.slice(0,10)}` : '✅ 已上传签字合同'}</p>
                                     {(c._uploads?.signed_contract?.length > 0) && c._uploads.signed_contract.map(u => (
                                       <button key={u.id} onClick={() => authDownload(`/api/uploads/${u.id}/download`, u.original_name)}
                                         className="text-primary hover:underline">📥 下载签字合同</button>
