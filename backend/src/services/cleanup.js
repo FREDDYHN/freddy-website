@@ -94,6 +94,8 @@ export async function cleanupAbandonedAccounts() {
     grace
   )
   // Rule 2：验证完成 1 周未缴年费（无 contract_fee 已付记录）
+  // 已签合同（signed_at 非空）的客户不删：签章是强活跃信号，客户可能正在走银行转账/等待管理员审核，
+  // 若此时软删除会把已签合同从管理员端隐藏，导致「客户上传了签字合同管理员却收不到」。
   const rule2 = await db.all(
     `SELECT DISTINCT u.client_id FROM users u
      JOIN clients cl ON cl.id = u.client_id
@@ -103,6 +105,10 @@ export async function cleanupAbandonedAccounts() {
        AND NOT EXISTS (
          SELECT 1 FROM payments p WHERE p.client_id = u.client_id
            AND p.payment_type = 'contract_fee' AND p.status IN ('paid','refunded')
+       )
+       AND NOT EXISTS (
+         SELECT 1 FROM contracts c2 WHERE c2.client_id = u.client_id
+           AND c2.signed_at IS NOT NULL
        )`,
     grace
   )
