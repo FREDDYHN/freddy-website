@@ -21,7 +21,7 @@ import { getDb } from '../db.js'
 import { authMiddleware, adminMiddleware } from '../auth.js'
 import { localDate, beijingDateFromUtc } from '../services/date.js'
 import { COLLECT_PAID_SQL, NOT_SELF_APPROVED_SQL } from '../services/predeclared.js'
-import { EKO_PUNKT, EKO_PUNKT_MATERIAL_COLS, AR_TIER_ZH, CITY_POSTCODES } from '../../../shared/constants.js'
+import { EKO_PUNKT, EKO_PUNKT_MATERIAL_COLS, AR_TIER_ZH, DISTRICT_POSTCODES } from '../../../shared/constants.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const TEMPLATE_DIR = join(__dirname, '..', 'templates')
@@ -60,6 +60,14 @@ function chineseNameToPinyin(name) {
 /** 去掉单元格内换行/首尾空白（EKO-PUNKT 要求单元格内不得有换行） */
 function clean(v) {
   return v == null ? '' : String(v).replace(/[\r\n]+/g, ' ').trim()
+}
+
+/** 中文地址 → 拼音（数字/字母连续保留、词间空格）；用于 registered_address_en 缺失时兜底 */
+function addressToLatin(zhAddr) {
+  const s = String(zhAddr || '').trim()
+  if (!s) return ''
+  const arr = pinyin(s, { toneType: 'none', type: 'array', nonZh: 'consecutive' })
+  return Array.isArray(arr) ? arr.filter(Boolean).join(' ') : s
 }
 
 /** 特别行政区 → 英文名（香港/澳门），其余城市转拼音 */
@@ -141,25 +149,31 @@ function extractPostcode(address) {
   // 中文 6 位邮编（\b 边界排除网址/电话等长数字），取末尾一个
   const zh = s.match(/\b\d{6}\b/g)
   if (zh && zh.length) return zh[zh.length - 1]
-  // 外文邮编：逗号分段里「含数字且较短(≤12)」的段（如 8200-269 / 518100），末段是国家跳过
+  // 外文邮编：逗号分段里「纯数字/连字符且较短(≤12)」的段（如 8200-269 / 518100），末段是国家跳过；
+  // 避免把「No. 89」「No.1 Yard」这类含字母门牌号、或「402/102」这类 3 位房号误当邮编
   const parts = s.split(',').map((p) => p.trim()).filter(Boolean)
   for (let i = parts.length - 2; i >= 0; i--) {
-    if (/\d/.test(parts[i]) && parts[i].length <= 12) return parts[i]
+    if (/^[\d\s\-]+$/.test(parts[i]) && parts[i].replace(/\D/g, '').length >= 4 && parts[i].length <= 12) return parts[i]
+    const lead = parts[i].match(/^\d{5,}/)  // 如「80028 GRUMO NEVANO」→ 取前导 80028；≥5 位避免误取「1001」房号
+    if (lead) return lead[0]
   }
   return ''
 }
 
-/** 邮编解析：优先地址里已有邮编，其次按城市查映射表（支持「中国广州市」这类带前缀的模糊匹配） */
+/** 邮编解析：①地址里明确带邮编 → 用；②扫中文地址命中的区县名 → 查区县映射表；③都命中不到 → 留空人工补 */
 function resolvePlz(zhAddr, enAddr) {
   const fromEn = extractPostcode(enAddr)
   if (fromEn) return fromEn
   const fromZh = extractPostcode(zhAddr)
   if (fromZh) return fromZh
-  const city = extractCity(zhAddr)
-  if (!city) return ''
-  if (CITY_POSTCODES[city]) return CITY_POSTCODES[city]
-  const key = Object.keys(CITY_POSTCODES).sort((a, b) => b.length - a.length).find((k) => city.endsWith(k))
-  return key ? CITY_POSTCODES[key] : ''
+  const s = String(zhAddr || '')
+  if (!s) return ''
+  // 区县名最长优先（如「龙华新区」先于「龙华区」）
+  const keys = Object.keys(DISTRICT_POSTCODES).sort((a, b) => b.length - a.length)
+  for (const k of keys) {
+    if (s.includes(k)) return DISTRICT_POSTCODES[k]
+  }
+  return ''
 }
 
 /** 季度 → [起, 止] 日期（含端点） */
@@ -217,12 +231,14 @@ router.get('/eko-punkt', async (req, res) => {
       //   1) 已回签(admin_stamped) 2) 年费已缴(status=active)
       //   3) 预申报费已缴(代缴 recycling_prepaid paid) 4) LUCID 密码已提交
       // 自行预申报(approved)客户因未付 recycling_prepaid 而自然排除。年终申报不筛。
+      // all=1 → 导出全部代缴客户（跳过回签/LUCID 密码就绪条件），用于生成代扣代缴总表
+      const allDaijiao = req.query.all === '1'
       const statusFilter = mode === 'final' ? '' : ` AND (
         c.status = 'active'
         AND ${NOT_SELF_APPROVED_SQL}
         AND ${COLLECT_PAID_SQL}
-        AND c.id IN (SELECT DISTINCT contract_id FROM uploads WHERE file_type = 'admin_stamped')
-        AND cl.lucid_password_enc IS NOT NULL AND trim(cl.lucid_password_enc) != ''
+        ${allDaijiao ? '' : `AND c.id IN (SELECT DISTINCT contract_id FROM uploads WHERE file_type = 'admin_stamped')
+        AND cl.lucid_password_enc IS NOT NULL AND trim(cl.lucid_password_enc) != ''`}
       )`
       whereClause = `date(${dateCol}, '+8 hours') BETWEEN ? AND ?${statusFilter}`
       params = [from, to]
@@ -271,7 +287,7 @@ router.get('/eko-punkt', async (req, res) => {
       ws.getCell(rowIdx, 6).value = EKO_PUNKT.anrede
       ws.getCell(rowIdx, 7).value = clean(vorname)
       ws.getCell(rowIdx, 8).value = clean(nachname)
-      ws.getCell(rowIdx, 9).value = clean(c.registered_address_en || c.registered_address)
+      ws.getCell(rowIdx, 9).value = clean(c.registered_address_en || addressToLatin(c.registered_address))
       // 10 地址补充留空；11 PLZ 邮编（仅用于 EKO-PUNKT 导出，地址已有或地级市近似值）
       ws.getCell(rowIdx, 11).value = resolvePlz(c.registered_address, c.registered_address_en)
       ws.getCell(rowIdx, 12).value = clean(resolveCity(c.registered_address, c.registered_address_en))  // 城市：中文转拼音，外文取城市
