@@ -430,10 +430,9 @@ export default function Admin() {
             <div key={i} className="flex flex-col items-center leading-tight"><span className="text-[10px] text-gray-400">{s.l}</span><span className={`text-sm font-bold ${s.w ? 'text-red-600' : 'text-gray-700'}`}>{s.v}</span></div>
           ))}
           <div className="relative">
-            <button onClick={() => { setPendingOpen(v => !v); setRevenueOpen(false) }} className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-gray-100" title="待付款明细">
-              <span className="text-xs text-gray-400">待付款</span>
+            <button onClick={() => { setPendingOpen(v => !v); setRevenueOpen(false) }} className="flex flex-col items-center leading-tight px-2 rounded-md hover:bg-gray-100" title="待付款明细">
+              <span className="text-[10px] text-gray-400">待付款 {pendingOpen ? '▲' : '▼'}</span>
               <span className={`text-sm font-bold ${pendingTotal > 0 ? 'text-red-600' : 'text-gray-700'}`}>{pendingTotal}</span>
-              <span className="text-[10px] text-gray-400">{pendingOpen ? '▲' : '▼'}</span>
             </button>
             {pendingOpen && (
               <>
@@ -453,10 +452,9 @@ export default function Admin() {
             )}
           </div>
           <div className="relative">
-            <button onClick={() => { setRevenueOpen(v => !v); setPendingOpen(false) }} className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-gray-100" title="收入明细">
-              <span className="text-xs text-gray-400">收入 ¥</span>
+            <button onClick={() => { setRevenueOpen(v => !v); setPendingOpen(false) }} className="flex flex-col items-center leading-tight px-2 rounded-md hover:bg-gray-100" title="收入明细">
+              <span className="text-[10px] text-gray-400">收入 ¥ {revenueOpen ? '▲' : '▼'}</span>
               <span className="text-sm font-bold text-gray-700">{revenueTotal.toLocaleString('zh-CN')}</span>
-              <span className="text-[10px] text-gray-400">{revenueOpen ? '▲' : '▼'}</span>
             </button>
             {revenueOpen && (
               <>
