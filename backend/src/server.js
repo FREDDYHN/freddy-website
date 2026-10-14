@@ -177,7 +177,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
     const db = await getDb()
     const rate = await getRate()
     const [clients, contracts, pending, arFee, predeclaredEur, settlementEur, unpaidCnt, signedWaitingCnt, notSyncedCnt, pendingCnt, proofPendingCnt] = await Promise.all([
-      db.get('SELECT COUNT(*) as cnt FROM clients WHERE deleted_at IS NULL'),
+      db.get("SELECT COUNT(DISTINCT c.client_id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification'"),
       db.get("SELECT COUNT(*) as cnt FROM contracts WHERE lucid_rep_accepted = 1"),
       db.get(`SELECT
           COALESCE(SUM(CASE WHEN p.payment_type = 'contract_fee' THEN 1 ELSE 0 END), 0) as ar,
