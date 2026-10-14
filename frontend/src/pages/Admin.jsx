@@ -203,7 +203,7 @@ export default function Admin() {
     } catch (e) { alert('❌ ' + e.message) }
   }
 
-  const load = async (p = 1, includeAll = false, perPage = 20) => {
+  const load = async (p = 1, includeAll = false, perPage = 10) => {
     setLoading(true); setError(null)
     try {
       const incParam = includeAll ? '&include=all' : ''
@@ -663,7 +663,7 @@ export default function Admin() {
           <div className="flex flex-wrap gap-3 justify-between items-center">
             <div className="flex gap-2">
               <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ ...cl, id: cl.contract_id||cl.id, client_id: cl.id, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, lucid_confirmed: !!cl.lucid_confirmed, lucid_rep_accepted: !!cl.lucid_rep_accepted, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0 }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
-                <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, showAll, v ? 1000 : 20) }}
+                <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, showAll, v ? 1000 : 10) }}
                   className="border border-gray-300 rounded-md px-2 py-1.5 text-xs bg-white focus:outline-none focus:border-primary">
                   <option value="">全部状态</option>
                   {FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label} ({stats?.[o.countKey] || 0})</option>)}
