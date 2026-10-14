@@ -512,7 +512,15 @@ export default function Admin() {
     return list
   })()
   const appList = applications.filter(a => a.type === tab)
-  const infoChangeApps = applications.filter(a => a.type === 'info_change')
+  const infoChangeApps = applications
+    .filter(a => a.type === 'info_change')
+    .sort((a, b) => {
+      // 待处理(pending)置顶；其余按时间倒序（新→旧）
+      const pa = a.status === 'pending' ? 0 : 1
+      const pb = b.status === 'pending' ? 0 : 1
+      if (pa !== pb) return pa - pb
+      return String(b.created_at || '').localeCompare(String(a.created_at || ''))
+    })
   const pendingCount = (() => {
     const list = tab === 'packaging' ? pkgContracts : tab === 'weee' ? weeeContracts : batteryContracts
     const c = list.filter(c => {
