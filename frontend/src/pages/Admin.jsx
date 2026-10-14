@@ -1002,14 +1002,15 @@ export default function Admin() {
                   <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded ${a.status === 'approved' ? 'bg-green-100 text-green-700' : a.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-gray-100'}`}>{a.status === 'pending' ? '待审核' : a.status === 'approved' ? '已通过' : '已拒绝'}</span></td>
                   <td className="p-3 text-xs text-gray-400">{a.created_at?.slice(0, 10)}</td>
                   <td className="p-3">
-                    {a.status === 'pending' ? (
-                      <div className="flex gap-2">
-                        <button onClick={() => reviewApplication(a.id, 'approve')} className="text-xs text-green-600 hover:underline font-medium">✅ 通过</button>
-                        <button onClick={() => reviewApplication(a.id, 'reject')} className="text-xs text-red-500 hover:underline font-medium">❌ 拒绝</button>
-                      </div>
-                    ) : (
+                    <div className="flex gap-2 items-center">
+                      {a.status === 'pending' && (
+                        <>
+                          <button onClick={() => reviewApplication(a.id, 'approve')} className="text-xs text-green-600 hover:underline font-medium">✅ 通过</button>
+                          <button onClick={() => reviewApplication(a.id, 'reject')} className="text-xs text-red-500 hover:underline font-medium">❌ 拒绝</button>
+                        </>
+                      )}
                       <button onClick={() => deleteApplication(a.id)} className="text-[10px] text-gray-300 hover:text-red-500">🗑 删除</button>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))}
