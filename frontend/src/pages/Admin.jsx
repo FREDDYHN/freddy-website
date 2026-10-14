@@ -171,16 +171,6 @@ export default function Admin() {
     } catch (e) { setTaxSaveMsg('❌ ' + e.message) }
   }
 
-  const remindLucidAcceptance = async () => {
-    if (!window.confirm('将给所有未完成「授权代表确认 4 项事项」的客户发送站内通知 + 邮件提醒，确定继续？')) return
-    try {
-      const r = await fetch('/api/admin/remind-lucid-acceptance', { method: 'POST', headers: ah() })
-      const d = await r.json()
-      if (r.ok) alert(`✅ 已提醒 ${d.reminded}/${d.total} 位客户`)
-      else alert('❌ ' + (d.error || '操作失败'))
-    } catch (e) { alert('❌ ' + e.message) }
-  }
-
   const load = async (p = 1, includeAll = false, perPage = 10) => {
     setLoading(true); setError(null)
     try {
@@ -635,8 +625,8 @@ export default function Admin() {
       <div className="bg-white border border-gray-100 rounded-lg overflow-hidden mb-6">
         <div className="p-4 border-b border-gray-100">
           <div className="flex flex-wrap gap-3 justify-between items-center">
-            <div className="flex gap-2">
-              <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ ...cl, id: cl.contract_id||cl.id, client_id: cl.id, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, lucid_confirmed: !!cl.lucid_confirmed, lucid_rep_accepted: !!cl.lucid_rep_accepted, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0 }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
+            <div className="flex gap-2 flex-1">
+              <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ ...cl, id: cl.contract_id||cl.id, client_id: cl.id, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, lucid_confirmed: !!cl.lucid_confirmed, lucid_rep_accepted: !!cl.lucid_rep_accepted, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0 }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap flex-1">
                 <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, false, v ? 1000 : 10) }}
                   className="border border-gray-300 rounded-md px-2 py-1.5 text-xs bg-white focus:outline-none focus:border-primary">
                   <option value="">全部状态</option>
@@ -646,11 +636,7 @@ export default function Admin() {
                   className={`px-2 py-1.5 rounded-md text-xs font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                   🔔 待办 {pendingCount > 0 && `(${pendingCount})`}
                 </button>
-                <button type="button" onClick={remindLucidAcceptance}
-                  className="px-2 py-1.5 rounded-md text-xs font-medium border border-green-300 text-green-700 hover:bg-green-50">
-                  📧 提醒完成4点
-                </button>
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="公司 / 手机号 / 联系人 / 法人 / 合同号后4位" className="border border-gray-300 rounded-md px-2 py-1.5 text-xs w-80 focus:outline-none focus:border-primary" />
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="公司 / 手机号 / 联系人 / 法人 / 合同号后4位" className="border border-gray-300 rounded-md px-2 py-1.5 text-xs flex-1 min-w-0 focus:outline-none focus:border-primary" />
                 <button type="submit" className="px-3 py-1.5 bg-primary text-white rounded-md text-xs font-medium">🔍 搜索</button>
                 <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); load(1, false); setPage(1) }} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-500">重置</button>
               </form>
