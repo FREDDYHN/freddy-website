@@ -988,14 +988,17 @@ export default function Admin() {
             <span className="text-xs text-gray-400">{infoChangeOpen ? '▲ 收起' : '▼ 展开'}</span>
           </button>
           {infoChangeOpen && (
-          <table className="w-full text-sm">
+          <table className="w-full text-sm table-fixed">
+            <colgroup>
+              <col style={{width:'4%'}} /><col style={{width:'12%'}} /><col style={{width:'40%'}} /><col style={{width:'11%'}} /><col style={{width:'10%'}} /><col style={{width:'23%'}} />
+            </colgroup>
             <thead className="bg-gray-50 text-left"><tr><th className="p-3">ID</th><th className="p-3">客户</th><th className="p-3">修改内容</th><th className="p-3">状态</th><th className="p-3">日期</th><th className="p-3">操作</th></tr></thead>
             <tbody>
               {infoChangeApps.map(a => (
                 <tr key={a.id} className="border-t border-gray-50 align-top">
                   <td className="p-3 font-mono text-xs">{a.id}</td>
-                  <td className="p-3">{a.company_name || '—'}</td>
-                  <td className="p-3 text-xs">{renderChanges(a)}</td>
+                  <td className="p-3 break-all">{a.company_name || '—'}</td>
+                  <td className="p-3 text-xs break-all">{renderChanges(a)}</td>
                   <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded ${a.status === 'approved' ? 'bg-green-100 text-green-700' : a.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-gray-100'}`}>{a.status === 'pending' ? '待审核' : a.status === 'approved' ? '已通过' : '已拒绝'}</span></td>
                   <td className="p-3 text-xs text-gray-400">{a.created_at?.slice(0, 10)}</td>
                   <td className="p-3">
