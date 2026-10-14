@@ -16,57 +16,11 @@ const FILTER_OPTIONS = [
   { value: 'not_synced', label: '未同步', countKey: 'not_synced_clients' },
 ]
 
-/** 当前自然季度的 [起, 止] 日期（'YYYY-MM-DD'） */
-function currentQuarterRange() {
-  const n = new Date()
-  const q = Math.floor(n.getMonth() / 3)
-  const start = new Date(n.getFullYear(), q * 3, 1)
-  const end = new Date(n.getFullYear(), q * 3 + 3, 0)
-  const f = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  return [f(start), f(end)]
-}
-
 /** 回收费人民币展示：优先用锁定 amount_cny，否则用锁定汇率/实时汇率折算（约值取整） */
 function feeCnyDisplay(cny, rate, eur, liveRate) {
   if (Number(cny) > 0) return Math.round(Number(cny))
   const r = rate || liveRate || 8.10
   return Math.round((Number(eur) || 0) * r)
-}
-
-/** 收件队列里给某封邮件分配客户的内联搜索器（复用 /api/admin/clients/search） */
-function InboundClientPicker({ onPick }) {
-  const [q, setQ] = useState('')
-  const [results, setResults] = useState([])
-  const [show, setShow] = useState(false)
-  async function search(v) {
-    setQ(v)
-    const t = v.trim()
-    if (t.length < 2) { setResults([]); setShow(false); return }
-    try {
-      const tok = sessionStorage.getItem('token')
-      const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(t)}&perPage=8`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} })
-      const d = await r.json()
-      setResults((d.data || []).filter(c => c.contact_email))
-      setShow(true)
-    } catch { setResults([]) }
-  }
-  return (
-    <div className="relative flex-1 min-w-[180px]">
-      <input value={q} onChange={e => search(e.target.value)} placeholder="搜公司/手机号…分配客户"
-        className="w-full border border-gray-300 rounded-md px-2 py-1 text-xs focus:outline-none focus:border-primary" />
-      {show && results.length > 0 && (
-        <div className="absolute z-30 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-44 overflow-y-auto">
-          {results.map(c => (
-            <button key={c.id} type="button" onClick={() => { onPick(c); setQ(''); setResults([]); setShow(false) }}
-              className="w-full text-left px-2 py-1.5 text-xs hover:bg-gray-50 border-b border-gray-100 last:border-0">
-              <div className="font-medium text-gray-700">{c.company_name || c.contact_name}{c.contract_number ? <span className="text-gray-400 ml-1">· {c.contract_number}</span> : null}</div>
-              <div className="text-gray-400">{c.contact_email}{c.contact_phone ? ' · ' + c.contact_phone : ''}</div>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
 }
 
 export default function Admin() {
@@ -93,29 +47,13 @@ export default function Admin() {
   const [rateSubmitting, setRateSubmitting] = useState(false)
   const [revenueOpen, setRevenueOpen] = useState(false)
   const [pendingOpen, setPendingOpen] = useState(false)
+  const [pendingBreakdownOpen, setPendingBreakdownOpen] = useState(false)
   const [infoChangeOpen, setInfoChangeOpen] = useState(false)
   const [lucidPwd, setLucidPwd] = useState(null)
   const [lucidEdit, setLucidEdit] = useState('')
   const [lucidSaveMsg, setLucidSaveMsg] = useState('')
   const [taxEdit, setTaxEdit] = useState(null)
   const [taxSaveMsg, setTaxSaveMsg] = useState('')
-  const [exportModal, setExportModal] = useState(false)
-  const [ekMode, setEkMode] = useState('initial')
-  const [ekFrom, setEkFrom] = useState(`${new Date().getFullYear()}-01-01`)
-  const [ekTo, setEkTo] = useState(`${new Date().getFullYear()}-12-31`)
-  const [bhFrom, setBhFrom] = useState(`${new Date().getFullYear()}-01-01`)
-  const [bhTo, setBhTo] = useState(`${new Date().getFullYear()}-12-31`)
-  const [lvFrom, setLvFrom] = useState(() => currentQuarterRange()[0])
-  const [lvTo, setLvTo] = useState(() => currentQuarterRange()[1])
-  const [inboundModal, setInboundModal] = useState(false)
-  const [inboundDocs, setInboundDocs] = useState([])
-  const [inboundLoading, setInboundLoading] = useState(false)
-  const [inboundPending, setInboundPending] = useState(0)
-  const [inboundMsg, setInboundMsg] = useState('')
-  const [inboundUploadOpen, setInboundUploadOpen] = useState(false)
-  const [inboundUploadFiles, setInboundUploadFiles] = useState([])
-  const [inboundUploadSubject, setInboundUploadSubject] = useState('')
-  const [inboundUploading, setInboundUploading] = useState(false)
 
   const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}` } : {} }
 
@@ -237,12 +175,6 @@ export default function Admin() {
     } catch (e) { alert('❌ 下载失败: ' + e.message) }
   }
 
-  const exportCSV = async () => { try { const r = await fetch('/api/admin/clients/export', { headers: ah() }); if (!r.ok) throw new Error('Export failed'); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `freddy-clients-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(u) } catch (e) { alert('导出失败') } }
-
-  const doEkoPunkt = () => authDownload(`/api/admin/export/eko-punkt?mode=${ekMode}&from=${ekFrom}&to=${ekTo}`, `EASY-LIZE_Vertrag-Import-China_1.xlsx`)
-  const doBuchhaltung = () => authDownload(`/api/admin/export/buchhaltung?from=${bhFrom}&to=${bhTo}`, `freddy-buchhaltung-${bhFrom}_${bhTo}.xlsx`)
-  const doLivanto = () => authDownload(`/api/admin/export/livanto?from=${lvFrom}&to=${lvTo}`, `freddy-livanto-${lvFrom}_${lvTo}.xlsx`)
-
   const toggleSpam = async (contractId) => {
     try {
       const r = await fetch(`/api/admin/contracts/${contractId}/spam`, { method: 'POST', headers: ah() })
@@ -335,64 +267,6 @@ export default function Admin() {
   useEffect(() => {
     if (infoModal) { setLucidEdit(infoModal.lucid_registration_number || ''); setLucidSaveMsg('') }
   }, [infoModal])
-
-  const loadInbound = async () => {
-    setInboundLoading(true); setInboundMsg('')
-    try {
-      const r = await fetch('/api/admin/inbound-documents', { headers: ah() })
-      const d = await r.json()
-      if (r.ok) {
-        setInboundDocs(d)
-        setInboundPending(d.filter(x => x.status === 'pending').length)
-      } else setInboundMsg('❌ ' + (d.error || '加载失败'))
-    } catch (e) { setInboundMsg('❌ ' + e.message) }
-    setInboundLoading(false)
-  }
-  const openInbound = () => { setInboundModal(true); loadInbound() }
-  const inboundAssign = async (docId, client) => {
-    try {
-      const r = await fetch(`/api/admin/inbound-documents/${docId}/assign`, { method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: client.id }) })
-      const d = await r.json()
-      if (r.ok) {
-        setInboundDocs(prev => prev.map(x => x.id === docId ? { ...x, client_id: client.id, company_name: client.company_name, contact_name: client.contact_name, contact_email: client.contact_email } : x))
-      } else alert('❌ ' + (d.error || '分配失败'))
-    } catch (e) { alert('❌ ' + e.message) }
-  }
-  const inboundForward = async (doc) => {
-    if (!doc.client_id) { alert('请先分配客户'); return }
-    if (!window.confirm(`转发给 ${doc.company_name || doc.contact_name || '客户#' + doc.client_id}（${doc.contact_email}）？`)) return
-    try {
-      const r = await fetch(`/api/admin/inbound-documents/${doc.id}/forward`, { method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: doc.client_id }) })
-      const d = await r.json()
-      if (r.ok) { setInboundMsg(`✅ 已转发给 ${d.forwarded_to}`); loadInbound() }
-      else alert('❌ ' + (d.error || '转发失败'))
-    } catch (e) { alert('❌ ' + e.message) }
-  }
-  const inboundSkip = async (doc) => {
-    if (!window.confirm('跳过此邮件？（标记为已跳过，不再显示）')) return
-    try {
-      const r = await fetch(`/api/admin/inbound-documents/${doc.id}/skip`, { method: 'POST', headers: ah() })
-      if (r.ok) loadInbound()
-      else { const d = await r.json().catch(() => ({})); alert('❌ ' + (d.error || '操作失败')) }
-    } catch (e) { alert('❌ ' + e.message) }
-  }
-  const inboundUploadSubmit = async () => {
-    if (inboundUploadFiles.length === 0) { alert('请选择文件'); return }
-    setInboundUploading(true)
-    try {
-      const fd = new FormData()
-      for (const f of inboundUploadFiles) fd.append('files', f)
-      if (inboundUploadSubject.trim()) fd.append('subject', inboundUploadSubject.trim())
-      const r = await fetch('/api/admin/inbound-documents/upload', { method: 'POST', headers: ah(), body: fd })
-      const d = await r.json()
-      if (r.ok) {
-        setInboundMsg(`✅ 已上传 ${inboundUploadFiles.length} 个文件，进入待人工队列`)
-        setInboundUploadFiles([]); setInboundUploadSubject(''); setInboundUploadOpen(false)
-        loadInbound()
-      } else alert('❌ ' + (d.error || '上传失败'))
-    } catch (e) { alert('❌ ' + e.message) }
-    setInboundUploading(false)
-  }
 
   const saveRate = async () => {
     if (!rateNew) return
@@ -631,10 +505,30 @@ export default function Admin() {
                   <option value="">全部状态</option>
                   {FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label} ({stats?.[o.countKey] || 0})</option>)}
                 </select>
-                <button type="button" onClick={() => { const next = !showPending; setShowPending(next); setPage(1); load(1, false, (statusFilter || next) ? 1000 : 10) }}
-                  className={`px-2 py-1.5 rounded-md text-xs font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                  🔔 待办 {pendingCount > 0 && `(${pendingCount})`}
-                </button>
+                <div className="relative">
+                  <button type="button" onClick={() => { const next = !showPending; setShowPending(next); setPage(1); load(1, false, (statusFilter || next) ? 1000 : 10); setPendingBreakdownOpen(v => !v) }}
+                    className={`px-2 py-1.5 rounded-md text-xs font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                    🔔 待办 {pendingCount > 0 && `(${pendingCount})`} <span className="text-[10px]">{pendingBreakdownOpen ? '▲' : '▼'}</span>
+                  </button>
+                  {pendingBreakdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setPendingBreakdownOpen(false)} />
+                      <div className="absolute left-0 top-full mt-2 z-20 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+                        {[
+                          { l: '待回签', v: Number(stats?.signed_waiting_clients) || 0 },
+                          { l: '待审凭证', v: Number(stats?.proof_pending_clients) || 0 },
+                          { l: '未同步', v: Number(stats?.not_synced_clients) || 0 },
+                          { l: '信息修改申请', v: infoChangeApps.filter(a => a.status === 'pending').length },
+                        ].map((r, i) => (
+                          <div key={i} className="flex items-center justify-between px-3 py-1.5">
+                            <span className="text-xs text-gray-500">{r.l}</span>
+                            <span className={`text-xs ${r.v > 0 ? 'text-red-600' : 'text-gray-400'}`}>{r.v}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="公司 / 手机号 / 联系人 / 法人 / 合同号后4位" className="border border-gray-300 rounded-md px-2 py-1.5 text-xs flex-1 min-w-0 focus:outline-none focus:border-primary" />
                 <button type="submit" className="px-3 py-1.5 bg-primary text-white rounded-md text-xs font-medium">🔍 搜索</button>
                 <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); load(1, false); setPage(1) }} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-500">重置</button>
