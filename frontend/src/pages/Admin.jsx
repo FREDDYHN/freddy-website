@@ -37,8 +37,7 @@ export default function Admin() {
   const [feeSubmitting, setFeeSubmitting] = useState(false)
   const [search, setSearch] = useState('')
   const [infoModal, setInfoModal] = useState(null)
-  const [showPending, setShowPending] = useState(false)
-  const [pendingFilter, setPendingFilter] = useState(null)  // null=全部待办 | stamp | proof | sync
+  const [pendingFilter, setPendingFilter] = useState('')  // ''=不筛 | stamp | proof | sync | info_change
   const [statusFilter, setStatusFilter] = useState('')
   const [rateInfo, setRateInfo] = useState({ rate: 8.10, updated_at: null })
   const [bankInfo, setBankInfo] = useState(null)
@@ -48,7 +47,6 @@ export default function Admin() {
   const [rateSubmitting, setRateSubmitting] = useState(false)
   const [revenueOpen, setRevenueOpen] = useState(false)
   const [pendingOpen, setPendingOpen] = useState(false)
-  const [pendingBreakdownOpen, setPendingBreakdownOpen] = useState(false)
   const [infoChangeOpen, setInfoChangeOpen] = useState(false)
   const [lucidPwd, setLucidPwd] = useState(null)
   const [lucidEdit, setLucidEdit] = useState('')
@@ -376,8 +374,8 @@ export default function Admin() {
       // 未同步：管理员未在 LUCID 点「同步」（排除已终止）
       list = list.filter(c => !c.lucid_rep_accepted && c.status !== 'terminated')
     }
-    // Pending toggle（待办 = 待审证明类上传 + 待回签 + 未同步；可点击明细定位到具体类）
-    if (showPending) {
+    // 待办筛选（待回签 / 待审凭证 / 未同步）
+    if (pendingFilter === 'stamp' || pendingFilter === 'proof' || pendingFilter === 'sync') {
       const PROOF_TYPES = ['bank_proof', 'proof_annual_fee', 'proof_prepaid', 'proof_predeclared', 'proof_settlement', 'proof_previous_year', 'payment_proof']
       list = list.filter(c => {
         const hasPendingProof = Object.entries(c._uploads || {}).some(([ft, ups]) => PROOF_TYPES.includes(ft) && (ups || []).some(u => u.status === 'pending'))
@@ -386,7 +384,6 @@ export default function Admin() {
         if (pendingFilter === 'stamp') return needsStamp
         if (pendingFilter === 'proof') return hasPendingProof
         if (pendingFilter === 'sync') return needsSync
-        return hasPendingProof || needsStamp || needsSync
       })
     }
     return list
@@ -402,14 +399,6 @@ export default function Admin() {
       return String(b.created_at || '').localeCompare(String(a.created_at || ''))
     })
   const pendingCount = (Number(stats?.pending_clients) || 0) + infoChangeApps.filter(a => a.status === 'pending').length
-
-  const selectPending = (cat) => {
-    setPendingFilter(cat)
-    setShowPending(true)
-    setPendingBreakdownOpen(false)
-    setPage(1)
-    load(1, false, 1000)
-  }
 
   if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
   if (error === 'login_required') return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-extrabold mb-4">需要管理员登录</h1></div>
@@ -512,45 +501,22 @@ export default function Admin() {
           <div className="flex flex-wrap gap-3 justify-between items-center">
             <div className="flex gap-2 flex-1">
               <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ ...cl, id: cl.contract_id||cl.id, client_id: cl.id, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, lucid_confirmed: !!cl.lucid_confirmed, lucid_rep_accepted: !!cl.lucid_rep_accepted, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0 }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap flex-1">
-                <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, false, v ? 1000 : 10) }}
+                <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setPendingFilter(''); setPage(1); load(1, false, v ? 1000 : 10) }}
                   className="border border-gray-300 rounded-md px-2 py-1.5 text-xs bg-white focus:outline-none focus:border-primary">
                   <option value="">全部状态</option>
                   {FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label} ({stats?.[o.countKey] || 0})</option>)}
                 </select>
-                <div className="relative">
-                  <button type="button" onClick={() => { const next = !showPending; setShowPending(next); setPendingFilter(null); setPage(1); load(1, false, (statusFilter || next) ? 1000 : 10); setPendingBreakdownOpen(v => !v) }}
-                    className={`px-2 py-1.5 rounded-md text-xs font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                    🔔 待办 {pendingCount > 0 && `(${pendingCount})`} <span className="text-[10px]">{pendingBreakdownOpen ? '▲' : '▼'}</span>
-                  </button>
-                  {pendingBreakdownOpen && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setPendingBreakdownOpen(false)} />
-                      <div className="absolute left-0 top-full mt-2 z-20 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
-                        <button type="button" onClick={() => selectPending(null)} className={`w-full flex items-center justify-between px-3 py-1.5 hover:bg-gray-50 ${pendingFilter === null ? 'bg-gray-50' : ''}`}>
-                          <span className="text-xs text-gray-500">全部待办</span>
-                          <span className="text-xs text-red-600">{pendingCount}</span>
-                        </button>
-                        {[
-                          { l: '待回签', v: Number(stats?.signed_waiting_clients) || 0, k: 'stamp' },
-                          { l: '待审凭证', v: Number(stats?.proof_pending_clients) || 0, k: 'proof' },
-                          { l: '未同步', v: Number(stats?.not_synced_clients) || 0, k: 'sync' },
-                        ].map((r) => (
-                          <button key={r.k} type="button" onClick={() => selectPending(r.k)} className={`w-full flex items-center justify-between px-3 py-1.5 hover:bg-gray-50 ${pendingFilter === r.k ? 'bg-gray-50' : ''}`}>
-                            <span className="text-xs text-gray-500">{r.l}</span>
-                            <span className={`text-xs ${r.v > 0 ? 'text-red-600' : 'text-gray-400'}`}>{r.v}</span>
-                          </button>
-                        ))}
-                        <button type="button" onClick={() => { setPendingBreakdownOpen(false); setInfoChangeOpen(true) }} className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-gray-50">
-                          <span className="text-xs text-gray-500">信息修改申请</span>
-                          <span className="text-xs text-red-600">{infoChangeApps.filter(a => a.status === 'pending').length}</span>
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
+                <select value={pendingFilter} onChange={e => { const v = e.target.value; setPendingFilter(v); setStatusFilter(''); setPage(1); if (v === 'info_change') setInfoChangeOpen(true); load(1, false, (v && v !== 'info_change') ? 1000 : 10) }}
+                  className="border border-gray-300 rounded-md px-2 py-1.5 text-xs bg-white focus:outline-none focus:border-primary">
+                  <option value="">🔔 待办 ({pendingCount})</option>
+                  <option value="stamp">待回签 ({Number(stats?.signed_waiting_clients) || 0})</option>
+                  <option value="proof">待审凭证 ({Number(stats?.proof_pending_clients) || 0})</option>
+                  <option value="sync">未同步 ({Number(stats?.not_synced_clients) || 0})</option>
+                  <option value="info_change">信息修改申请 ({infoChangeApps.filter(a => a.status === 'pending').length})</option>
+                </select>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="公司 / 手机号 / 联系人 / 法人 / 合同号后4位" className="border border-gray-300 rounded-md px-2 py-1.5 text-xs flex-1 min-w-0 focus:outline-none focus:border-primary" />
                 <button type="submit" className="px-3 py-1.5 bg-primary text-white rounded-md text-xs font-medium">🔍 搜索</button>
-                <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); load(1, false); setPage(1) }} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-500">重置</button>
+                <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setPendingFilter(''); load(1, false); setPage(1) }} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-500">重置</button>
               </form>
             </div>
           </div>
