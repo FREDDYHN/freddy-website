@@ -85,7 +85,6 @@ export default function Admin() {
   const [infoModal, setInfoModal] = useState(null)
   const [showPending, setShowPending] = useState(false)
   const [statusFilter, setStatusFilter] = useState('')
-  const [showAll, setShowAll] = useState(false)
   const [rateInfo, setRateInfo] = useState({ rate: 8.10, updated_at: null })
   const [bankInfo, setBankInfo] = useState(null)
   const [feeDetailHtml, setFeeDetailHtml] = useState(null)
@@ -638,7 +637,7 @@ export default function Admin() {
           <div className="flex flex-wrap gap-3 justify-between items-center">
             <div className="flex gap-2">
               <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ ...cl, id: cl.contract_id||cl.id, client_id: cl.id, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, lucid_confirmed: !!cl.lucid_confirmed, lucid_rep_accepted: !!cl.lucid_rep_accepted, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0 }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
-                <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, showAll, v ? 1000 : 10) }}
+                <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, false, v ? 1000 : 10) }}
                   className="border border-gray-300 rounded-md px-2 py-1.5 text-xs bg-white focus:outline-none focus:border-primary">
                   <option value="">全部状态</option>
                   {FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label} ({stats?.[o.countKey] || 0})</option>)}
@@ -651,12 +650,9 @@ export default function Admin() {
                   className="px-2 py-1.5 rounded-md text-xs font-medium border border-green-300 text-green-700 hover:bg-green-50">
                   📧 提醒完成4点
                 </button>
-                <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer select-none">
-                  <input type="checkbox" checked={showAll} onChange={e => { setShowAll(e.target.checked); load(1, e.target.checked) }} className="w-3.5 h-3.5" /> 含待验证
-                </label>
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="公司 / 手机号 / 联系人 / 法人 / 合同号后4位" className="border border-gray-300 rounded-md px-2 py-1.5 text-xs w-56 focus:outline-none focus:border-primary" />
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="公司 / 手机号 / 联系人 / 法人 / 合同号后4位" className="border border-gray-300 rounded-md px-2 py-1.5 text-xs w-80 focus:outline-none focus:border-primary" />
                 <button type="submit" className="px-3 py-1.5 bg-primary text-white rounded-md text-xs font-medium">🔍 搜索</button>
-                <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); setShowAll(false); load(1, false); setPage(1) }} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-500">重置</button>
+                <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); load(1, false); setPage(1) }} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-500">重置</button>
               </form>
             </div>
           </div>
