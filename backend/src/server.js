@@ -186,8 +186,8 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
           COALESCE(SUM(CASE WHEN p.payment_type = 'contract_fee' THEN p.amount_cny ELSE 0 END), 0) as ar_cny,
           COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_prepaid' THEN COALESCE(NULLIF(p.amount_cny,0), p.amount_eur * ?) ELSE 0 END), 0) as pre_cny,
           COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_settlement' THEN COALESCE(NULLIF(p.amount_cny,0), p.amount_eur * ?) ELSE 0 END), 0) as settle_cny
-        FROM payments p JOIN contracts c ON p.contract_id = c.id
-        WHERE p.status = 'pending' AND c.status != 'pending_verification'
+        FROM payments p JOIN contracts c ON p.contract_id = c.id JOIN clients cl ON cl.id = c.client_id
+        WHERE p.status = 'pending' AND c.status != 'pending_verification' AND cl.deleted_at IS NULL
           AND c.id IN (SELECT DISTINCT contract_id FROM uploads WHERE file_type = 'signed_contract' AND status != 'rejected')`, rate, rate),
       // 授权代表年费：amount_cny 已在签约时按锁定汇率写好，直接求和
       db.get("SELECT COALESCE(SUM(amount_cny),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'contract_fee' AND status = 'paid'"),
