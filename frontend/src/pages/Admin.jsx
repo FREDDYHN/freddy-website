@@ -179,13 +179,6 @@ export default function Admin() {
     } catch (e) { alert('❌ 下载失败: ' + e.message) }
   }
 
-  const toggleSpam = async (contractId) => {
-    try {
-      const r = await fetch(`/api/admin/contracts/${contractId}/spam`, { method: 'POST', headers: ah() })
-      if (r.ok) { const d = await r.json(); setContracts(prev => prev.map(c => c.id === contractId ? { ...c, is_spam: d.is_spam ? 1 : 0 } : c)) }
-    } catch {}
-  }
-
   const toggleLucidAnnehmen = async (contractId, current) => {
     const action = current ? '取消「LIVANTO 已接受」标记' : '标记为「LIVANTO 已在 LUCID 中接受」'
     if (!confirm(`确认${action}？`)) return
@@ -195,15 +188,6 @@ export default function Admin() {
       if (r.ok) setContracts(prev => prev.map(c => c.id === contractId ? { ...c, lucid_rep_accepted: d.lucid_rep_accepted ? 1 : 0 } : c))
       else alert('❌ ' + (d.error || '操作失败'))
     } catch (e) { alert('❌ ' + e.message) }
-  }
-
-  const deleteContract = async (contractId) => {
-    if (!confirm('⚠️ 确认删除此合同？合同相关的所有支付、上传、通知记录将一并删除。此操作不可撤销！')) return
-    try {
-      const r = await fetch(`/api/admin/contracts/${contractId}`, { method: 'DELETE', headers: ah() })
-      if (r.ok) { setContracts(prev => prev.filter(c => c.id !== contractId)); reload() }
-      else { const d = await r.json(); alert('删除失败: ' + d.error) }
-    } catch { alert('请求失败') }
   }
 
   const deleteClient = async (clientId) => {
@@ -734,15 +718,6 @@ export default function Admin() {
                           </button>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                          <button onClick={() => toggleSpam(c.id)}
-                            className={`text-[10px] px-1.5 py-0.5 rounded ${c.is_spam ? 'bg-red-100 text-red-600' : 'text-gray-400 hover:text-red-500'}`}
-                            title={c.is_spam ? '取消标记' : '标记为垃圾'}>
-                            {c.is_spam ? '🚫 已标记' : '🏴 垃圾'}
-                          </button>
-                          <button onClick={() => deleteContract(c.id)}
-                            className="text-[10px] text-gray-300 hover:text-red-500" title="删除合同">
-                            🗑 删除
-                          </button>
                           <button onClick={() => deleteClient(c.client_id)}
                             className="text-[10px] text-gray-300 hover:text-red-500" title="删除账户（合同/联系方式/登录账号，邮箱电话释放）">
                             🗑 删账户
