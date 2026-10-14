@@ -203,7 +203,7 @@ export default function Admin() {
     } catch (e) { alert('❌ ' + e.message) }
   }
 
-  const load = async (p = 1, includeAll = false, perPage = 50) => {
+  const load = async (p = 1, includeAll = false, perPage = 20) => {
     setLoading(true); setError(null)
     try {
       const incParam = includeAll ? '&include=all' : ''
@@ -533,13 +533,12 @@ export default function Admin() {
       // 未同步：管理员未在 LUCID 点「同步」（排除已终止）
       list = list.filter(c => !c.lucid_rep_accepted && c.status !== 'terminated')
     }
-    // Pending toggle
+    // Pending toggle（待办 = 需管理员处理的客户端待审上传 + 未同步）
     if (showPending) {
       list = list.filter(c => {
-        const hasUploads = c._uploads && Object.keys(c._uploads).some(k => (c._uploads[k] || []).length > 0)
-        return c.status === 'pending_payment' ||
-          hasUploads ||
-          (c.signed_at && !c._uploads?.admin_stamped?.length)
+        const hasPendingUpload = Object.entries(c._uploads || {}).some(([ft, ups]) => ft !== 'admin_stamped' && (ups || []).some(u => u.status === 'pending'))
+        const needsSync = !c.lucid_rep_accepted && c.status !== 'terminated'
+        return hasPendingUpload || needsSync
       })
     }
     // Missing tax number toggle (公司缺 uscc / 个人缺 id_number)
@@ -552,12 +551,12 @@ export default function Admin() {
   const infoChangeApps = applications.filter(a => a.type === 'info_change')
   const pendingCount = (() => {
     const list = tab === 'packaging' ? pkgContracts : tab === 'weee' ? weeeContracts : batteryContracts
-    return list.filter(c => {
-      const hasUploads = c._uploads && Object.keys(c._uploads).some(k => (c._uploads[k] || []).length > 0)
-      return c.status === 'pending_payment' ||
-        hasUploads ||
-        (c.signed_at && !c._uploads?.admin_stamped?.length)
+    const c = list.filter(c => {
+      const hasPendingUpload = Object.entries(c._uploads || {}).some(([ft, ups]) => ft !== 'admin_stamped' && (ups || []).some(u => u.status === 'pending'))
+      const needsSync = !c.lucid_rep_accepted && c.status !== 'terminated'
+      return hasPendingUpload || needsSync
     }).length
+    return c + infoChangeApps.filter(a => a.status === 'pending').length
   })()
 
   if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
@@ -664,7 +663,7 @@ export default function Admin() {
           <div className="flex flex-wrap gap-3 justify-between items-center">
             <div className="flex gap-2">
               <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ ...cl, id: cl.contract_id||cl.id, client_id: cl.id, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, lucid_confirmed: !!cl.lucid_confirmed, lucid_rep_accepted: !!cl.lucid_rep_accepted, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0 }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
-                <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, showAll, v ? 1000 : 50) }}
+                <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, showAll, v ? 1000 : 20) }}
                   className="border border-gray-300 rounded-md px-2 py-1.5 text-xs bg-white focus:outline-none focus:border-primary">
                   <option value="">全部状态</option>
                   {FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label} ({stats?.[o.countKey] || 0})</option>)}
