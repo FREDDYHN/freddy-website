@@ -286,12 +286,12 @@ export default function BillingCard({ contracts, packaging, payments, uploads, o
                       <span className="text-xs text-gray-600 font-semibold md:hidden">年终结算</span>
                       {settlementPayment?.status === 'paid' && settlementPayment.amount_eur > 0 ? (
                         <>
-                        <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">€{settlementPayment.amount_eur} ✓</span>
+                        <span className="text-xs text-green-600 font-semibold h-[18px] flex items-center">€{Number(settlementPayment.amount_eur).toFixed(2)} ✓</span>
                         <span className="text-xs text-gray-350 mt-0.5">≈ ¥{feeCny(settlementPayment, settlementPayment.amount_eur, rate)}</span>
                         </>
                       ) : settlementPayment && settlementPayment.amount_eur > 0 ? (
                         <>
-                        <span className="text-xs text-yellow-600 font-semibold h-[18px] flex items-center">€{settlementPayment.amount_eur} 待缴</span>
+                        <span className="text-xs text-yellow-600 font-semibold h-[18px] flex items-center">€{Number(settlementPayment.amount_eur).toFixed(2)} 待缴</span>
                         <span className="text-xs text-gray-350 mt-0.5">≈ ¥{feeCny(settlementPayment, settlementPayment.amount_eur, rate)}</span>
                         </>
                       ) : pkg.some(p => p.submitted_at) ? (

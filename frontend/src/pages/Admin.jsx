@@ -832,7 +832,7 @@ export default function Admin() {
                     <td className="p-3 align-top">
                       {c.pre_declared_status === 'approved' ? (
                         <>
-                          <span className="text-xs text-green-600 font-medium">{c.prepaid_amount > 0 ? `€${c.prepaid_amount} 已预申报 ✓` : '已预申报 ✓'}</span>
+                          <span className="text-xs text-green-600 font-medium">{c.prepaid_amount > 0 ? `€${Number(c.prepaid_amount).toFixed(2)} 已预申报 ✓` : '已预申报 ✓'}</span>
                           {c.prepaid_amount > 0 && <div className="text-[10px] text-gray-400 mt-0.5">≈ ¥{feeCnyDisplay(c.prepaid_cny, c.prepaid_rate, c.prepaid_amount, rateInfo.rate)}</div>}
                           {uploadLinks(c, 'proof_predeclared')}
                         </>
@@ -847,9 +847,9 @@ export default function Admin() {
                       ) : (
                         <>
                           {c.prepaid_status === 'paid' ? (
-                            <span className="text-xs text-green-600 font-medium">€{c.prepaid_amount} ✓</span>
+                            <span className="text-xs text-green-600 font-medium">€{Number(c.prepaid_amount).toFixed(2)} ✓</span>
                           ) : c.prepaid_amount ? (
-                            <span className="text-xs text-yellow-600">€{c.prepaid_amount} 待付</span>
+                            <span className="text-xs text-yellow-600">€{Number(c.prepaid_amount).toFixed(2)} 待付</span>
                           ) : (
                             <button onClick={() => { setFeeModal({ contractId: c.id, type: 'prepaid' }); setFeeAmount('') }}
                               className="text-xs text-primary hover:underline">💰 设置费用</button>
@@ -864,9 +864,9 @@ export default function Admin() {
                     </td>
                     <td className="p-3 align-top">
                       {c.settlement_status === 'paid' ? (
-                        <span className="text-xs text-green-600 font-medium">€{c.settlement_amount} ✓</span>
+                        <span className="text-xs text-green-600 font-medium">€{Number(c.settlement_amount).toFixed(2)} ✓</span>
                       ) : c.settlement_amount ? (
-                        <span className="text-xs text-yellow-600">€{c.settlement_amount} 待付</span>
+                        <span className="text-xs text-yellow-600">€{Number(c.settlement_amount).toFixed(2)} 待付</span>
                       ) : settlementOpen ? (
                         <button onClick={() => { setFeeModal({ contractId: c.id, type: 'settlement' }); setFeeAmount('') }}
                           className="text-xs text-primary hover:underline">📋 设置结算</button>
