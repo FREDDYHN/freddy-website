@@ -94,6 +94,15 @@ router.post('/change-request', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: '增值税号格式不正确（4-20位字母或数字）' })
     }
 
+    // 已有待审核的信息修改申请时，不允许再次提交（防重复）
+    const existingPending = await db.get(
+      "SELECT id FROM applications WHERE client_id = ? AND type = 'info_change' AND status = 'pending'",
+      req.user.client_id
+    )
+    if (existingPending) {
+      return res.status(409).json({ error: '您已有待审核的信息修改申请，请等待管理员处理后再提交' })
+    }
+
     const result = await db.run(
       "INSERT INTO applications (client_id, type, data_json, status) VALUES (?, 'info_change', ?, 'pending')",
       req.user.client_id, JSON.stringify({ changes: valid })
