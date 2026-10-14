@@ -11,9 +11,9 @@ const STATUS_MAP = { active: '已激活', pending_payment: '待付款', pending_
 const STATUS_CLS = { active: 'bg-green-100 text-green-700', pending_payment: 'bg-yellow-100 text-yellow-700', pending_verification: 'bg-gray-100 text-gray-500', signed: 'bg-blue-100 text-blue-700', expired: 'bg-red-100 text-red-700', terminated: 'bg-gray-100 text-gray-500' }
 // 待办筛选（替换原状态下拉）：待付款/已签署/未同步 —— 三个待办队列，非互斥状态
 const FILTER_OPTIONS = [
-  { value: 'unpaid', label: '待付款' },
-  { value: 'signed_waiting', label: '已签署' },
-  { value: 'not_synced', label: '未同步' },
+  { value: 'unpaid', label: '待付款', countKey: 'unpaid_clients' },
+  { value: 'signed_waiting', label: '已签署', countKey: 'signed_waiting_clients' },
+  { value: 'not_synced', label: '未同步', countKey: 'not_synced_clients' },
 ]
 
 /** 当前自然季度的 [起, 止] 日期（'YYYY-MM-DD'） */
@@ -666,7 +666,7 @@ export default function Admin() {
                 <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, showAll, v ? 1000 : 50) }}
                   className="border border-gray-300 rounded-md px-2 py-1.5 text-xs bg-white focus:outline-none focus:border-primary">
                   <option value="">全部状态</option>
-                  {FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  {FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label} ({stats?.[o.countKey] || 0})</option>)}
                 </select>
                 <button type="button" onClick={() => setShowPending(!showPending)}
                   className={`px-2 py-1.5 rounded-md text-xs font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>

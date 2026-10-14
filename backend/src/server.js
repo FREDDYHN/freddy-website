@@ -176,7 +176,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
   try {
     const db = await getDb()
     const rate = await getRate()
-    const [clients, contracts, pending, arFee, predeclaredEur, settlementEur] = await Promise.all([
+    const [clients, contracts, pending, arFee, predeclaredEur, settlementEur, unpaidCnt, signedWaitingCnt, notSyncedCnt] = await Promise.all([
       db.get('SELECT COUNT(*) as cnt FROM clients WHERE deleted_at IS NULL'),
       db.get("SELECT COUNT(*) as cnt FROM contracts WHERE lucid_rep_accepted = 1"),
       db.get(`SELECT
@@ -194,6 +194,18 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       // 预申报费 / 年终结算费：优先锁定 amount_cny；历史行 amount_cny 未填则回退 amount_eur × 当前汇率
       db.get("SELECT COALESCE(SUM(COALESCE(NULLIF(amount_cny,0), amount_eur * ?)),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'paid'", rate),
       db.get("SELECT COALESCE(SUM(COALESCE(NULLIF(amount_cny,0), amount_eur * ?)),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'recycling_settlement' AND status = 'paid'", rate),
+      // 三个待办筛选的客户数（与下拉口径一致）
+      db.get(`SELECT COUNT(DISTINCT c.id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id
+        WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification'
+          AND c.id IN (SELECT contract_id FROM uploads WHERE file_type = 'signed_contract' AND status != 'rejected')
+          AND (c.status IN ('pending_payment','signed') OR c.id IN (SELECT contract_id FROM payments WHERE payment_type = 'recycling_prepaid' AND status = 'pending'))`),
+      db.get(`SELECT COUNT(DISTINCT c.id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id
+        WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification'
+          AND c.id IN (SELECT contract_id FROM uploads WHERE file_type = 'signed_contract' AND status != 'rejected')
+          AND c.id NOT IN (SELECT contract_id FROM uploads WHERE file_type = 'admin_stamped')`),
+      db.get(`SELECT COUNT(DISTINCT c.id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id
+        WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification' AND c.status != 'terminated'
+          AND c.lucid_rep_accepted = 0`),
     ])
     res.json({
       total_clients: clients.cnt, lucid_synced: contracts.cnt,
@@ -204,6 +216,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       ar_fee_cny: arFee.total, ar_fee_clients: arFee.clients,
       predeclared_fee_cny: Math.round(predeclaredEur.total * 100) / 100, predeclared_fee_clients: predeclaredEur.clients,
       settlement_fee_cny: Math.round(settlementEur.total * 100) / 100, settlement_fee_clients: settlementEur.clients,
+      unpaid_clients: unpaidCnt.cnt, signed_waiting_clients: signedWaitingCnt.cnt, not_synced_clients: notSyncedCnt.cnt,
     })
   } catch (e) {
     console.error('[server] admin stats error:', e)
