@@ -38,6 +38,7 @@ export default function Admin() {
   const [search, setSearch] = useState('')
   const [infoModal, setInfoModal] = useState(null)
   const [showPending, setShowPending] = useState(false)
+  const [pendingFilter, setPendingFilter] = useState(null)  // null=全部待办 | stamp | proof | sync
   const [statusFilter, setStatusFilter] = useState('')
   const [rateInfo, setRateInfo] = useState({ rate: 8.10, updated_at: null })
   const [bankInfo, setBankInfo] = useState(null)
@@ -375,13 +376,16 @@ export default function Admin() {
       // 未同步：管理员未在 LUCID 点「同步」（排除已终止）
       list = list.filter(c => !c.lucid_rep_accepted && c.status !== 'terminated')
     }
-    // Pending toggle（待办 = 待审证明类上传 + 待回签 + 未同步）
+    // Pending toggle（待办 = 待审证明类上传 + 待回签 + 未同步；可点击明细定位到具体类）
     if (showPending) {
       const PROOF_TYPES = ['bank_proof', 'proof_annual_fee', 'proof_prepaid', 'proof_predeclared', 'proof_settlement', 'proof_previous_year', 'payment_proof']
       list = list.filter(c => {
         const hasPendingProof = Object.entries(c._uploads || {}).some(([ft, ups]) => PROOF_TYPES.includes(ft) && (ups || []).some(u => u.status === 'pending'))
         const needsStamp = (c._uploads?.signed_contract || []).some(u => u.status !== 'rejected') && !(c._uploads?.admin_stamped || []).length
         const needsSync = !c.lucid_rep_accepted && c.status !== 'terminated'
+        if (pendingFilter === 'stamp') return needsStamp
+        if (pendingFilter === 'proof') return hasPendingProof
+        if (pendingFilter === 'sync') return needsSync
         return hasPendingProof || needsStamp || needsSync
       })
     }
@@ -398,6 +402,14 @@ export default function Admin() {
       return String(b.created_at || '').localeCompare(String(a.created_at || ''))
     })
   const pendingCount = (Number(stats?.pending_clients) || 0) + infoChangeApps.filter(a => a.status === 'pending').length
+
+  const selectPending = (cat) => {
+    setPendingFilter(cat)
+    setShowPending(true)
+    setPendingBreakdownOpen(false)
+    setPage(1)
+    load(1, false, 1000)
+  }
 
   if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
   if (error === 'login_required') return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-extrabold mb-4">需要管理员登录</h1></div>
@@ -506,7 +518,7 @@ export default function Admin() {
                   {FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label} ({stats?.[o.countKey] || 0})</option>)}
                 </select>
                 <div className="relative">
-                  <button type="button" onClick={() => { const next = !showPending; setShowPending(next); setPage(1); load(1, false, (statusFilter || next) ? 1000 : 10); setPendingBreakdownOpen(v => !v) }}
+                  <button type="button" onClick={() => { const next = !showPending; setShowPending(next); setPendingFilter(null); setPage(1); load(1, false, (statusFilter || next) ? 1000 : 10); setPendingBreakdownOpen(v => !v) }}
                     className={`px-2 py-1.5 rounded-md text-xs font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                     🔔 待办 {pendingCount > 0 && `(${pendingCount})`} <span className="text-[10px]">{pendingBreakdownOpen ? '▲' : '▼'}</span>
                   </button>
@@ -514,17 +526,24 @@ export default function Admin() {
                     <>
                       <div className="fixed inset-0 z-10" onClick={() => setPendingBreakdownOpen(false)} />
                       <div className="absolute left-0 top-full mt-2 z-20 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+                        <button type="button" onClick={() => selectPending(null)} className={`w-full flex items-center justify-between px-3 py-1.5 hover:bg-gray-50 ${pendingFilter === null ? 'bg-gray-50' : ''}`}>
+                          <span className="text-xs text-gray-500">全部待办</span>
+                          <span className="text-xs text-red-600">{pendingCount}</span>
+                        </button>
                         {[
-                          { l: '待回签', v: Number(stats?.signed_waiting_clients) || 0 },
-                          { l: '待审凭证', v: Number(stats?.proof_pending_clients) || 0 },
-                          { l: '未同步', v: Number(stats?.not_synced_clients) || 0 },
-                          { l: '信息修改申请', v: infoChangeApps.filter(a => a.status === 'pending').length },
-                        ].map((r, i) => (
-                          <div key={i} className="flex items-center justify-between px-3 py-1.5">
+                          { l: '待回签', v: Number(stats?.signed_waiting_clients) || 0, k: 'stamp' },
+                          { l: '待审凭证', v: Number(stats?.proof_pending_clients) || 0, k: 'proof' },
+                          { l: '未同步', v: Number(stats?.not_synced_clients) || 0, k: 'sync' },
+                        ].map((r) => (
+                          <button key={r.k} type="button" onClick={() => selectPending(r.k)} className={`w-full flex items-center justify-between px-3 py-1.5 hover:bg-gray-50 ${pendingFilter === r.k ? 'bg-gray-50' : ''}`}>
                             <span className="text-xs text-gray-500">{r.l}</span>
                             <span className={`text-xs ${r.v > 0 ? 'text-red-600' : 'text-gray-400'}`}>{r.v}</span>
-                          </div>
+                          </button>
                         ))}
+                        <button type="button" onClick={() => { setPendingBreakdownOpen(false); setInfoChangeOpen(true) }} className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-gray-50">
+                          <span className="text-xs text-gray-500">信息修改申请</span>
+                          <span className="text-xs text-red-600">{infoChangeApps.filter(a => a.status === 'pending').length}</span>
+                        </button>
                       </div>
                     </>
                   )}
