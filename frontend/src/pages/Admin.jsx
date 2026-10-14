@@ -84,7 +84,6 @@ export default function Admin() {
   const [search, setSearch] = useState('')
   const [infoModal, setInfoModal] = useState(null)
   const [showPending, setShowPending] = useState(false)
-  const [showMissingTax, setShowMissingTax] = useState(false)
   const [statusFilter, setStatusFilter] = useState('')
   const [showAll, setShowAll] = useState(false)
   const [rateInfo, setRateInfo] = useState({ rate: 8.10, updated_at: null })
@@ -171,26 +170,6 @@ export default function Admin() {
         setContracts(prev => prev.map(c => c.client_id === cid ? { ...c, entity_type: d.entity_type, uscc: d.uscc, id_number: d.id_number } : c))
       } else setTaxSaveMsg('❌ ' + (d.error || '保存失败'))
     } catch (e) { setTaxSaveMsg('❌ ' + e.message) }
-  }
-
-  const remindMissingTax = async () => {
-    if (!window.confirm('将给所有缺失税号的客户发送站内通知 + 邮件提醒，确定继续？')) return
-    try {
-      const r = await fetch('/api/admin/remind-missing-tax', { method: 'POST', headers: ah() })
-      const d = await r.json()
-      if (r.ok) alert(`✅ 已提醒 ${d.reminded}/${d.total} 位客户`)
-      else alert('❌ ' + (d.error || '操作失败'))
-    } catch (e) { alert('❌ ' + e.message) }
-  }
-
-  const remindMissingLucid = async () => {
-    if (!window.confirm('将给所有缺失 LUCID 注册号的客户发送站内通知 + 邮件提醒，确定继续？')) return
-    try {
-      const r = await fetch('/api/admin/remind-missing-lucid', { method: 'POST', headers: ah() })
-      const d = await r.json()
-      if (r.ok) alert(`✅ 已提醒 ${d.reminded}/${d.total} 位客户`)
-      else alert('❌ ' + (d.error || '操作失败'))
-    } catch (e) { alert('❌ ' + e.message) }
   }
 
   const remindLucidAcceptance = async () => {
@@ -541,10 +520,6 @@ export default function Admin() {
         return hasPendingUpload || needsSync
       })
     }
-    // Missing tax number toggle (公司缺 uscc / 个人缺 id_number)
-    if (showMissingTax) {
-      list = list.filter(c => (c.entity_type === 'individual' ? !c.id_number : !c.uscc))
-    }
     return list
   })()
   const appList = applications.filter(a => a.type === tab)
@@ -672,18 +647,6 @@ export default function Admin() {
                   className={`px-2 py-1.5 rounded-md text-xs font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                   🔔 待办 {pendingCount > 0 && `(${pendingCount})`}
                 </button>
-                <button type="button" onClick={() => setShowMissingTax(!showMissingTax)}
-                  className={`px-2 py-1.5 rounded-md text-xs font-medium ${showMissingTax ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                  ⚠️ 缺失税号
-                </button>
-                <button type="button" onClick={remindMissingTax}
-                  className="px-2 py-1.5 rounded-md text-xs font-medium border border-amber-300 text-amber-700 hover:bg-amber-50">
-                  📧 提醒补税号
-                </button>
-                <button type="button" onClick={remindMissingLucid}
-                  className="px-2 py-1.5 rounded-md text-xs font-medium border border-blue-300 text-blue-700 hover:bg-blue-50">
-                  📧 提醒补LUCID号
-                </button>
                 <button type="button" onClick={remindLucidAcceptance}
                   className="px-2 py-1.5 rounded-md text-xs font-medium border border-green-300 text-green-700 hover:bg-green-50">
                   📧 提醒完成4点
@@ -693,7 +656,7 @@ export default function Admin() {
                 </label>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="公司 / 手机号 / 联系人 / 法人 / 合同号后4位" className="border border-gray-300 rounded-md px-2 py-1.5 text-xs w-56 focus:outline-none focus:border-primary" />
                 <button type="submit" className="px-3 py-1.5 bg-primary text-white rounded-md text-xs font-medium">🔍 搜索</button>
-                <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); setShowMissingTax(false); setShowAll(false); load(1, false); setPage(1) }} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-500">重置</button>
+                <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setShowPending(false); setShowAll(false); load(1, false); setPage(1) }} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-500">重置</button>
               </form>
             </div>
           </div>
