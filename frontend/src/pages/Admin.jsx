@@ -9,11 +9,10 @@ const TABS = [
 
 const STATUS_MAP = { active: '已激活', pending_payment: '待付款', pending_verification: '待验证', signed: '已签署', expired: '已过期', terminated: '已终止' }
 const STATUS_CLS = { active: 'bg-green-100 text-green-700', pending_payment: 'bg-yellow-100 text-yellow-700', pending_verification: 'bg-gray-100 text-gray-500', signed: 'bg-blue-100 text-blue-700', expired: 'bg-red-100 text-red-700', terminated: 'bg-gray-100 text-gray-500' }
-// 待办筛选（替换原状态下拉）：待付款/已签署/未同步 —— 三个待办队列，非互斥状态
+// 状态下拉：待付款/已签署
 const FILTER_OPTIONS = [
   { value: 'unpaid', label: '待付款', countKey: 'unpaid_clients' },
   { value: 'signed_waiting', label: '已签署', countKey: 'signed_waiting_clients' },
-  { value: 'not_synced', label: '未同步', countKey: 'not_synced_clients' },
 ]
 
 /** 回收费人民币展示：优先用锁定 amount_cny，否则用锁定汇率/实时汇率折算（约值取整） */
@@ -376,9 +375,6 @@ export default function Admin() {
         const hasStamped = (c._uploads?.admin_stamped || []).length > 0
         return hasSigned && !hasStamped
       })
-    } else if (statusFilter === 'not_synced') {
-      // 未同步：管理员未在 LUCID 点「同步」（排除已终止）
-      list = list.filter(c => !c.lucid_rep_accepted && c.status !== 'terminated')
     }
     // 待办筛选（待回签 / 待审凭证 / 未同步）
     if (pendingFilter === 'stamp' || pendingFilter === 'proof' || pendingFilter === 'sync') {
