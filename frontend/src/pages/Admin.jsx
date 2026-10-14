@@ -529,8 +529,8 @@ export default function Admin() {
         return hasSigned && !hasStamped
       })
     } else if (statusFilter === 'not_synced') {
-      // 未同步：管理员未在 LUCID 点「同步」
-      list = list.filter(c => !c.lucid_rep_accepted)
+      // 未同步：管理员未在 LUCID 点「同步」（排除已终止）
+      list = list.filter(c => !c.lucid_rep_accepted && c.status !== 'terminated')
     }
     // Pending toggle
     if (showPending) {
