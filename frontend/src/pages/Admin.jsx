@@ -95,6 +95,7 @@ export default function Admin() {
   const [rateSubmitting, setRateSubmitting] = useState(false)
   const [revenueOpen, setRevenueOpen] = useState(false)
   const [pendingOpen, setPendingOpen] = useState(false)
+  const [infoChangeOpen, setInfoChangeOpen] = useState(false)
   const [lucidPwd, setLucidPwd] = useState(null)
   const [lucidEdit, setLucidEdit] = useState('')
   const [lucidSaveMsg, setLucidSaveMsg] = useState('')
@@ -983,7 +984,11 @@ export default function Admin() {
       {/* Info Change Applications */}
       {infoChangeApps.length > 0 && (
         <div className="bg-white border border-gray-100 rounded-lg overflow-hidden mb-6">
-          <div className="p-4 border-b border-gray-100"><h2 className="font-bold text-sm text-gray-700">📝 信息修改申请</h2></div>
+          <button onClick={() => setInfoChangeOpen(v => !v)} className="w-full p-4 border-b border-gray-100 flex items-center justify-between hover:bg-gray-50">
+            <h2 className="font-bold text-sm text-gray-700">📝 信息修改申请 ({infoChangeApps.length})</h2>
+            <span className="text-xs text-gray-400">{infoChangeOpen ? '▲ 收起' : '▼ 展开'}</span>
+          </button>
+          {infoChangeOpen && (
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left"><tr><th className="p-3">ID</th><th className="p-3">客户</th><th className="p-3">修改内容</th><th className="p-3">状态</th><th className="p-3">日期</th><th className="p-3">操作</th></tr></thead>
             <tbody>
@@ -1008,6 +1013,7 @@ export default function Admin() {
               ))}
             </tbody>
           </table>
+          )}
         </div>
       )}
 
