@@ -891,21 +891,6 @@ app.get('/api/bank-info', (_req, res) => {
   res.json(getBankInfo())
 })
 
-// ── Admin: Toggle spam flag on contract ──
-app.post('/api/admin/contracts/:id/spam', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const db = await getDb()
-    const contract = await db.get('SELECT id, is_spam FROM contracts WHERE id = ?', req.params.id)
-    if (!contract) return res.status(404).json({ error: 'Contract not found' })
-    const newVal = contract.is_spam ? 0 : 1
-    await db.run('UPDATE contracts SET is_spam = ? WHERE id = ?', newVal, req.params.id)
-    res.json({ success: true, contract_id: parseInt(req.params.id), is_spam: !!newVal })
-  } catch (e) {
-    console.error('[server] spam toggle error:', e)
-    res.status(500).json({ error: e.message })
-  }
-})
-
 // ── Admin: Toggle LIVANTO LUCID「Annehmen（接受）」状态（手动同步）──
 app.post('/api/admin/contracts/:id/lucid-annehmen', authMiddleware, adminMiddleware, async (req, res) => {
   try {
@@ -920,26 +905,6 @@ app.post('/api/admin/contracts/:id/lucid-annehmen', authMiddleware, adminMiddlew
     res.json({ success: true, contract_id: parseInt(req.params.id), lucid_rep_accepted: !!newVal })
   } catch (e) {
     console.error('[server] lucid-annehmen toggle error:', e)
-    res.status(500).json({ error: e.message })
-  }
-})
-
-// ── Admin: Delete contract ──
-app.delete('/api/admin/contracts/:id', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const db = await getDb()
-    const contract = await db.get('SELECT id FROM contracts WHERE id = ?', req.params.id)
-    if (!contract) return res.status(404).json({ error: 'Contract not found' })
-    await db.run('DELETE FROM payments WHERE contract_id = ?', req.params.id)
-    await db.run('DELETE FROM packaging_data WHERE contract_id = ?', req.params.id)
-    await db.run('DELETE FROM uploads WHERE contract_id = ?', req.params.id)
-    await db.run('DELETE FROM notifications WHERE contract_id = ?', req.params.id)
-    await db.run('DELETE FROM reminders WHERE contract_id = ?', req.params.id)
-    await db.run('DELETE FROM invoices WHERE contract_id = ?', req.params.id)
-    await db.run('DELETE FROM contracts WHERE id = ?', req.params.id)
-    res.json({ success: true, contract_id: parseInt(req.params.id) })
-  } catch (e) {
-    console.error('[server] contract delete error:', e)
     res.status(500).json({ error: e.message })
   }
 })
@@ -974,21 +939,6 @@ app.delete('/api/admin/clients/:id', authMiddleware, adminMiddleware, async (req
     res.json({ success: true, client_id: parseInt(clientId) })
   } catch (e) {
     console.error('[server] client delete error:', e)
-    res.status(500).json({ error: e.message })
-  }
-})
-
-// ── Admin: Toggle spam flag on application ──
-app.post('/api/admin/applications/:id/spam', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const db = await getDb()
-    const app = await db.get('SELECT id, is_spam FROM applications WHERE id = ?', req.params.id)
-    if (!app) return res.status(404).json({ error: 'Application not found' })
-    const newVal = app.is_spam ? 0 : 1
-    await db.run('UPDATE applications SET is_spam = ? WHERE id = ?', newVal, req.params.id)
-    res.json({ success: true, application_id: parseInt(req.params.id), is_spam: !!newVal })
-  } catch (e) {
-    console.error('[server] application spam toggle error:', e)
     res.status(500).json({ error: e.message })
   }
 })
