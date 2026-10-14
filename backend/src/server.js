@@ -176,7 +176,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
   try {
     const db = await getDb()
     const rate = await getRate()
-    const [clients, contracts, pending, arFee, predeclaredEur, settlementEur, unpaidCnt, signedWaitingCnt, notSyncedCnt] = await Promise.all([
+    const [clients, contracts, pending, arFee, predeclaredEur, settlementEur, unpaidCnt, signedWaitingCnt, notSyncedCnt, pendingCnt] = await Promise.all([
       db.get('SELECT COUNT(*) as cnt FROM clients WHERE deleted_at IS NULL'),
       db.get("SELECT COUNT(*) as cnt FROM contracts WHERE lucid_rep_accepted = 1"),
       db.get(`SELECT
@@ -206,6 +206,11 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       db.get(`SELECT COUNT(DISTINCT c.id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id
         WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification' AND c.status != 'terminated'
           AND c.lucid_rep_accepted = 0`),
+      // 待办：待审客户端上传 或 未同步（与「待办」按钮口径一致）
+      db.get(`SELECT COUNT(DISTINCT c.id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id
+        WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification'
+          AND (c.id IN (SELECT contract_id FROM uploads WHERE file_type != 'admin_stamped' AND status = 'pending')
+               OR (c.lucid_rep_accepted = 0 AND c.status != 'terminated'))`),
     ])
     res.json({
       total_clients: clients.cnt, lucid_synced: contracts.cnt,
@@ -217,6 +222,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       predeclared_fee_cny: Math.round(predeclaredEur.total * 100) / 100, predeclared_fee_clients: predeclaredEur.clients,
       settlement_fee_cny: Math.round(settlementEur.total * 100) / 100, settlement_fee_clients: settlementEur.clients,
       unpaid_clients: unpaidCnt.cnt, signed_waiting_clients: signedWaitingCnt.cnt, not_synced_clients: notSyncedCnt.cnt,
+      pending_clients: pendingCnt.cnt,
     })
   } catch (e) {
     console.error('[server] admin stats error:', e)

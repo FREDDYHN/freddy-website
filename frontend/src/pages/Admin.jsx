@@ -521,15 +521,7 @@ export default function Admin() {
       if (pa !== pb) return pa - pb
       return String(b.created_at || '').localeCompare(String(a.created_at || ''))
     })
-  const pendingCount = (() => {
-    const list = tab === 'packaging' ? pkgContracts : tab === 'weee' ? weeeContracts : batteryContracts
-    const c = list.filter(c => {
-      const hasPendingUpload = Object.entries(c._uploads || {}).some(([ft, ups]) => ft !== 'admin_stamped' && (ups || []).some(u => u.status === 'pending'))
-      const needsSync = !c.lucid_rep_accepted && c.status !== 'terminated'
-      return hasPendingUpload || needsSync
-    }).length
-    return c + infoChangeApps.filter(a => a.status === 'pending').length
-  })()
+  const pendingCount = (Number(stats?.pending_clients) || 0) + infoChangeApps.filter(a => a.status === 'pending').length
 
   if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
   if (error === 'login_required') return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-extrabold mb-4">需要管理员登录</h1></div>
@@ -640,7 +632,7 @@ export default function Admin() {
                   <option value="">全部状态</option>
                   {FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label} ({stats?.[o.countKey] || 0})</option>)}
                 </select>
-                <button type="button" onClick={() => setShowPending(!showPending)}
+                <button type="button" onClick={() => { const next = !showPending; setShowPending(next); setPage(1); load(1, false, (statusFilter || next) ? 1000 : 10) }}
                   className={`px-2 py-1.5 rounded-md text-xs font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                   🔔 待办 {pendingCount > 0 && `(${pendingCount})`}
                 </button>
