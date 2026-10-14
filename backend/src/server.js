@@ -187,7 +187,8 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
           COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_prepaid' THEN COALESCE(NULLIF(p.amount_cny,0), p.amount_eur * ?) ELSE 0 END), 0) as pre_cny,
           COALESCE(SUM(CASE WHEN p.payment_type = 'recycling_settlement' THEN COALESCE(NULLIF(p.amount_cny,0), p.amount_eur * ?) ELSE 0 END), 0) as settle_cny
         FROM payments p JOIN contracts c ON p.contract_id = c.id
-        WHERE p.status = 'pending' AND c.status != 'pending_verification'`, rate, rate),
+        WHERE p.status = 'pending' AND c.status != 'pending_verification'
+          AND c.id IN (SELECT DISTINCT contract_id FROM uploads WHERE file_type = 'signed_contract' AND status != 'rejected')`, rate, rate),
       // 授权代表年费：amount_cny 已在签约时按锁定汇率写好，直接求和
       db.get("SELECT COALESCE(SUM(amount_cny),0) as total, COUNT(DISTINCT client_id) as clients FROM payments WHERE payment_type = 'contract_fee' AND status = 'paid'"),
       // 预申报费 / 年终结算费：优先锁定 amount_cny；历史行 amount_cny 未填则回退 amount_eur × 当前汇率
@@ -216,7 +217,7 @@ app.get('/api/admin/contracts', authMiddleware, adminMiddleware, async (req, res
   try {
     const db = await getDb()
     const page = Math.max(1, parseInt(req.query.page) || 1)
-    const perPage = Math.min(100, Math.max(10, parseInt(req.query.perPage) || 50))
+    const perPage = Math.min(1000, Math.max(10, parseInt(req.query.perPage) || 50))
     const offset = (page - 1) * perPage
     const showAll = req.query.include === 'all'
 

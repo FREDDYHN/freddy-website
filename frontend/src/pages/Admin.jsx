@@ -9,6 +9,12 @@ const TABS = [
 
 const STATUS_MAP = { active: '已激活', pending_payment: '待付款', pending_verification: '待验证', signed: '已签署', expired: '已过期', terminated: '已终止' }
 const STATUS_CLS = { active: 'bg-green-100 text-green-700', pending_payment: 'bg-yellow-100 text-yellow-700', pending_verification: 'bg-gray-100 text-gray-500', signed: 'bg-blue-100 text-blue-700', expired: 'bg-red-100 text-red-700', terminated: 'bg-gray-100 text-gray-500' }
+// 待办筛选（替换原状态下拉）：待付款/已签署/未同步 —— 三个待办队列，非互斥状态
+const FILTER_OPTIONS = [
+  { value: 'unpaid', label: '待付款' },
+  { value: 'signed_waiting', label: '已签署' },
+  { value: 'not_synced', label: '未同步' },
+]
 
 /** 当前自然季度的 [起, 止] 日期（'YYYY-MM-DD'） */
 function currentQuarterRange() {
@@ -196,13 +202,13 @@ export default function Admin() {
     } catch (e) { alert('❌ ' + e.message) }
   }
 
-  const load = async (p = 1, includeAll = false) => {
+  const load = async (p = 1, includeAll = false, perPage = 50) => {
     setLoading(true); setError(null)
     try {
       const incParam = includeAll ? '&include=all' : ''
       const [sR, cR] = await Promise.all([
         fetch('/api/admin/stats', { headers: ah() }),
-        fetch(`/api/admin/contracts?page=${p}&perPage=50${incParam}`, { headers: ah() }),
+        fetch(`/api/admin/contracts?page=${p}&perPage=${perPage}${incParam}`, { headers: ah() }),
       ])
       if (!sR.ok) { if (sR.status === 401) { sessionStorage.removeItem('token'); window.dispatchEvent(new Event('auth:expired')); throw new Error('login_required') } throw new Error('Admin required') }
       const [s, c] = await Promise.all([sR.json(), cR.json()])
@@ -508,13 +514,23 @@ export default function Admin() {
   const currentList = (() => {
     let list = tab === 'packaging' ? pkgContracts : tab === 'weee' ? weeeContracts : batteryContracts
     // Status filter (dropdown) — 'signed'/'expired' 不是真实 status，改用 signed_at / end_date 判断
-    if (statusFilter === 'signed') {
-      list = list.filter(c => c.signed_at)
-    } else if (statusFilter === 'expired') {
-      const today = new Date().toISOString().slice(0, 10)
-      list = list.filter(c => c.end_date && String(c.end_date).slice(0, 10) < today)
-    } else if (statusFilter) {
-      list = list.filter(c => c.status === statusFilter)
+    if (statusFilter === 'unpaid') {
+      // 待付款：已上传签章合同 + 有未缴年费(status≠active)或预申报费(prepaid_status=pending)
+      list = list.filter(c => {
+        const hasSigned = (c._uploads?.signed_contract || []).some(u => u.status !== 'rejected')
+        const unpaid = c.status === 'pending_payment' || c.status === 'signed' || c.prepaid_status === 'pending'
+        return hasSigned && unpaid
+      })
+    } else if (statusFilter === 'signed_waiting') {
+      // 已签署：客户上传签章合同 + 管理员未回签(无 admin_stamped)
+      list = list.filter(c => {
+        const hasSigned = (c._uploads?.signed_contract || []).some(u => u.status !== 'rejected')
+        const hasStamped = (c._uploads?.admin_stamped || []).length > 0
+        return hasSigned && !hasStamped
+      })
+    } else if (statusFilter === 'not_synced') {
+      // 未同步：管理员未在 LUCID 点「同步」
+      list = list.filter(c => !c.lucid_rep_accepted)
     }
     // Pending toggle
     if (showPending) {
@@ -559,7 +575,7 @@ export default function Admin() {
   const pendingAr = Number(stats.pending_ar) || 0
   const pendingPre = Number(stats.pending_pre) || 0
   const pendingSettle = Number(stats.pending_settle) || 0
-  const pendingTotal = pendingAr + pendingPre + pendingSettle
+  const pendingTotal = pendingAr + pendingPre
   const pendingArCny = Math.round(Number(stats.pending_ar_cny) || 0)
   const pendingPreCny = Math.round(Number(stats.pending_pre_cny) || 0)
   const pendingSettleCny = Math.round(Number(stats.pending_settle_cny) || 0)
@@ -582,7 +598,7 @@ export default function Admin() {
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setPendingOpen(false)} />
                 <div className="absolute right-0 top-full mt-2 z-20 w-60 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
-                  {[{ l: '授权代表年费', v: pendingAr, a: pendingArCny }, { l: '预申报费', v: pendingPre, a: pendingPreCny }, { l: '年终结算费', v: pendingSettle, a: pendingSettleCny }].map((r, i) => (
+                  {[{ l: '授权代表年费', v: pendingAr, a: pendingArCny }, { l: '预申报费', v: pendingPre, a: pendingPreCny }].map((r, i) => (
                     <div key={i} className="flex items-center justify-between px-3 py-1.5">
                       <span className="text-xs text-gray-500">{r.l}</span>
                       <span className="flex items-center gap-2">
@@ -647,10 +663,10 @@ export default function Admin() {
           <div className="flex flex-wrap gap-3 justify-between items-center">
             <div className="flex gap-2">
               <form onSubmit={async (e) => { e.preventDefault(); if(!search.trim()) return; try { const r = await fetch(`/api/admin/clients/search?q=${encodeURIComponent(search.trim())}&perPage=30`, { headers: ah() }); const d = await r.json(); if (r.ok) { setContracts(d.data.map(cl => ({ ...cl, id: cl.contract_id||cl.id, client_id: cl.id, status: cl.contract_status||cl.status, contract_number: cl.contract_number||'—', tier: cl.tier||'—', annual_fee_eur: cl.annual_fee_eur||0, lucid_confirmed: !!cl.lucid_confirmed, lucid_rep_accepted: !!cl.lucid_rep_accepted, pre_declared_status: cl.pre_declared_status, is_spam: cl.is_spam||0 }))); setPagination(d.pagination) } } catch (e) {} }} className="flex gap-2 items-center flex-wrap">
-                <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, !!v || showAll) }}
+                <select value={statusFilter} onChange={e => { const v = e.target.value; setStatusFilter(v); setShowPending(false); setPage(1); load(1, showAll, v ? 1000 : 50) }}
                   className="border border-gray-300 rounded-md px-2 py-1.5 text-xs bg-white focus:outline-none focus:border-primary">
                   <option value="">全部状态</option>
-                  {Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                  {FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
                 <button type="button" onClick={() => setShowPending(!showPending)}
                   className={`px-2 py-1.5 rounded-md text-xs font-medium ${showPending ? 'bg-red-100 text-red-700 border border-red-300' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
