@@ -501,12 +501,14 @@ export default function Admin() {
       // 未同步：管理员未在 LUCID 点「同步」（排除已终止）
       list = list.filter(c => !c.lucid_rep_accepted && c.status !== 'terminated')
     }
-    // Pending toggle（待办 = 需管理员处理的客户端待审上传 + 未同步）
+    // Pending toggle（待办 = 待审证明类上传 + 待回签 + 未同步）
     if (showPending) {
+      const PROOF_TYPES = ['bank_proof', 'proof_annual_fee', 'proof_prepaid', 'proof_predeclared', 'proof_settlement', 'proof_previous_year', 'payment_proof']
       list = list.filter(c => {
-        const hasPendingUpload = Object.entries(c._uploads || {}).some(([ft, ups]) => ft !== 'admin_stamped' && (ups || []).some(u => u.status === 'pending'))
+        const hasPendingProof = Object.entries(c._uploads || {}).some(([ft, ups]) => PROOF_TYPES.includes(ft) && (ups || []).some(u => u.status === 'pending'))
+        const needsStamp = (c._uploads?.signed_contract || []).some(u => u.status !== 'rejected') && !(c._uploads?.admin_stamped || []).length
         const needsSync = !c.lucid_rep_accepted && c.status !== 'terminated'
-        return hasPendingUpload || needsSync
+        return hasPendingProof || needsStamp || needsSync
       })
     }
     return list
@@ -598,9 +600,6 @@ export default function Admin() {
               </>
             )}
           </div>
-          <button onClick={exportCSV} className="px-3 py-1.5 border border-green-300 text-green-700 rounded-md text-xs hover:bg-green-50" title="导出客户 CSV">📥</button>
-          <button onClick={() => setExportModal(true)} className="px-3 py-1.5 border border-blue-300 text-blue-700 rounded-md text-xs hover:bg-blue-50">📤 导出</button>
-          <button onClick={openInbound} className={`px-3 py-1.5 border rounded-md text-xs hover:bg-emerald-50 ${inboundPending > 0 ? 'border-emerald-400 text-emerald-700 font-medium' : 'border-emerald-300 text-emerald-700'}`}>📥 收件{inboundPending > 0 ? ` (${inboundPending})` : ''}</button>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-md">
             <span className="text-xs text-amber-700">EUR/CNY</span>
             <span className="text-sm font-bold text-amber-800">{(rateInfo.rate||8.10).toFixed(2)}</span>
@@ -929,7 +928,7 @@ export default function Admin() {
       {infoChangeApps.length > 0 && (
         <div className="bg-white border border-gray-100 rounded-lg overflow-hidden mb-6">
           <button onClick={() => setInfoChangeOpen(v => !v)} className="w-full p-4 border-b border-gray-100 flex items-center justify-between hover:bg-gray-50">
-            <h2 className="font-bold text-sm text-gray-700">📝 信息修改申请 ({infoChangeApps.length})</h2>
+            <h2 className="font-bold text-sm text-gray-700">📝 信息修改申请 ({infoChangeApps.filter(a => a.status === 'pending').length})</h2>
             <span className="text-xs text-gray-400">{infoChangeOpen ? '▲ 收起' : '▼ 展开'}</span>
           </button>
           {infoChangeOpen && (
@@ -1093,117 +1092,6 @@ export default function Admin() {
                 {feeSubmitting ? '提交中...' : '✅ 确认设置'}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Export Modal — 三份 XLSX 导出 */}
-      {exportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setExportModal(false)}>
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg">📤 数据导出（XLSX）</h3>
-              <button onClick={() => setExportModal(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
-            </div>
-
-            {/* 1. EKO-PUNKT */}
-            <div className="border border-gray-200 rounded-lg p-4 space-y-3">
-              <h4 className="font-semibold text-sm">1. EKO-PUNKT Vertrag-Import（新合同批量上传）</h4>
-              <p className="text-xs text-gray-400">提交双元系统，按预申报/年终申报 + 申报日期范围（每月提交一次）</p>
-              <div className="flex items-center gap-2 flex-wrap">
-                <select value={ekMode} onChange={e => setEkMode(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
-                  <option value="initial">预申报（预估量）</option>
-                  <option value="final">年终申报（实际量）</option>
-                </select>
-                <input type="date" value={ekFrom} onChange={e => setEkFrom(e.target.value)} className="border border-gray-300 rounded-md px-2 py-2 text-sm" />
-                <span className="text-gray-400 text-sm">至</span>
-                <input type="date" value={ekTo} onChange={e => setEkTo(e.target.value)} className="border border-gray-300 rounded-md px-2 py-2 text-sm" />
-                <button onClick={doEkoPunkt} className="ml-auto px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">导出</button>
-              </div>
-            </div>
-
-            {/* 2. Buchhaltung */}
-            <div className="border border-gray-200 rounded-lg p-4 space-y-3">
-              <h4 className="font-semibold text-sm">2. 财务对账单（Buchhaltung）</h4>
-              <p className="text-xs text-gray-400">按付款时间日期范围</p>
-              <div className="flex items-center gap-2 flex-wrap">
-                <input type="date" value={bhFrom} onChange={e => setBhFrom(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
-                <span className="text-gray-400 text-sm">至</span>
-                <input type="date" value={bhTo} onChange={e => setBhTo(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
-                <button onClick={doBuchhaltung} className="ml-auto px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">导出</button>
-              </div>
-            </div>
-
-            {/* 3. LIVANTO */}
-            <div className="border border-gray-200 rounded-lg p-4 space-y-3">
-              <h4 className="font-semibold text-sm">3. LIVANTO 结算单</h4>
-              <p className="text-xs text-gray-400">按实收年费的付款日期范围（年费 50% 分成）</p>
-              <div className="flex items-center gap-2 flex-wrap">
-                <input type="date" value={lvFrom} onChange={e => setLvFrom(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
-                <span className="text-gray-400 text-sm">至</span>
-                <input type="date" value={lvTo} onChange={e => setLvTo(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
-                <button onClick={doLivanto} className="ml-auto px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold">导出</button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* Inbound inbox modal — 统一收发邮件·收件队列 */}
-      {inboundModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setInboundModal(false)}>
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 p-6 space-y-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg">📥 收件队列（待人工）</h3>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setInboundUploadOpen(!inboundUploadOpen)} className={`px-3 py-1.5 border rounded-md text-xs ${inboundUploadOpen ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}>⬆ 手动上传</button>
-                <button onClick={() => setInboundModal(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
-              </div>
-            </div>
-            {inboundUploadOpen && (
-              <div className="border border-dashed border-emerald-300 rounded-lg p-3 space-y-2 bg-emerald-50/40">
-                <p className="text-xs text-gray-500">从网页邮箱下载 EKO-PUNKT 等合作方的材料后，在此上传进队列（可多选，单个 ≤100MB）。</p>
-                <input type="file" multiple onChange={e => setInboundUploadFiles(Array.from(e.target.files || []))} className="text-xs text-gray-600" />
-                {inboundUploadFiles.length > 0 && <p className="text-xs text-emerald-700">已选 {inboundUploadFiles.length} 个文件</p>}
-                <input value={inboundUploadSubject} onChange={e => setInboundUploadSubject(e.target.value)} placeholder="主题（可选，如：EKO-PUNKT 材料 - 客户名）" className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-xs focus:outline-none focus:border-primary" />
-                <div className="flex justify-end gap-2">
-                  <button onClick={() => { setInboundUploadOpen(false); setInboundUploadFiles([]); setInboundUploadSubject('') }} className="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-500 hover:bg-gray-50">取消</button>
-                  <button onClick={inboundUploadSubmit} disabled={inboundUploading || inboundUploadFiles.length === 0}
-                    className="px-4 py-1.5 bg-primary text-white rounded-md text-xs font-medium disabled:opacity-40 hover:bg-primary-light">
-                    {inboundUploading ? '上传中…' : '上传进队列'}
-                  </button>
-                </div>
-              </div>
-            )}
-            <p className="text-xs text-gray-400">EKO-PUNKT 等合作方把材料发到 info@freddy-epr.com，在此分配客户后转发。手动上传的材料同样进入此队列。</p>
-            {inboundMsg && <p className="text-xs text-emerald-600">{inboundMsg}</p>}
-            {inboundLoading ? <p className="text-sm text-gray-400 py-8 text-center">加载中…</p> :
-              inboundDocs.filter(d => d.status === 'pending').length === 0 ? (
-                <p className="text-sm text-gray-400 py-8 text-center">无待处理邮件</p>
-              ) : (
-                <div className="space-y-3">
-                  {inboundDocs.filter(d => d.status === 'pending').map(d => (
-                    <div key={d.id} className="border border-gray-200 rounded-lg p-3 space-y-2">
-                      <div className="flex justify-between gap-2">
-                        <div className="font-medium text-sm text-gray-800 leading-snug break-words">{d.subject}</div>
-                        <div className="text-[11px] text-gray-400 whitespace-nowrap">{d.received_at ? new Date(d.received_at).toLocaleString('zh-CN') : ''}</div>
-                      </div>
-                      <div className="text-xs text-gray-500">发件人：{d.sender_name || '—'}{d.sender_email ? ` <${d.sender_email}>` : ''} · 附件 {d.attachments.length} 个</div>
-                      {d.body_text && <div className="text-xs text-gray-400 break-words">{d.body_text.slice(0, 120)}</div>}
-                      {d.client_id && (
-                        <div className="text-xs text-emerald-700">已分配 → {d.company_name || d.contact_name || `客户#${d.client_id}`}{d.contact_email ? ` <${d.contact_email}>` : ''}</div>
-                      )}
-                      <div className="flex items-center gap-2 pt-1">
-                        <InboundClientPicker onPick={(c) => inboundAssign(d.id, c)} />
-                        <button onClick={() => inboundForward(d)} disabled={!d.client_id}
-                          className="px-3 py-1 bg-primary text-white rounded-md text-xs font-medium disabled:opacity-40 hover:bg-primary-light">转发</button>
-                        <button onClick={() => inboundSkip(d)} className="px-3 py-1 border border-gray-200 rounded-md text-xs text-gray-500 hover:bg-gray-50">跳过</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
           </div>
         </div>
       )}

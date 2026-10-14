@@ -206,10 +206,12 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       db.get(`SELECT COUNT(DISTINCT c.id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id
         WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification' AND c.status != 'terminated'
           AND c.lucid_rep_accepted = 0`),
-      // 待办：待审客户端上传 或 未同步（与「待办」按钮口径一致）
+      // 待办：待审证明类上传 或 待回签(签章且无回签) 或 未同步（与「待办」按钮口径一致）
       db.get(`SELECT COUNT(DISTINCT c.id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id
         WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification'
-          AND (c.id IN (SELECT contract_id FROM uploads WHERE file_type != 'admin_stamped' AND status = 'pending')
+          AND (c.id IN (SELECT contract_id FROM uploads WHERE file_type IN ('bank_proof','proof_annual_fee','proof_prepaid','proof_predeclared','proof_settlement','proof_previous_year','payment_proof') AND status = 'pending')
+               OR (c.id IN (SELECT contract_id FROM uploads WHERE file_type = 'signed_contract' AND status != 'rejected')
+                   AND c.id NOT IN (SELECT contract_id FROM uploads WHERE file_type = 'admin_stamped'))
                OR (c.lucid_rep_accepted = 0 AND c.status != 'terminated'))`),
     ])
     res.json({
