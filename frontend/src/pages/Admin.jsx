@@ -125,6 +125,12 @@ export default function Admin() {
     setLoading(false)
   }
 
+  // 变更后重载：保留当前筛选（有筛选时一次加载全部，否则默认分页）
+  const reload = () => {
+    const needAll = statusFilter || (pendingFilter && pendingFilter !== 'info_change')
+    load(page, false, needAll ? 1000 : 10)
+  }
+
   const loadApps = async () => {
     try {
       const r = await fetch('/api/admin/applications', { headers: ah() })
@@ -139,7 +145,7 @@ export default function Admin() {
       const r = await fetch('/api/admin/set-fee', { method: 'POST', headers: { ...ah(), 'Content-Type': 'application/json' }, body: JSON.stringify({ contract_id: feeModal.contractId, fee_type: feeModal.type, amount_eur: parseFloat(feeAmount) }) })
       const d = await r.json(); if (!r.ok) throw new Error(d.error)
       alert(`✅ ${feeModal.type === 'prepaid' ? '回收费预缴' : '年终结算'} 费用已设置为 €${parseFloat(feeAmount).toFixed(2)}`)
-      setFeeModal(null); setFeeAmount(''); load(page)
+      setFeeModal(null); setFeeAmount(''); reload()
     } catch (e) { alert('❌ ' + e.message) }
     setFeeSubmitting(false)
   }
@@ -158,7 +164,7 @@ export default function Admin() {
   const uploadStamped = async (e, clientId, contractId) => {
     const f = e.target.files?.[0]; if (!f) return
     const fd = new FormData(); fd.append('file', f); fd.append('client_id', clientId); fd.append('contract_id', contractId); fd.append('file_type', 'admin_stamped')
-    try { const r = await fetch('/api/admin/uploads', { method: 'POST', headers: ah(), body: fd }); const d = await r.json(); if (d.success) { alert('已上传'); load(page) } else alert(d.error) } catch {}
+    try { const r = await fetch('/api/admin/uploads', { method: 'POST', headers: ah(), body: fd }); const d = await r.json(); if (d.success) { alert('已上传'); reload() } else alert(d.error) } catch {}
     e.target.value = ''
   }
 
@@ -196,7 +202,7 @@ export default function Admin() {
     if (!confirm('⚠️ 确认删除此合同？合同相关的所有支付、上传、通知记录将一并删除。此操作不可撤销！')) return
     try {
       const r = await fetch(`/api/admin/contracts/${contractId}`, { method: 'DELETE', headers: ah() })
-      if (r.ok) { setContracts(prev => prev.filter(c => c.id !== contractId)); load(page) }
+      if (r.ok) { setContracts(prev => prev.filter(c => c.id !== contractId)); reload() }
       else { const d = await r.json(); alert('删除失败: ' + d.error) }
     } catch { alert('请求失败') }
   }
@@ -205,7 +211,7 @@ export default function Admin() {
     if (!confirm('⚠️ 确认删除此账户？将永久删除该客户的合同、联系方式、登录账号及全部关联数据（支付/上传/通知等），邮箱和电话将释放并可重新注册。此操作不可撤销！')) return
     try {
       const r = await fetch(`/api/admin/clients/${clientId}`, { method: 'DELETE', headers: ah() })
-      if (r.ok) { setContracts(prev => prev.filter(c => c.client_id !== clientId)); load(page) }
+      if (r.ok) { setContracts(prev => prev.filter(c => c.client_id !== clientId)); reload() }
       else { const d = await r.json(); alert('删除失败: ' + d.error) }
     } catch { alert('请求失败') }
   }
@@ -234,7 +240,7 @@ export default function Admin() {
       const d = await r.json()
       if (r.ok) {
         setApplications(prev => prev.map(a => a.id === appId ? { ...a, status: action === 'approve' ? 'approved' : 'rejected' } : a))
-        load(page)
+        reload()
       } else alert('操作失败：' + (d.error || '未知错误'))
     } catch (e) { alert('请求失败：' + e.message) }
   }
@@ -302,7 +308,7 @@ export default function Admin() {
         setReviewedUploads(prev => ({ ...prev, [uploadId]: status }))
         // 后端可能按 action（collect/self_declared）改写 file_type 并调整 pre_declared_status，
         // 刷新以正确归类凭证，避免「确认自行预申报」后凭证从表格消失
-        load(page)
+        reload()
       } else {
         alert('操作失败：' + (d.error || '未知错误'))
       }
@@ -326,7 +332,7 @@ export default function Admin() {
                   title={u.original_name}>
                   {isApproved ? '✅ ' : '📄 '}{(u.original_name || '').length > 14 ? (u.original_name || '').slice(0, 12) + '…' : u.original_name}
                 </button>
-                <button onClick={async () => { if(confirm('删除此凭证？')){ try { const r=await fetch(`/api/admin/uploads/${u.id}`,{method:'DELETE',headers:ah()}); if(r.ok) load(page) }catch{} }}}
+                <button onClick={async () => { if(confirm('删除此凭证？')){ try { const r=await fetch(`/api/admin/uploads/${u.id}`,{method:'DELETE',headers:ah()}); if(r.ok) reload() }catch{} }}}
                   className="text-[11px] text-gray-300 hover:text-red-500 flex-shrink-0 leading-none">🗑</button>
               </div>
               {reviewStatus !== 'approved' && (
@@ -402,7 +408,7 @@ export default function Admin() {
 
   if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
   if (error === 'login_required') return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-extrabold mb-4">需要管理员登录</h1></div>
-  if (error) return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-xl font-bold mb-4 text-red-600">加载失败</h1><p className="text-gray-400 mb-4">{error}</p><button onClick={() => load(page)} className="px-4 py-2 border rounded-md text-sm">重试</button></div>
+  if (error) return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-xl font-bold mb-4 text-red-600">加载失败</h1><p className="text-gray-400 mb-4">{error}</p><button onClick={() => reload()} className="px-4 py-2 border rounded-md text-sm">重试</button></div>
   if (!stats) return null
 
   const arCny = Math.round(Number(stats.ar_fee_cny) || 0)
