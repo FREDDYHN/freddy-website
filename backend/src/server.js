@@ -176,7 +176,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
   try {
     const db = await getDb()
     const rate = await getRate()
-    const [clients, contracts, pending, arFee, predeclaredEur, settlementEur, unpaidCnt, signedWaitingCnt, notSyncedCnt, pendingCnt, proofPendingCnt] = await Promise.all([
+    const [clients, contracts, pending, arFee, predeclaredEur, settlementEur, unpaidCnt, signedWaitingCnt, notSyncedCnt, proofPendingCnt] = await Promise.all([
       db.get("SELECT COUNT(DISTINCT c.client_id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification'"),
       db.get("SELECT COUNT(*) as cnt FROM contracts WHERE lucid_rep_accepted = 1"),
       db.get(`SELECT
@@ -206,13 +206,6 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       db.get(`SELECT COUNT(DISTINCT c.id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id
         WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification' AND c.status != 'terminated'
           AND c.lucid_rep_accepted = 0`),
-      // 待办：待审证明类上传 或 待回签(签章且无回签) 或 未同步（与「待办」按钮口径一致）
-      db.get(`SELECT COUNT(DISTINCT c.id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id
-        WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification'
-          AND (c.id IN (SELECT contract_id FROM uploads WHERE file_type IN ('bank_proof','proof_annual_fee','proof_prepaid','proof_predeclared','proof_settlement','proof_previous_year','payment_proof') AND status = 'pending')
-               OR (c.id IN (SELECT contract_id FROM uploads WHERE file_type = 'signed_contract' AND status != 'rejected')
-                   AND c.id NOT IN (SELECT contract_id FROM uploads WHERE file_type = 'admin_stamped'))
-               OR (c.lucid_rep_accepted = 0 AND c.status != 'terminated'))`),
       // 待审证明类上传（待办明细用）
       db.get(`SELECT COUNT(DISTINCT c.id) as cnt FROM contracts c JOIN clients cl ON cl.id = c.client_id
         WHERE cl.deleted_at IS NULL AND c.status != 'pending_verification'
@@ -228,7 +221,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       predeclared_fee_cny: Math.round(predeclaredEur.total * 100) / 100, predeclared_fee_clients: predeclaredEur.clients,
       settlement_fee_cny: Math.round(settlementEur.total * 100) / 100, settlement_fee_clients: settlementEur.clients,
       unpaid_clients: unpaidCnt.cnt, signed_waiting_clients: signedWaitingCnt.cnt, not_synced_clients: notSyncedCnt.cnt,
-      pending_clients: pendingCnt.cnt, proof_pending_clients: proofPendingCnt.cnt,
+      proof_pending_clients: proofPendingCnt.cnt,
     })
   } catch (e) {
     console.error('[server] admin stats error:', e)

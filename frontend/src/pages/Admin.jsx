@@ -384,7 +384,7 @@ export default function Admin() {
       if (pa !== pb) return pa - pb
       return String(b.created_at || '').localeCompare(String(a.created_at || ''))
     })
-  const pendingCount = (Number(stats?.pending_clients) || 0) + infoChangeApps.filter(a => a.status === 'pending').length
+  const pendingCount = (Number(stats?.signed_waiting_clients) || 0) + (Number(stats?.proof_pending_clients) || 0) + (Number(stats?.not_synced_clients) || 0) + infoChangeApps.filter(a => a.status === 'pending').length
 
   if (loading && !stats) return <div className="max-w-6xl mx-auto px-4 py-16"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-64" /><div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-100 rounded" />)}</div></div></div>
   if (error === 'login_required') return <div className="max-w-6xl mx-auto px-4 py-16 text-center"><h1 className="text-2xl font-extrabold mb-4">需要管理员登录</h1></div>
