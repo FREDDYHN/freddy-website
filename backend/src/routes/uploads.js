@@ -5,6 +5,7 @@ import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { getDb } from '../db.js'
 import { authMiddleware } from '../auth.js'
+import { compressPdfIfLarge, isPdf } from '../services/pdf-compress.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootPath = join(__dirname, '..', '..', '..')
@@ -45,6 +46,12 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file provided' })
 
+    // 上传后自动压缩大 PDF（盖章扫描件 50-99M → ~12M，磁盘治理）
+    let fileSize = req.file.size
+    if (isPdf(req.file)) {
+      fileSize = await compressPdfIfLarge(join(uploadsDir, req.file.filename))
+    }
+
     const db = await getDb()
     const { contract_id, file_type } = req.body
 
@@ -56,7 +63,7 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
       file_type || 'other',
       fixEncoding(req.file.originalname),
       req.file.filename,
-      req.file.size,
+      fileSize,
       req.file.mimetype
     )
 
@@ -103,7 +110,7 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
         file_type: file_type || 'other',
         original_name: fixEncoding(req.file.originalname),
         stored_path: req.file.filename,
-        file_size: req.file.size,
+        file_size: fileSize,
         mime_type: req.file.mimetype,
         status: 'pending',
         uploaded_at: new Date().toISOString(),
