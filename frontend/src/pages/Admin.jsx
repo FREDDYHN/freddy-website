@@ -52,6 +52,7 @@ export default function Admin() {
   const [lucidSaveMsg, setLucidSaveMsg] = useState('')
   const [taxEdit, setTaxEdit] = useState(null)
   const [taxSaveMsg, setTaxSaveMsg] = useState('')
+  const [preview, setPreview] = useState(null) // { name, type: 'image'|'pdf'|'other', url }
 
   const ah = () => { const t = sessionStorage.getItem('token'); return t ? { 'Authorization': `Bearer ${t}` } : {} }
 
@@ -177,6 +178,34 @@ export default function Admin() {
       a.href = objUrl; a.download = filename || ''; document.body.appendChild(a)
       a.click(); a.remove(); URL.revokeObjectURL(objUrl)
     } catch (e) { alert('❌ 下载失败: ' + e.message) }
+  }
+
+  /** 打开凭证预览弹窗（图片用 <img>、PDF 用 <iframe>，其它类型提示下载） */
+  const openPreview = async (u) => {
+    try {
+      const r = await fetch(`/api/uploads/${u.id}/download`, { headers: ah() })
+      if (!r.ok) throw new Error(`加载失败 (${r.status})`)
+      const blob = await r.blob()
+      const url = URL.createObjectURL(blob)
+      const mime = (u.mime_type || '').toLowerCase()
+      const name = (u.original_name || '').toLowerCase()
+      const type = (mime.startsWith('image/') || /\.(png|jpe?g|gif|webp|bmp)$/.test(name)) ? 'image'
+        : (mime === 'application/pdf' || name.endsWith('.pdf')) ? 'pdf'
+        : 'other'
+      setPreview({ name: u.original_name || '', type, url })
+    } catch (e) { alert('❌ 预览失败: ' + e.message) }
+  }
+
+  const closePreview = () => {
+    if (preview?.url) URL.revokeObjectURL(preview.url)
+    setPreview(null)
+  }
+
+  const downloadPreview = () => {
+    if (!preview?.url) return
+    const a = document.createElement('a')
+    a.href = preview.url; a.download = preview.name || ''; document.body.appendChild(a)
+    a.click(); a.remove()
   }
 
   const toggleLucidAnnehmen = async (contractId, current) => {
@@ -310,7 +339,7 @@ export default function Admin() {
           return (
             <div key={u.id}>
               <div className="flex items-center gap-1">
-                <button onClick={() => authDownload(`/api/uploads/${u.id}/download`, u.original_name)}
+                <button onClick={() => openPreview(u)}
                   className={`text-[10px] hover:underline text-left truncate max-w-[110px] ${isApproved ? 'text-green-600 font-medium' : 'text-blue-600'}`}
                   title={u.original_name}>
                   {isApproved ? '✅ ' : '📄 '}{(u.original_name || '').length > 14 ? (u.original_name || '').slice(0, 12) + '…' : u.original_name}
@@ -959,6 +988,33 @@ export default function Admin() {
               <button onClick={() => setFeeDetailHtml(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none px-1">×</button>
             </div>
             <iframe srcDoc={feeDetailHtml} className="flex-1 w-full border-0" title="缴费明细" />
+          </div>
+        </div>
+      )}
+
+      {/* Upload Preview Modal */}
+      {preview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={closePreview}>
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 flex-shrink-0 gap-3">
+              <span className="text-sm font-medium text-gray-700 truncate" title={preview.name}>{preview.name}</span>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <button onClick={downloadPreview} className="text-xs text-primary hover:underline">⬇ 下载</button>
+                <button onClick={closePreview} className="text-gray-400 hover:text-gray-600 text-2xl leading-none px-1">×</button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto bg-gray-100 flex items-center justify-center p-4 min-h-0">
+              {preview.type === 'image' ? (
+                <img src={preview.url} alt={preview.name} className="max-w-full max-h-full object-contain" />
+              ) : preview.type === 'pdf' ? (
+                <iframe src={preview.url} title={preview.name} className="w-full h-full border-0" />
+              ) : (
+                <div className="text-center text-gray-500 p-8">
+                  <p className="mb-2">该文件类型暂不支持在线预览</p>
+                  <button onClick={downloadPreview} className="text-primary underline text-sm">下载后查看</button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
