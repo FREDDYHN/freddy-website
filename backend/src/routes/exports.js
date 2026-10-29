@@ -160,19 +160,20 @@ function extractPostcode(address) {
   return ''
 }
 
-/** 邮编解析：①地址里明确带邮编 → 用；②扫中文地址命中的区县名 → 查区县映射表；③都命中不到 → 留空人工补 */
+/** 邮编解析：①中文地址明确 6 位邮编 → 用；②扫中文区县名查映射表（中国客户优先，避免英文门牌号如「1018」误判）；③英文邮编（国外客户）；④留空人工补 */
 function resolvePlz(zhAddr, enAddr) {
-  const fromEn = extractPostcode(enAddr)
-  if (fromEn) return fromEn
   const fromZh = extractPostcode(zhAddr)
   if (fromZh) return fromZh
   const s = String(zhAddr || '')
-  if (!s) return ''
-  // 区县名最长优先（如「龙华新区」先于「龙华区」）
-  const keys = Object.keys(DISTRICT_POSTCODES).sort((a, b) => b.length - a.length)
-  for (const k of keys) {
-    if (s.includes(k)) return DISTRICT_POSTCODES[k]
+  if (s) {
+    // 区县名最长优先（如「龙华新区」先于「龙华区」）
+    const keys = Object.keys(DISTRICT_POSTCODES).sort((a, b) => b.length - a.length)
+    for (const k of keys) {
+      if (s.includes(k)) return DISTRICT_POSTCODES[k]
+    }
   }
+  const fromEn = extractPostcode(enAddr)
+  if (fromEn) return fromEn
   return ''
 }
 
