@@ -165,15 +165,18 @@ export const AR_TIER_ZH = { basic: '基础', standard: '标准', premium: '高�
 // ══════════════════════════════════════════════
 
 // Source: 回收费价目单_2026 / EASY-LIZE China 2026
+// 2026-10-29 起：EKO-PUNKT 对 8/15 之后缴费的客户 +30% 惩罚性涨价，故 rate = 原基础价 × 1.3。
+// 原基础价（追溯用）：glass .24/.17/.12、paper .33/.27/.25/.22、ferrous/aluminium .99、
+// plastics/cartons/composites .999、other .1999/.13/.11。minFee 28.90 不变。
 export const PACKAGING_MATERIALS = [
-  { key: 'glass',      label: '玻璃 / Glas',                minFee: 28.90, tiers: [{ toKg: 49.999, rate: 0.24 }, { toKg: 99.999, rate: 0.17 }, { toKg: Infinity, rate: 0.12 }] },
-  { key: 'paper',      label: '纸/纸板 / Papier/Pappe',     minFee: 28.90, tiers: [{ toKg: 49.999, rate: 0.33 }, { toKg: 99.999, rate: 0.27 }, { toKg: 999.999, rate: 0.25 }, { toKg: Infinity, rate: 0.22 }] },
-  { key: 'ferrous',    label: '黑色金属 / Eisenmetalle',    minFee: 28.90, tiers: [{ toKg: Infinity, rate: 0.99 }] },
-  { key: 'aluminium',  label: '铝 / Aluminium',             minFee: 28.90, tiers: [{ toKg: Infinity, rate: 0.99 }] },
-  { key: 'plastics',   label: '塑料 / Kunststoffe',         minFee: 28.90, tiers: [{ toKg: Infinity, rate: 0.999 }] },
-  { key: 'cartons',    label: '饮料纸盒 / Getränkekarton',  minFee: 28.90, tiers: [{ toKg: Infinity, rate: 0.999 }] },
-  { key: 'composites', label: '其他复合包装 / Sonstige Verbunde', minFee: 28.90, tiers: [{ toKg: Infinity, rate: 0.999 }] },
-  { key: 'other',      label: '其他 / Sonstige Materialien', minFee: 28.90, tiers: [{ toKg: 99.999, rate: 0.1999 }, { toKg: 199.999, rate: 0.13 }, { toKg: Infinity, rate: 0.11 }] },
+  { key: 'glass',      label: '玻璃 / Glas',                minFee: 28.90, tiers: [{ toKg: 49.999, rate: 0.312 }, { toKg: 99.999, rate: 0.221 }, { toKg: Infinity, rate: 0.156 }] },
+  { key: 'paper',      label: '纸/纸板 / Papier/Pappe',     minFee: 28.90, tiers: [{ toKg: 49.999, rate: 0.429 }, { toKg: 99.999, rate: 0.351 }, { toKg: 999.999, rate: 0.325 }, { toKg: Infinity, rate: 0.286 }] },
+  { key: 'ferrous',    label: '黑色金属 / Eisenmetalle',    minFee: 28.90, tiers: [{ toKg: Infinity, rate: 1.287 }] },
+  { key: 'aluminium',  label: '铝 / Aluminium',             minFee: 28.90, tiers: [{ toKg: Infinity, rate: 1.287 }] },
+  { key: 'plastics',   label: '塑料 / Kunststoffe',         minFee: 28.90, tiers: [{ toKg: Infinity, rate: 1.2987 }] },
+  { key: 'cartons',    label: '饮料纸盒 / Getränkekarton',  minFee: 28.90, tiers: [{ toKg: Infinity, rate: 1.2987 }] },
+  { key: 'composites', label: '其他复合包装 / Sonstige Verbunde', minFee: 28.90, tiers: [{ toKg: Infinity, rate: 1.2987 }] },
+  { key: 'other',      label: '其他 / Sonstige Materialien', minFee: 28.90, tiers: [{ toKg: 99.999, rate: 0.2599 }, { toKg: 199.999, rate: 0.169 }, { toKg: Infinity, rate: 0.143 }] },
 ]
 
 /** Get per-kg rate for a material at a given total kg (tiered pricing) */
